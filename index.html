@@ -211,6 +211,39 @@
   .pager span { font-family: var(--serif); font-size: 20px; }
   .pager .next { text-align: right; margin-left: auto; }
 
+  /* ---------- Share ---------- */
+  .share-fab { position: absolute; top: 18px; right: 24px; z-index: 2; }
+  .btn.icon-only { padding: 9px; }
+  .share-dialog {
+    border: 0; padding: 0; border-radius: var(--radius); background: var(--paper); color: var(--ink);
+    box-shadow: var(--shadow-lift); width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  }
+  .share-dialog::backdrop { background: rgba(30,18,12,.45); backdrop-filter: blur(3px); }
+  .share-dialog[open] { animation: fade .25s ease; }
+  .share-inner { padding: 24px 24px 22px; }
+  .share-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 4px; }
+  .share-head h2 { font-family: var(--serif); font-weight: 500; font-size: 26px; margin: 0; line-height: 1.15; }
+  .share-sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 18px; overflow-wrap: anywhere; }
+  .share-close { background: none; border: 0; color: var(--ink-soft); cursor: pointer; padding: 4px; border-radius: 8px; font: inherit; }
+  .share-close:hover { color: var(--accent); }
+  .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .share-opt {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 4px 10px;
+    border-radius: 16px; border: 1px solid transparent; background: none; color: var(--ink);
+    font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; text-decoration: none;
+    transition: background .2s, border-color .2s;
+  }
+  .share-opt:hover, .share-opt:focus-visible { background: var(--bg-2); border-color: var(--line); outline: none; }
+  .share-opt .ico { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff; }
+  .share-opt .ico svg { width: 22px; height: 22px; }
+  .share-link { display: flex; gap: 8px; margin-top: 18px; }
+  .share-link input {
+    flex: 1; min-width: 0; font: inherit; font-size: 13px; color: var(--ink-soft); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; outline: none;
+  }
+  .share-link .btn.copied { border-color: #5f9a5a; color: #5f9a5a; }
+  @media (max-width: 420px) { .share-grid { grid-template-columns: repeat(3, 1fr); } }
+
   footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
   footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
   footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
@@ -230,7 +263,7 @@
     .toolbar h2 { font-size: 32px; }
   }
   @media print {
-    .banner, .index-view, .recipe-nav, .pager, .recipe-hero .art { display: none !important; }
+    .banner, .index-view, .recipe-nav, .share-dialog, .pager, .recipe-hero .art { display: none !important; }
     .recipe-view footer { padding-top: 32px; color: #555; }
     .recipe-view footer .sign { color: #000; }
     body { background: #fff; color: #000; }
@@ -244,6 +277,10 @@
 <!-- ============ INDEX ============ -->
 <div class="index-view">
   <header class="banner">
+    <button class="btn share-fab" type="button" data-share aria-haspopup="dialog">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+      Share
+    </button>
     <div class="wrap banner-inner">
       <div>
         <p class="eyebrow">Recipes from my kitchen</p>
@@ -284,10 +321,16 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         All recipes
       </a>
-      <button class="btn" type="button" onclick="window.print()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Print
-      </button>
+      <div style="display:flex;gap:10px">
+        <button class="btn" type="button" data-share aria-haspopup="dialog">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          Share
+        </button>
+        <button class="btn" type="button" onclick="window.print()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+      </div>
     </div>
     <div class="wrap recipe-hero" style="padding-left:0;padding-right:0">
       <div>
@@ -305,6 +348,24 @@
   <nav class="pager" id="pager"></nav>
   <footer><span class="sign">Alborz</span>Baked with love · <time id="recipeDate"></time></footer>
 </article>
+
+<!-- ============ SHARE DIALOG ============ -->
+<dialog class="share-dialog" id="shareDialog" aria-labelledby="shareTitle">
+  <div class="share-inner">
+    <div class="share-head">
+      <h2 id="shareTitle">Share this page</h2>
+      <button class="share-close" type="button" id="shareClose" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="share-sub" id="shareSub">Where would you like to share it?</p>
+    <div class="share-grid" id="shareGrid"></div>
+    <div class="share-link">
+      <input id="shareUrl" type="text" readonly aria-label="Link to this page">
+      <button class="btn" type="button" id="shareCopy">Copy link</button>
+    </div>
+  </div>
+</dialog>
 
 <script src="recipes.js"></script>
 <script>
@@ -486,10 +547,74 @@
   }
 
   document.addEventListener("keydown", (e) => {
-    if (!document.body.classList.contains("viewing")) return;
+    if (!document.body.classList.contains("viewing") || shareDialog.open) return;
     if (e.key === "Escape") location.hash = "";
     if (e.key === "ArrowLeft") $("#pager .prev")?.click();
     if (e.key === "ArrowRight") $("#pager .next")?.click();
+  });
+
+  /* ---------- Share ----------
+     Shares whatever is on screen: the whole book, or the open recipe (its URL includes #/recipe/…). */
+  const SHARE_TARGETS = [
+    { name: "WhatsApp", color: "#25d366", url: (u, t) => `https://wa.me/?text=${encodeURIComponent(t + " " + u)}`,
+      icon: '<path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.6 14.1c-.2.7-1.4 1.3-2 1.4-.5 0-1.1.2-3.6-.8-3-1.2-5-4.3-5.1-4.5-.2-.2-1.2-1.6-1.2-3s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.2 1.4Z"/>' },
+    { name: "Facebook", color: "#1877f2", url: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}`,
+      icon: '<path fill="currentColor" d="M14 8.5V6.8c0-.8.2-1.3 1.4-1.3H17V2.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2H7.5V12h2.8v10H14V12h2.8l.4-3.5H14Z"/>' },
+    { name: "X", color: "#111111", url: (u, t) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}&url=${encodeURIComponent(u)}`,
+      icon: '<path fill="currentColor" d="M17.8 3h3l-6.6 7.6L22 21h-6.1l-4.8-6.3L5.6 21h-3l7.1-8.1L2.2 3h6.2l4.4 5.8L17.8 3Zm-1 16.2h1.7L7.3 4.7H5.5l11.3 14.5Z"/>' },
+    { name: "Pinterest", color: "#e60023", url: (u, t) => `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}&description=${encodeURIComponent(t)}`,
+      icon: '<path fill="currentColor" d="M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.8 0 1.2.6 1.2 1.4 0 .8-.5 2.1-.8 3.3-.2 1 .5 1.8 1.5 1.8 1.8 0 3.2-1.9 3.2-4.7 0-2.4-1.8-4.2-4.3-4.2-2.9 0-4.6 2.2-4.6 4.4 0 .9.3 1.8.8 2.3v.4l-.3 1.2c0 .2-.2.3-.4.2-1.3-.6-2.1-2.5-2.1-4 0-3.3 2.4-6.3 6.9-6.3 3.6 0 6.4 2.6 6.4 6 0 3.6-2.3 6.5-5.4 6.5-1 0-2-.5-2.4-1.2l-.6 2.5c-.2.9-.9 2.1-1.3 2.8A10 10 0 1 0 12 2Z"/>' },
+    { name: "Reddit", color: "#ff4500", url: (u, t) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}&title=${encodeURIComponent(t)}`,
+      icon: '<ellipse cx="12" cy="14" rx="8" ry="5.5" fill="currentColor"/><circle cx="18.5" cy="5" r="1.8" fill="currentColor"/><path d="M12 8.5 13.3 3.8l5 1.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="4.6" cy="10.6" r="1.9" fill="currentColor"/><circle cx="19.4" cy="10.6" r="1.9" fill="currentColor"/><circle cx="9" cy="13.3" r="1.3" fill="#ff4500"/><circle cx="15" cy="13.3" r="1.3" fill="#ff4500"/><path d="M9 16.3c1.7 1.2 4.3 1.2 6 0" fill="none" stroke="#ff4500" stroke-width="1.2" stroke-linecap="round"/>' },
+    { name: "Telegram", color: "#229ed9", url: (u, t) => `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}`,
+      icon: '<path fill="currentColor" d="m21.4 4.2-3.1 15c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.2 13l-4.7-1.5c-1-.3-1-1 .2-1.5L20.1 3c.9-.3 1.6.2 1.3 1.2Z"/>' },
+    { name: "Email", color: "#c0573f", url: (u, t) => `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(t + "\n\n" + u)}`,
+      icon: '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 5.5h18v13H3z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="m3 6 9 7 9-7"/>' },
+    { name: "Text", color: "#34c759", url: (u, t) => `sms:?&body=${encodeURIComponent(t + " " + u)}`,
+      icon: '<path fill="currentColor" d="M12 3C6.5 3 2 6.7 2 11.2c0 2.4 1.3 4.6 3.4 6.1-.2 1.3-.9 2.6-2 3.6 2 0 3.9-.7 5.2-1.8 1.1.3 2.2.5 3.4.5 5.5 0 10-3.7 10-8.2S17.5 3 12 3Z"/>' },
+  ];
+  const shareDialog = $("#shareDialog");
+  let shareData = { url: "", title: "" };
+
+  function currentShare() {
+    const viewing = document.body.classList.contains("viewing");
+    const title = viewing ? `${$("#rTitle").textContent} · The Baking Book` : "The Baking Book";
+    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share the Baking Book" };
+  }
+
+  function openShare() {
+    const s = currentShare();
+    shareData = s;
+    $("#shareTitle").textContent = s.heading;
+    $("#shareSub").textContent = "Pick where to share " + (document.body.classList.contains("viewing") ? `“${$("#rTitle").textContent}”` : "the whole book") + ".";
+    $("#shareUrl").value = s.url;
+    const opts = SHARE_TARGETS.map((p, k) =>
+      `<a class="share-opt" href="${esc(p.url(s.url, s.title))}" target="_blank" rel="noopener" data-k="${k}"><span class="ico" style="background:${p.color}"><svg viewBox="0 0 24 24" aria-hidden="true">${p.icon}</svg></span>${esc(p.name)}</a>`);
+    // The device's own share sheet (AirDrop, Messages, Notes…) where the browser supports it.
+    if (navigator.share) opts.push(`<button class="share-opt" type="button" id="shareNative"><span class="ico" style="background:var(--ink-soft)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg></span>More…</button>`);
+    $("#shareGrid").innerHTML = opts.join("");
+    $("#shareCopy").textContent = "Copy link";
+    $("#shareCopy").classList.remove("copied");
+    shareDialog.showModal();
+  }
+
+  document.querySelectorAll("[data-share]").forEach((b) => b.addEventListener("click", openShare));
+  $("#shareClose").addEventListener("click", () => shareDialog.close());
+  shareDialog.addEventListener("click", (e) => { if (e.target === shareDialog) shareDialog.close(); }); // click backdrop
+  $("#shareGrid").addEventListener("click", (e) => {
+    const native = e.target.closest("#shareNative");
+    if (native) { navigator.share({ title: shareData.title, url: shareData.url }).catch(() => {}); shareDialog.close(); return; }
+    const opt = e.target.closest("a.share-opt");
+    if (!opt) return;
+    // mailto:/sms: hand off to an app; open them in place so no blank tab is left behind.
+    if (/^(mailto|sms):/.test(opt.getAttribute("href"))) { e.preventDefault(); location.href = opt.getAttribute("href"); }
+    shareDialog.close();
+  });
+  $("#shareCopy").addEventListener("click", async () => {
+    const btn = $("#shareCopy"), input = $("#shareUrl");
+    try { await navigator.clipboard.writeText(input.value); }
+    catch { input.select(); document.execCommand("copy"); }
+    btn.textContent = "Copied ✓"; btn.classList.add("copied");
   });
 
   if (RECIPES.some((r) => r.sample)) {
