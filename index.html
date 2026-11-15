@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #fbf6ef;
@@ -212,6 +212,8 @@
   .pager .next { text-align: right; margin-left: auto; }
 
   footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
+  footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
+  footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
 
   @media (max-width: 860px) {
     .banner-inner { grid-template-columns: 1fr; padding-top: 48px; }
@@ -228,7 +230,9 @@
     .toolbar h2 { font-size: 32px; }
   }
   @media print {
-    .banner, .index-view, .recipe-nav, .pager, footer, .recipe-hero .art { display: none !important; }
+    .banner, .index-view, .recipe-nav, .pager, .recipe-hero .art { display: none !important; }
+    .recipe-view footer { padding-top: 32px; color: #555; }
+    .recipe-view footer .sign { color: #000; }
     body { background: #fff; color: #000; }
     .recipe-top { background: none; border: 0; }
     .recipe-card { box-shadow: none; margin: 0; padding: 0; border: 0; }
@@ -269,7 +273,7 @@
     </div>
     <section class="grid" id="grid" aria-live="polite"></section>
   </main>
-  <footer>Baked with love · <span id="year"></span></footer>
+  <footer><span class="sign">Alborz</span>Baked with love · <time id="indexDate"></time></footer>
 </div>
 
 <!-- ============ RECIPE ============ -->
@@ -299,7 +303,7 @@
     <div class="note" id="rBody"></div>
   </div>
   <nav class="pager" id="pager"></nav>
-  <footer>Baked with love</footer>
+  <footer><span class="sign">Alborz</span>Baked with love · <time id="recipeDate"></time></footer>
 </article>
 
 <script src="recipes.js"></script>
@@ -396,6 +400,14 @@
 
   /* ---------- Index ---------- */
   const fmtDate = (d) => { if (!d) return ""; const x = new Date(/^\d{4}-\d{2}-\d{2}$/.test(d) ? d + "T12:00" : d); return isNaN(x) ? "" : x.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); };
+  // Signature date in the footer: a recipe page shows when that recipe was last updated; the index shows today.
+  const toDate = (d) => new Date(/^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d + "T12:00" : d);
+  function setDate(el, d) {
+    let x = toDate(d);
+    if (!d || isNaN(x)) x = new Date();
+    el.textContent = x.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    el.dateTime = x.toISOString().slice(0, 10);
+  }
   const href = (r) => "#/recipe/" + encodeURIComponent(r.id);
 
   function renderBanner() {
@@ -448,6 +460,7 @@
     const c = fmtDate(r.created), m = fmtDate(r.modified);
     $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
     $("#rArt").innerHTML = cakeSVG(r.title);
+    setDate($("#recipeDate"), r.modified || r.created);
     const body = $("#rBody");
     body.classList.toggle("plain", !r.isHTML);
     if (r.isHTML) body.innerHTML = sanitize(r.body); else body.textContent = r.body;
@@ -482,7 +495,7 @@
   if (RECIPES.some((r) => r.sample)) {
     $("#sampleNote").innerHTML = `<div class="sample-note"><b>These are sample recipes.</b> Load your own from Apple Notes with <code>python3 scripts/import_notes.py --notes-folder "Baking"</code> — see <code>README</code>.</div>`;
   }
-  $("#year").textContent = new Date().getFullYear();
+  setDate($("#indexDate"), new Date().toISOString());
   $("#q").addEventListener("input", renderGrid);
   $("#sort").addEventListener("change", renderGrid);
   window.addEventListener("hashchange", route);
