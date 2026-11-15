@@ -437,6 +437,41 @@
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
   }
 
+  /* ---------- Bold the amounts to be mixed ----------
+     Wraps ingredient quantities ("115 g", "1½ tsp", "3" eggs, "pinch") in <b class="qty">.
+     Oven temperatures, bake times, pan sizes, yields and step numbers are left as written. */
+  const FRAC = "½¼¾⅓⅔⅛⅜⅝⅞";
+  const NUM = `(?:\\d+(?:[.,/]\\d+)?[${FRAC}]?|[${FRAC}])`;
+  const UNITS = "kg|g|grams?|mg|ml|cl|dl|l|litres?|liters?|cups?|tbsps?|tbs|tablespoons?|tsps?|teaspoons?|oz|ounces?|lbs?|pounds?|sticks?|pints?|quarts?|qt|pinch(?:es)?|dash(?:es)?|cloves?|sprigs?|drops?";
+  const QTY_RE = new RegExp(`(?<![\\w.°/])~?${NUM}(?:\\s*[–-]\\s*${NUM})?(?:\\s*(?:${UNITS})\\b)?|\\b(?:a\\s+)?(?:pinch|dash|handful|splash)\\b`, "gi");
+  const UNIT_END = new RegExp(`(?:${UNITS})$`, "i");
+  // After a bare number: things that mean it isn't an amount to mix (temp, time, pan size, step number, yield…)
+  const NOT_MIXED = /^(?:\s*(?:°|"|”|''|x\s*\d|×|%|\)|\.(?:\s|$)|:)|\s*(?:min|mins|minutes?|hrs?|hours?|h|secs?|seconds?|days?|weeks?|loaf|loaves|pans?|tins?|sheets?|crumpled|layers?|tiers?|servings?|slices?|pieces?|portions?|people|times|inch(?:es)?|cm|mm)\b)/i;
+  function boldQuantities(root) {
+    const nodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      // skip text that's already bold, links and code
+      acceptNode: (n) => n.parentElement.closest("b, strong, a, pre, code, tt") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    });
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      const text = node.nodeValue;
+      const frag = document.createDocumentFragment();
+      let last = 0, changed = false;
+      for (const m of text.matchAll(QTY_RE)) {
+        const q = m[0], after = text.slice(m.index + q.length);
+        const isWord = /^[a-z]/i.test(q) || UNIT_END.test(q);
+        if (!isWord && (NOT_MIXED.test(after) || !/^\s+[a-z]/i.test(after))) continue; // bare number must precede an ingredient word
+        frag.append(text.slice(last, m.index));
+        const b = document.createElement("b"); b.className = "qty"; b.textContent = q; frag.append(b);
+        last = m.index + q.length; changed = true;
+      }
+      if (!changed) continue;
+      frag.append(text.slice(last));
+      node.replaceWith(frag);
+    }
+  }
+
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
     const sorted = [...RECIPES].sort((a, b) => a.title.localeCompare(b.title));
@@ -451,6 +486,7 @@
     const body = $("#rBody");
     body.classList.toggle("plain", !r.isHTML);
     if (r.isHTML) body.innerHTML = sanitize(r.body); else body.textContent = r.body;
+    boldQuantities(body);
     const prev = sorted[(idx - 1 + sorted.length) % sorted.length], next = sorted[(idx + 1) % sorted.length];
     $("#pager").innerHTML = sorted.length > 1
       ? `<a class="prev" href="${href(prev)}"><small>← Previous</small><span>${esc(prev.title)}</span></a><a class="next" href="${href(next)}"><small>Next →</small><span>${esc(next.title)}</span></a>`
