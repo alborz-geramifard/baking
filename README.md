@@ -2,6 +2,8 @@
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to see its recipe exactly as written.
 
+Use the **Share** button (top right of the book, or next to **Print** on a recipe) to pick a platform: WhatsApp, Facebook, X, Pinterest, Reddit, Telegram, Email or Text. You can also copy the link. On phones and in Safari, **More…** opens the device's own share menu. A shared recipe links straight to that recipe. Links only work for other people once the page is online. A `file://` link only opens on your own computer.
+
 ## Loading recipes from Apple Notes
 
 ```sh
