@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Baking Book</title>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbf6ef;
+    --bg-2: #f4ebdf;
+    --paper: #fffdf9;
+    --ink: #2d211b;
+    --ink-soft: #6f5d52;
+    --line: #e7dacb;
+    --accent: #c0573f;
+    --accent-2: #d9a35b;
+    --shadow: 0 1px 2px rgba(60,35,20,.06), 0 8px 28px rgba(60,35,20,.08);
+    --shadow-lift: 0 2px 4px rgba(60,35,20,.08), 0 18px 48px rgba(60,35,20,.14);
+    --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --radius: 22px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1512;
+      --bg-2: #241c17;
+      --paper: #2a211c;
+      --ink: #f3e9df;
+      --ink-soft: #bba696;
+      --line: #3d3029;
+      --accent: #e98a70;
+      --accent-2: #e6b56f;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+      --shadow-lift: 0 2px 4px rgba(0,0,0,.35), 0 18px 48px rgba(0,0,0,.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Banner ---------- */
+  .banner {
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(1200px 500px at 85% -10%, color-mix(in srgb, var(--accent-2) 28%, transparent), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%),
+      var(--bg-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .banner::before { /* faint gingham */
+    content: ""; position: absolute; inset: 0; opacity: .35; pointer-events: none;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 22px, color-mix(in srgb, var(--accent) 8%, transparent) 22px 44px),
+      repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, var(--accent) 8%, transparent) 22px 44px);
+    mask-image: linear-gradient(180deg, #000, transparent 85%);
+  }
+  .banner-inner {
+    position: relative; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px;
+    align-items: center; padding: 72px 24px 56px;
+  }
+  .eyebrow {
+    font-family: var(--sans); font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0 0 14px;
+  }
+  .banner h1 {
+    font-family: var(--serif); font-weight: 400; font-size: clamp(44px, 7vw, 84px);
+    line-height: .98; letter-spacing: -.02em; margin: 0 0 18px;
+    font-variation-settings: "opsz" 144;
+  }
+  .banner h1 em { font-style: italic; color: var(--accent); }
+  .banner p.lede { font-size: 18px; color: var(--ink-soft); max-width: 34ch; margin: 0 0 28px; }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; }
+  .stat b { display: block; font-family: var(--serif); font-size: 34px; font-weight: 500; line-height: 1; }
+  .stat span { font-size: 13px; color: var(--ink-soft); letter-spacing: .04em; }
+
+  .feature {
+    background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow-lift);
+    padding: 22px; text-decoration: none; display: block; position: relative;
+    transform: rotate(1.2deg); transition: transform .35s ease;
+  }
+  .feature:hover { transform: rotate(0deg) translateY(-3px); }
+  .feature .tag {
+    position: absolute; top: 16px; left: 16px; z-index: 1; background: var(--accent); color: #fff;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .feature .art { border-radius: 16px; overflow: hidden; aspect-ratio: 4/3; }
+  .feature h3 { font-family: var(--serif); font-weight: 500; font-size: 26px; margin: 16px 4px 2px; }
+  .feature small { color: var(--ink-soft); margin: 0 4px; display: block; }
+  .feature-fade { animation: fade .6s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* recipe ribbon */
+  .ribbon {
+    position: relative; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 70%, transparent);
+    overflow: hidden; padding: 14px 0;
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+  .ribbon-track { display: flex; gap: 12px; width: max-content; animation: scroll 60s linear infinite; }
+  .ribbon:hover .ribbon-track { animation-play-state: paused; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+  .ribbon a {
+    display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; text-decoration: none;
+    font-family: var(--serif); font-size: 17px; font-style: italic; padding: 6px 16px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--paper);
+    transition: border-color .2s, color .2s;
+  }
+  .ribbon a:hover { border-color: var(--accent); color: var(--accent); }
+  .ribbon a i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  @media (prefers-reduced-motion: reduce) {
+    .ribbon-track { animation: none; flex-wrap: wrap; width: auto; padding: 0 24px; }
+    .ribbon { mask-image: none; }
+  }
+
+  .sample-note {
+    background: color-mix(in srgb, var(--accent-2) 22%, var(--paper)); border: 1px dashed var(--accent-2);
+    border-radius: 14px; padding: 12px 16px; font-size: 14px; color: var(--ink); margin: 28px 0 0;
+  }
+  .sample-note code { font-size: 13px; background: var(--paper); padding: 2px 6px; border-radius: 6px; }
+
+  /* ---------- Toolbar + grid ---------- */
+  .toolbar {
+    display: flex; align-items: end; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    margin: 56px 0 24px;
+  }
+  .toolbar h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; margin: 0; letter-spacing: -.01em; }
+  .toolbar h2 span { color: var(--ink-soft); font-size: 20px; margin-left: 8px; font-style: italic; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+  .search {
+    position: relative; min-width: 260px;
+  }
+  .search input, .controls select {
+    width: 100%; font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line); border-radius: 999px;
+    padding: 11px 16px 11px 40px; outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .controls select { padding-left: 16px; width: auto; cursor: pointer; }
+  .search input:focus, .controls select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
+  .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 26px; padding-bottom: 80px; }
+  .card {
+    background: var(--paper); border-radius: var(--radius); overflow: hidden; text-decoration: none;
+    box-shadow: var(--shadow); transition: transform .25s ease, box-shadow .25s ease;
+    display: flex; flex-direction: column; animation: fade .5s ease both;
+  }
+  .card:hover, .card:focus-visible { transform: translateY(-5px); box-shadow: var(--shadow-lift); outline: none; }
+  .card .art { aspect-ratio: 5/4; }
+  .card-body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card h3 { font-family: var(--serif); font-weight: 500; font-size: 22px; line-height: 1.15; margin: 0; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .meta { margin-top: auto; padding-top: 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .empty { text-align: center; color: var(--ink-soft); padding: 60px 0 100px; font-family: var(--serif); font-size: 22px; font-style: italic; }
+
+  .art svg { width: 100%; height: 100%; display: block; }
+
+  /* ---------- Recipe view ---------- */
+  .recipe-view { display: none; }
+  body.viewing .recipe-view { display: block; }
+  body.viewing .index-view { display: none; }
+  .recipe-top { background: var(--bg-2); border-bottom: 1px solid var(--line); }
+  .recipe-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 14px; font-weight: 500;
+    color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 999px;
+    padding: 9px 16px; cursor: pointer; text-decoration: none; transition: border-color .2s, color .2s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .recipe-hero { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: center; padding: 20px 24px 48px; }
+  .recipe-hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 6vw, 68px); line-height: 1; letter-spacing: -.02em; margin: 0 0 14px; }
+  .recipe-hero .dates { color: var(--ink-soft); font-size: 14px; }
+  .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
+
+  .recipe-card {
+    background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow);
+    max-width: 760px; margin: -24px auto 40px; position: relative; padding: 44px 52px 52px;
+    border-top: 6px solid var(--accent);
+  }
+  .recipe-card .label { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 18px; }
+  /* The note body: rendered exactly as written — structure, line breaks and emphasis preserved. */
+  .note { font-family: var(--serif); font-size: 19px; line-height: 1.7; font-variation-settings: "opsz" 18; overflow-wrap: anywhere; }
+  .note div, .note p { margin: 0; min-height: 1em; }
+  .note p { margin: 0 0 .6em; }
+  .note b, .note strong { font-weight: 650; }
+  .note h1, .note h2, .note h3 { font-weight: 500; line-height: 1.2; margin: .6em 0 .3em; }
+  .note h1 { font-size: 1.6em; } .note h2 { font-size: 1.35em; } .note h3 { font-size: 1.15em; }
+  .note ul, .note ol { margin: .3em 0 .6em; padding-left: 1.4em; }
+  .note li { padding-left: .25em; margin: .15em 0; }
+  .note ul li::marker { color: var(--accent); }
+  .note ol li::marker { color: var(--accent); font-weight: 600; }
+  .note table { border-collapse: collapse; margin: .6em 0; font-size: .9em; }
+  .note td, .note th { border: 1px solid var(--line); padding: 6px 10px; vertical-align: top; }
+  .note pre, .note tt, .note code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
+  .note blockquote { border-left: 3px solid var(--accent-2); margin: .6em 0; padding-left: 1em; color: var(--ink-soft); }
+  .note img { max-width: 100%; height: auto; border-radius: 12px; }
+  .note.plain { white-space: pre-wrap; }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; max-width: 760px; margin: 0 auto 80px; padding: 0 4px; }
+  .pager a { text-decoration: none; max-width: 48%; }
+  .pager small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+  .pager span { font-family: var(--serif); font-size: 20px; }
+  .pager .next { text-align: right; margin-left: auto; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
+
+  @media (max-width: 860px) {
+    .banner-inner { grid-template-columns: 1fr; padding-top: 48px; }
+    .feature { max-width: 420px; }
+    .recipe-hero { grid-template-columns: 1fr; }
+    .recipe-hero .art { max-width: 260px; order: -1; }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .recipe-card { padding: 30px 22px 34px; border-radius: 18px; margin-left: 12px; margin-right: 12px; }
+    .note { font-size: 17.5px; }
+    .search { min-width: 0; flex: 1; }
+    .controls { width: 100%; }
+    .toolbar h2 { font-size: 32px; }
+  }
+  @media print {
+    .banner, .index-view, .recipe-nav, .pager, footer, .recipe-hero .art { display: none !important; }
+    body { background: #fff; color: #000; }
+    .recipe-top { background: none; border: 0; }
+    .recipe-card { box-shadow: none; margin: 0; padding: 0; border: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ INDEX ============ -->
+<div class="index-view">
+  <header class="banner">
+    <div class="wrap banner-inner">
+      <div>
+        <p class="eyebrow">Recipes from my kitchen</p>
+        <h1>The <em>Baking</em><br>Book</h1>
+        <p class="lede">Every cake I bake, written down exactly the way I make it.</p>
+        <div class="stats" id="stats"></div>
+      </div>
+      <a class="feature" id="feature" href="#"></a>
+    </div>
+    <nav class="ribbon" aria-label="All recipes"><div class="ribbon-track" id="ribbon"></div></nav>
+  </header>
+
+  <main class="wrap">
+    <div id="sampleNote"></div>
+    <div class="toolbar">
+      <h2>All the cakes <span id="count"></span></h2>
+      <div class="controls">
+        <label class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Search recipes or ingredients…" aria-label="Search recipes">
+        </label>
+        <select id="sort" aria-label="Sort recipes">
+          <option value="az">A → Z</option>
+          <option value="new">Recently updated</option>
+        </select>
+      </div>
+    </div>
+    <section class="grid" id="grid" aria-live="polite"></section>
+  </main>
+  <footer>Baked with love · <span id="year"></span></footer>
+</div>
+
+<!-- ============ RECIPE ============ -->
+<article class="recipe-view" id="recipeView">
+  <div class="recipe-top">
+    <div class="wrap recipe-nav" style="padding-left:0;padding-right:0">
+      <a class="btn" href="#">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All recipes
+      </a>
+      <button class="btn" type="button" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print
+      </button>
+    </div>
+    <div class="wrap recipe-hero" style="padding-left:0;padding-right:0">
+      <div>
+        <p class="eyebrow">Recipe</p>
+        <h1 id="rTitle"></h1>
+        <div class="dates" id="rDates"></div>
+      </div>
+      <div class="art" id="rArt"></div>
+    </div>
+  </div>
+  <div class="recipe-card">
+    <div class="label">As written</div>
+    <div class="note" id="rBody"></div>
+  </div>
+  <nav class="pager" id="pager"></nav>
+  <footer>Baked with love</footer>
+</article>
+
+<script src="recipes.js"></script>
+<script>
+(() => {
+  const RECIPES = (window.RECIPES || []).map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---------- Safe rendering of note HTML ----------
+     Keeps the note's structure (lines, bold/italic/underline, lists, headings, tables, links, images)
+     but drops scripts, event handlers and inline styling so it can't break the page. */
+  const ALLOWED = new Set("DIV P BR B STRONG I EM U S STRIKE DEL SUB SUP SPAN UL OL LI H1 H2 H3 H4 BLOCKQUOTE PRE TT CODE TABLE THEAD TBODY TR TD TH A IMG HR".split(" "));
+  function sanitize(html) {
+    const doc = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html");
+    (function walk(node) {
+      for (const el of [...node.children]) {
+        if (!ALLOWED.has(el.tagName)) {
+          if (["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "HEAD", "TITLE", "META", "LINK"].includes(el.tagName)) { el.remove(); continue; }
+          walk(el); el.replaceWith(...el.childNodes); continue; // unwrap unknown tags, keep their text
+        }
+        for (const a of [...el.attributes]) {
+          const keep = (el.tagName === "A" && a.name === "href" && /^(https?:|mailto:)/i.test(a.value)) ||
+                       (el.tagName === "IMG" && a.name === "src" && /^(https?:|data:image\/)/i.test(a.value)) ||
+                       ((el.tagName === "TD" || el.tagName === "TH") && /^(colspan|rowspan)$/.test(a.name));
+          if (!keep) el.removeAttribute(a.name);
+        }
+        if (el.tagName === "A") { el.target = "_blank"; el.rel = "noopener"; }
+        walk(el);
+      }
+    })(doc.body);
+    return doc.body.innerHTML;
+  }
+  const looksLikeHTML = (s) => /<\/?(div|p|br|ul|ol|li|b|i|h\d|span|table)\b/i.test(s);
+  const plainText = (html) => { const d = document.createElement("div"); d.innerHTML = html.replace(/<(br|\/div|\/p|\/li|\/h\d)>/gi, "$&\n"); return d.textContent; };
+
+  RECIPES.forEach((r) => {
+    r.body = r.body || "";
+    r.isHTML = looksLikeHTML(r.body);
+    r.text = r.isHTML ? plainText(r.body) : r.body;
+    const lines = r.text.split("\n").map((l) => l.trim()).filter(Boolean);
+    r.teaser = lines.slice(0, 4).join(" · ").slice(0, 160);
+    r.search = (r.title + " " + r.text).toLowerCase();
+  });
+
+  /* ---------- Cake illustrations (unique per recipe, generated from its name) ---------- */
+  const PALETTES = [
+    { bg: "#f6d6cf", sponge: "#e9b77b", cream: "#fff5ea", top: "#c0573f", berry: "#8f2d3a" },
+    { bg: "#f3e3c2", sponge: "#f0cc7a", cream: "#fffaf0", top: "#f2d36b", berry: "#d27f2a" },
+    { bg: "#d9e6d3", sponge: "#c9965f", cream: "#fbf7ef", top: "#7a9a6a", berry: "#c24f4f" },
+    { bg: "#e3d5ec", sponge: "#5a3426", cream: "#f7eee7", top: "#3d2219", berry: "#b23a5a" },
+    { bg: "#d8e4ee", sponge: "#e7c59a", cream: "#ffffff", top: "#9cb8d4", berry: "#3f5f8a" },
+    { bg: "#f2dccd", sponge: "#d58a4f", cream: "#fff3e6", top: "#f4e2c8", berry: "#7a4a2a" },
+    { bg: "#f6e1e6", sponge: "#f1d7a8", cream: "#fff8f6", top: "#e9a5b3", berry: "#c23b5f" },
+    { bg: "#e9e1cf", sponge: "#a0663b", cream: "#f6eadb", top: "#e8b862", berry: "#6b3b22" },
+  ];
+  const hash = (s) => { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  function cakeSVG(name) {
+    const h = hash(name), p = PALETTES[h % PALETTES.length];
+    const tiers = 2 + ((h >> 4) % 2), drips = 5 + ((h >> 6) % 4), berries = 2 + ((h >> 9) % 3);
+    const W = 400, H = 320, cx = 200, baseY = 250, w = 230, tierH = tiers === 3 ? 34 : 46;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of ${esc(name)}">`;
+    s += `<rect width="${W}" height="${H}" fill="${p.bg}"/>`;
+    // scattered sprinkles in background
+    for (let i = 0; i < 16; i++) { const x = (hash(name + i) % W), y = (hash(i + name) % (H - 80)); s += `<circle cx="${x}" cy="${y}" r="${2 + (i % 3)}" fill="${p.cream}" opacity=".55"/>`; }
+    // stand
+    s += `<ellipse cx="${cx}" cy="${baseY + 14}" rx="${w / 2 + 34}" ry="16" fill="#000" opacity=".08"/>`;
+    s += `<ellipse cx="${cx}" cy="${baseY + 6}" rx="${w / 2 + 28}" ry="14" fill="${p.cream}"/><rect x="${cx - 10}" y="${baseY + 8}" width="20" height="30" fill="${p.cream}"/><ellipse cx="${cx}" cy="${baseY + 40}" rx="44" ry="8" fill="${p.cream}"/>`;
+    // body: sponge + cream layers
+    const top = baseY - tiers * tierH - (tiers - 1) * 10;
+    s += `<path d="M${cx - w / 2} ${top} V${baseY} Q${cx} ${baseY + 20} ${cx + w / 2} ${baseY} V${top} Z" fill="${p.sponge}"/>`;
+    for (let t = 1; t < tiers; t++) { const y = baseY - t * (tierH + 10); s += `<path d="M${cx - w / 2} ${y} Q${cx} ${y + 18} ${cx + w / 2} ${y} v10 Q${cx} ${y + 28} ${cx - w / 2} ${y + 10} Z" fill="${p.cream}"/>`; }
+    // shading
+    s += `<path d="M${cx + w / 2 - 34} ${top} V${baseY - 2} Q${cx + w / 2 - 10} ${baseY - 6} ${cx + w / 2} ${baseY} V${top} Z" fill="#000" opacity=".07"/>`;
+    // top glaze with drips
+    s += `<ellipse cx="${cx}" cy="${top}" rx="${w / 2}" ry="20" fill="${p.top}"/>`;
+    let d = `M${cx - w / 2} ${top}`;
+    for (let i = 0; i <= drips; i++) {
+      const x = Math.min(cx + w / 2 - 8, Math.max(cx - w / 2 + 8, cx - w / 2 + (w / drips) * i)), len = 14 + (hash(name + "d" + i) % 34);
+      d += ` L${x - 8} ${top + 8} Q${x - 8} ${top + len} ${x} ${top + len} Q${x + 8} ${top + len} ${x + 8} ${top + 8}`;
+    }
+    d += ` L${cx + w / 2} ${top} Z`;
+    s += `<path d="${d}" fill="${p.top}"/>`;
+    s += `<ellipse cx="${cx - 30}" cy="${top - 6}" rx="40" ry="6" fill="#fff" opacity=".22"/>`;
+    // berries / decorations
+    for (let i = 0; i < berries; i++) {
+      const bx = cx - 40 + i * (80 / Math.max(1, berries - 1)), by = top - 10 - (i % 2) * 4;
+      s += `<circle cx="${bx}" cy="${by}" r="12" fill="${p.berry}"/><circle cx="${bx - 4}" cy="${by - 4}" r="3" fill="#fff" opacity=".45"/>`;
+      s += `<path d="M${bx} ${by - 12} q4 -10 10 -12" stroke="#5f7d4a" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    }
+    s += `</svg>`;
+    return s;
+  }
+
+  /* ---------- Index ---------- */
+  const fmtDate = (d) => { if (!d) return ""; const x = new Date(/^\d{4}-\d{2}-\d{2}$/.test(d) ? d + "T12:00" : d); return isNaN(x) ? "" : x.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); };
+  const href = (r) => "#/recipe/" + encodeURIComponent(r.id);
+
+  function renderBanner() {
+    const n = RECIPES.length;
+    const newest = [...RECIPES].sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))[0];
+    $("#stats").innerHTML =
+      `<div class="stat"><b>${n}</b><span>recipe${n === 1 ? "" : "s"}</span></div>` +
+      (newest && newest.modified ? `<div class="stat"><b>${esc(fmtDate(newest.modified).split(",")[0])}</b><span>last updated</span></div>` : "");
+    const pills = RECIPES.map((r) => `<a href="${href(r)}"><i style="background:${PALETTES[hash(r.title) % PALETTES.length].top}"></i>${esc(r.title)}</a>`).join("");
+    $("#ribbon").innerHTML = pills + pills.replace(/<a /g, '<a aria-hidden="true" tabindex="-1" '); // duplicated for seamless loop
+
+    // Featured recipe — rotates every few seconds through the collection
+    if (!n) { $("#feature").style.display = "none"; return; }
+    let i = Math.floor(Math.random() * n);
+    const show = () => {
+      const r = RECIPES[i % n], f = $("#feature");
+      f.href = href(r);
+      f.innerHTML = `<div class="feature-fade"><span class="tag">From the oven</span><div class="art">${cakeSVG(r.title)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
+      i++;
+    };
+    show();
+    if (n > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(() => { if (!document.body.classList.contains("viewing")) show(); }, 6000);
+  }
+
+  function renderGrid() {
+    const q = $("#q").value.trim().toLowerCase();
+    const sort = $("#sort").value;
+    let list = RECIPES.filter((r) => !q || q.split(/\s+/).every((w) => r.search.includes(w)));
+    list.sort(sort === "new" ? (a, b) => String(b.modified || "").localeCompare(String(a.modified || "")) : (a, b) => a.title.localeCompare(b.title));
+    $("#count").textContent = q ? `${list.length} of ${RECIPES.length}` : `${RECIPES.length}`;
+    $("#grid").innerHTML = list.length ? list.map((r, k) => `
+      <a class="card" href="${href(r)}" style="animation-delay:${Math.min(k, 12) * 40}ms">
+        <div class="art">${cakeSVG(r.title)}</div>
+        <div class="card-body">
+          <h3>${esc(r.title)}</h3>
+          <p>${esc(r.teaser)}</p>
+          <div class="meta">View recipe →</div>
+        </div>
+      </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
+  }
+
+  /* ---------- Recipe ---------- */
+  function showRecipe(id) {
+    const sorted = [...RECIPES].sort((a, b) => a.title.localeCompare(b.title));
+    const idx = sorted.findIndex((r) => r.id === id);
+    if (idx < 0) { location.hash = ""; return; }
+    const r = sorted[idx];
+    document.title = r.title + " · The Baking Book";
+    $("#rTitle").textContent = r.title;
+    const c = fmtDate(r.created), m = fmtDate(r.modified);
+    $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
+    $("#rArt").innerHTML = cakeSVG(r.title);
+    const body = $("#rBody");
+    body.classList.toggle("plain", !r.isHTML);
+    if (r.isHTML) body.innerHTML = sanitize(r.body); else body.textContent = r.body;
+    const prev = sorted[(idx - 1 + sorted.length) % sorted.length], next = sorted[(idx + 1) % sorted.length];
+    $("#pager").innerHTML = sorted.length > 1
+      ? `<a class="prev" href="${href(prev)}"><small>← Previous</small><span>${esc(prev.title)}</span></a><a class="next" href="${href(next)}"><small>Next →</small><span>${esc(next.title)}</span></a>`
+      : "";
+    document.body.classList.add("viewing");
+    window.scrollTo(0, 0);
+  }
+
+  let indexScroll = 0;
+  function route() {
+    const m = location.hash.match(/^#\/recipe\/(.+)$/);
+    if (m) {
+      if (!document.body.classList.contains("viewing")) indexScroll = window.scrollY;
+      showRecipe(decodeURIComponent(m[1]));
+    } else {
+      document.body.classList.remove("viewing");
+      document.title = "The Baking Book";
+      window.scrollTo(0, indexScroll);
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (!document.body.classList.contains("viewing")) return;
+    if (e.key === "Escape") location.hash = "";
+    if (e.key === "ArrowLeft") $("#pager .prev")?.click();
+    if (e.key === "ArrowRight") $("#pager .next")?.click();
+  });
+
+  if (RECIPES.some((r) => r.sample)) {
+    $("#sampleNote").innerHTML = `<div class="sample-note"><b>These are sample recipes.</b> Load your own from Apple Notes with <code>python3 scripts/import_notes.py --notes-folder "Baking"</code> — see <code>README</code>.</div>`;
+  }
+  $("#year").textContent = new Date().getFullYear();
+  $("#q").addEventListener("input", renderGrid);
+  $("#sort").addEventListener("change", renderGrid);
+  window.addEventListener("hashchange", route);
+  renderBanner(); renderGrid(); route();
+})();
+</script>
+</body>
+</html>
