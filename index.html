@@ -441,12 +441,18 @@
      Wraps ingredient quantities ("115 g", "1½ tsp", "3" eggs, "pinch") in <b class="qty">.
      Oven temperatures, bake times, pan sizes, yields and step numbers are left as written. */
   const FRAC = "½¼¾⅓⅔⅛⅜⅝⅞";
-  const NUM = `(?:\\d+(?:[.,/]\\d+)?[${FRAC}]?|[${FRAC}])`;
+  // Mixed numbers ("1 1/2", "1 ½") come first so they win over the bare whole number.
+  const NUM = `(?:\\d+\\s+(?:\\d+/\\d+|[${FRAC}])|\\d+(?:[.,/]\\d+)?[${FRAC}]?|[${FRAC}])`;
   const UNITS = "kg|g|grams?|mg|ml|cl|dl|l|litres?|liters?|cups?|tbsps?|tbs|tablespoons?|tsps?|teaspoons?|oz|ounces?|lbs?|pounds?|sticks?|pints?|quarts?|qt|pinch(?:es)?|dash(?:es)?|cloves?|sprigs?|drops?";
-  const QTY_RE = new RegExp(`(?<![\\w.°/])~?${NUM}(?:\\s*[–-]\\s*${NUM})?(?:\\s*(?:${UNITS})\\b)?|\\b(?:a\\s+)?(?:pinch|dash|handful|splash)\\b`, "gi");
+  // Ranges: "2–3", "2-3" and "25 to 30" are one amount, so the unit/time checks apply to the whole range.
+  const QTY_RE = new RegExp(`(?<![\\w.°/])~?${NUM}(?:(?:\\s*[–-]\\s*|\\s+to\\s+)${NUM})?(?:\\s*(?:${UNITS})\\b)?|\\b(?:a\\s+)?(?:pinch|dash|handful|splash)\\b`, "gi");
   const UNIT_END = new RegExp(`(?:${UNITS})$`, "i");
   // After a bare number: things that mean it isn't an amount to mix (temp, time, pan size, step number, yield…)
-  const NOT_MIXED = /^(?:\s*(?:°|"|”|''|x\s*\d|×|%|\)|\.(?:\s|$)|:)|\s*(?:min|mins|minutes?|hrs?|hours?|h|secs?|seconds?|days?|weeks?|loaf|loaves|pans?|tins?|sheets?|crumpled|layers?|tiers?|servings?|slices?|pieces?|portions?|people|times|inch(?:es)?|cm|mm)\b)/i;
+  const NOT_MIXED = /^(?:\s*(?:°|"|”|''|x\s*\d|×|%|\)|\.(?:\s|$)|:)|\s*(?:degrees?|deg|min|mins|minutes?|hrs?|hours?|h|secs?|seconds?|days?|weeks?|loaf|loaves|pans?|tins?|rounds?|sheets?|crumpled|layers?|tiers?|servings?|slices?|pieces?|portions?|squares?|bars?|cookies|cookie|muffins?|cupcakes?|scones?|biscuits?|buns?|rolls?|balls?|people|times|inch(?:es)?|cm|mm)\b)/i;
+  // Oven temps written "350 F" / "180 C". Case-sensitive so "2 c flour" (cups) isn't mistaken for Celsius.
+  const TEMP_AFTER = /^\s*[FC]\b/;
+  // Before a bare number: yields and step numbers ("Makes 24", "Serves 4", "Step 3").
+  const NOT_MIXED_BEFORE = /\b(?:makes|serves|yields?|steps?)\s*$/i;
   function boldQuantities(root) {
     const nodes = [];
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -461,7 +467,8 @@
       for (const m of text.matchAll(QTY_RE)) {
         const q = m[0], after = text.slice(m.index + q.length);
         const isWord = /^[a-z]/i.test(q) || UNIT_END.test(q);
-        if (!isWord && (NOT_MIXED.test(after) || !/^\s+[a-z]/i.test(after))) continue; // bare number must precede an ingredient word
+        // a bare number must precede an ingredient word (or a bracket, as in "1 (14 oz) can")
+        if (!isWord && (NOT_MIXED.test(after) || TEMP_AFTER.test(after) || NOT_MIXED_BEFORE.test(text.slice(0, m.index)) || !/^\s+[a-z(]/i.test(after))) continue;
         frag.append(text.slice(last, m.index));
         const b = document.createElement("b"); b.className = "qty"; b.textContent = q; frag.append(b);
         last = m.index + q.length; changed = true;
