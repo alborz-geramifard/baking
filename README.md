@@ -2,6 +2,8 @@
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to see its recipe exactly as written.
 
+The banner shows an anime-style cartoon of me as a baker (`images/baker-portrait.webp`), generated with ChatGPT from my profile photo. To swap it, replace that file with another square image. If the file is missing, the portrait is simply hidden.
+
 ## Loading recipes from Apple Notes
 
 ```sh
