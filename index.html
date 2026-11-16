@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Baking Book</title>
+<title>Bakery with Alborz</title>
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -180,8 +180,6 @@
   /* ---------- Section icons ---------- */
   svg.ic { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(60,35,20,.18)); }
   .sec-ic { display: inline-block; flex: none; font-style: normal; }
-  .banner .eyebrow { display: flex; align-items: center; gap: 10px; }
-  .eyebrow .sec-ic { width: 34px; height: 34px; }
   .toolbar h2 { display: flex; align-items: center; gap: 14px; }
   .toolbar h2 .sec-ic { width: 52px; height: 52px; transform: rotate(-6deg); transition: transform .4s ease; }
   .toolbar h2:hover .sec-ic { transform: rotate(6deg) scale(1.06); }
@@ -259,7 +257,11 @@
   .ck-stage.all-done > .ck-group::after { content: "✓ done"; margin-left: auto; color: var(--accent); letter-spacing: .08em; }
 
   .ck-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .ck-list.ing { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  /* ingredients: a plain flat list (no tick boxes); only the steps below are tickable */
+  .ing-list { margin: 0; padding-left: 1.3em; font-family: var(--serif); font-size: 17.5px; line-height: 1.55; }
+  .ing-list > li { padding: 3px 0; }
+  .ing-list > li::marker { color: var(--accent); }
+  .ing-list .ck-txt { display: block; }
   .ck-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--paper); cursor: pointer; font-family: var(--serif); font-size: 17.5px; line-height: 1.5; transition: border-color .2s, background .2s, opacity .2s; }
   .ck-item:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
@@ -300,7 +302,6 @@
     .ck-h svg.ic { width: 34px; height: 34px; }
     .ck-stage { padding: 14px 12px; }
     .ck-item { font-size: 16.5px; padding: 10px 12px; gap: 10px; }
-    .ck-list.ing { grid-template-columns: 1fr; }
   }
   @media print {
     .ck-reset, .ck-bar, .ck-hint, .ck-count, .as-written { display: none !important; }
@@ -500,11 +501,6 @@
   .co em { font-style: normal; color: var(--ink-soft); margin-left: 5px; }
   .comp[data-hot] .co:not([data-hot]), .comp[data-hot] .callouts [data-k]:not([data-hot]) { opacity: .3; }
   .comp[data-hot] .seg:not([data-hot]) { filter: saturate(.4) opacity(.55); }
-  .comp details { margin-top: 10px; font-size: 13px; color: var(--ink-soft); }
-  .comp summary { cursor: pointer; width: fit-content; }
-  .comp table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; color: var(--ink); }
-  .comp td, .comp th { padding: 4px 14px 4px 0; text-align: left; border-bottom: 1px solid var(--line); }
-  .comp td:not(:first-child), .comp th:not(:first-child) { text-align: right; }
   .tip {
     position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 1.35;
     padding: 7px 10px; border-radius: 10px; box-shadow: var(--shadow-lift); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity .15s;
@@ -579,14 +575,13 @@
       <div>
         <figure class="baker">
           <div class="baker-frame">
-            <img src="images/baker-portrait.webp" alt="Anime-style cartoon of me as a baker, in a chef's hat and apron" width="1024" height="1024" onerror="this.closest('.baker').remove()">
+            <img src="images/baker-portrait.webp" alt="Anime-style illustration of me as a baker, in a chef's hat and apron" width="1024" height="1024" onerror="this.closest('.baker').remove()">
             <span class="spark s1" aria-hidden="true">✦</span>
             <span class="spark s2" aria-hidden="true">✦</span>
           </div>
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
-        <p class="eyebrow"><i class="sec-ic" id="eyebrowIcon"></i>Recipes from my kitchen</p>
-        <h1><span class="ln">The <em>Baking</em></span><br><span class="ln">Book</span></h1>
+        <h1><span class="ln"><em>Bakery</em></span><br><span class="ln">with Alborz</span></h1>
         <div class="stats" id="stats"></div>
       </div>
       <a class="feature tilt" id="feature" href="#"></a>
@@ -596,7 +591,7 @@
   <main class="wrap">
     <div id="sampleNote"></div>
     <div class="toolbar">
-      <h2><i class="sec-ic" id="h2Icon"></i>All the cakes <span id="count"></span></h2>
+      <h2><i class="sec-ic" id="h2Icon"></i>All the recipes <span id="count"></span></h2>
       <div class="controls">
         <label class="search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1098,11 +1093,20 @@
     let temp = null;
     const tm = t.match(/(\d{3})\s*°\s*([CF])?/) || t.match(/\b(\d{3})\s*(?:degrees\s*)?([FC])\b/);
     if (tm) { const v = +tm[1], f = tm[2] === "F" || (!tm[2] && v > 260); temp = { label: `${v}°${f ? "F" : "C"}`, c: f ? Math.round((v - 32) * 5 / 9) : v }; }
-    // bake time: the longest "N–M min" / "N hr" span mentioned
+    // bake time: the longest duration stated in a baking clause ("Bake for 45–50 minutes", "Cook 8–14 min at 325°F",
+    // "Cook 14-16 on 325 f", "Time: 18 min"). Chill, freeze, rest and mixing times are not oven time, so a duration
+    // only counts when its own sentence, up to that number, says bake/baking or gives an oven temperature, or an
+    // oven temperature follows it directly.
     let time = null;
-    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(min(?:ute)?s?|h(?:ou)?rs?|hours?)\b/gi)) {
-      const k = /^h/i.test(m[3]) ? 60 : 1, hi = (+(m[2] || m[1])) * k;
-      if (!time || hi > time.max) time = { max: hi, label: m[2] ? `${m[1]}–${m[2]} ${k === 60 ? "hr" : "min"}` : `${m[1]} ${k === 60 ? "hr" : "min"}` };
+    const BAKE_CLAUSE = /\bbak(?:e|es|ed)\b|\bbaking\b(?!\s*(?:powder|soda|sheet|paper|pan|tray|dish|rack|cooling|mat))|\btime\s*:|\d{3}\s*°?\s*[FC]\b|\b\d{3}\s*degrees/i;
+    const TEMP_AFTER = /^\s*(?:at|on)\s*\d{3}\s*°?\s*[FC]\b/i;
+    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(?:(min(?:ute)?s?|h(?:ou)?rs?|hours?|h)\b(?:\s*(?:and\s*)?(\d+)\s*min(?:ute)?s?\b)?|(?=(?:at|on)\s*\d{3}\s*°?\s*[FC]\b))/gi)) {
+      const before = t.slice(Math.max(0, m.index - 80), m.index), clause = before.split(/[.!?;]\s|\n/).pop();
+      const tempAfter = TEMP_AFTER.test(t.slice(m.index + m[0].length, m.index + m[0].length + 20));
+      if (!(BAKE_CLAUSE.test(clause) || tempAfter) || /\blast\s*$/i.test(clause)) continue; // skip "during the last 10 minutes of baking"
+      const hr = /^h/i.test(m[3] || ""), extra = +(m[4] || 0), k = hr ? 60 : 1, hi = (+(m[2] || m[1])) * k + extra;
+      const unit = hr ? "hr" : "min", span = m[2] ? `${m[1]}–${m[2]}` : m[1];
+      if (!time || hi > time.max) time = { max: hi, label: extra ? `${span} ${unit} ${extra} min` : `${span} ${unit}` };
     }
     // weighed ingredients (ml counted as g; an egg ≈ 50 g)
     const parts = new Map(); let prev = "";
@@ -1163,10 +1167,6 @@
       const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true">${dots}</svg></div><div><b>${a.count}</b><span>ingredients</span></div>`);
     }
-    if (a.total) {
-      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><path d="M10 20h32l-4 24H14Z" fill="color-mix(in srgb, var(--accent-2) 35%, transparent)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M19 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="2.2"/><text x="26" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Inter, sans-serif">kg</text></svg></div>
-        <div><b>≈ ${fmtG(a.total)}</b><span>weighed in</span></div>`);
-    }
     if (!tiles.length) { $("#glance").innerHTML = ""; return; }
     let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile" style="--i:${i}">${x}</div>`).join("")}</div>`;
     // composition: one tall segmented bar of what goes in, by weight (top 6 + other)
@@ -1175,13 +1175,11 @@
       if (rest.length) parts.push({ name: rest.length === 1 ? rest[0].name : `other (${rest.length})`, g: rest.reduce((s, x) => s + x.g, 0), slot: "c-other" });
       const pct = (g) => Math.round((g / a.total) * 100);
       const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-      html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>${fmtG(a.total)} total · ml counted as g, eggs ≈ 50 g</small></div>
+      html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>ml counted as g, eggs ≈ 50 g</small></div>
         <div class="callouts up" aria-hidden="true"></div>
         <div class="bar" role="list" aria-label="Ingredients by weight">${parts.map((x, i) =>
           `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent" data-k="${i}"><span class="seg-lab" aria-hidden="true"><b>${esc(cap(x.name))}</b><em>${pct(x.g)}%</em></span></div>`).join("")}</div>
-        <div class="callouts down" aria-hidden="true"></div>
-        <details><summary>Show as table</summary><table><thead><tr><th>Ingredient</th><th>Weight</th><th>Share</th></tr></thead><tbody>${a.items.map((x) =>
-          `<tr><td>${esc(cap(x.name))}</td><td>${fmtG(x.g)}</td><td>${pct(x.g)}%</td></tr>`).join("")}</tbody></table></details></div>`;
+        <div class="callouts down" aria-hidden="true"></div></div>`;
     }
     const g = $("#glance");
     g.innerHTML = html;
@@ -1521,7 +1519,7 @@
     let html = `<section class="ck-sec">${head("bowl", "Ingredients")}`;
     if (s.ing.length) for (const g of s.ing) {
       if (g.name || g.letter) html += `<h3 class="ck-group">${g.letter ? `<span class="stage-tag">${g.letter}</span>` : ""}${esc(g.name || "")}</h3>`;
-      html += `<ul class="ck-list ing">${g.items.map((l) => item("i", g.name, l)).join("")}</ul>${raws(g)}`;
+      html += `<ul class="ing-list">${g.items.map((l) => `<li><span class="ck-txt">${l.html}${subsHTML(l)}</span></li>`).join("")}</ul>${raws(g)}`;
     } else html += `<p class="ck-empty">The amounts are given in each step below.</p>`;
     html += `</section>`;
     if (s.stages.length) {
@@ -1576,7 +1574,7 @@
     const idx = sorted.findIndex((r) => r.id === id);
     if (idx < 0) { location.hash = ""; return; }
     const r = sorted[idx];
-    document.title = r.title + " · The Baking Book";
+    document.title = r.title + " · Bakery with Alborz";
     $("#rTitle").textContent = r.title;
     const c = fmtDate(r.created), m = fmtDate(r.modified);
     $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
@@ -1612,7 +1610,7 @@
       showRecipe(decodeURIComponent(m[1]));
     } else {
       document.body.classList.remove("viewing");
-      document.title = "The Baking Book";
+      document.title = "Bakery with Alborz";
       window.scrollTo(0, indexScroll);
     }
   }
@@ -1649,8 +1647,8 @@
 
   function currentShare() {
     const viewing = document.body.classList.contains("viewing");
-    const title = viewing ? `${$("#rTitle").textContent} · The Baking Book` : "The Baking Book";
-    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share the Baking Book" };
+    const title = viewing ? `${$("#rTitle").textContent} · Bakery with Alborz` : "Bakery with Alborz";
+    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share Bakery with Alborz" };
   }
 
   function openShare() {
@@ -1694,7 +1692,6 @@
   // Page section icons
   $("#h2Icon").innerHTML = iconSVG("cake");
   $("#labelIcon").innerHTML = iconSVG("pencil");
-  $("#eyebrowIcon").innerHTML = iconSVG("whisk");
   setDate($("#indexDate"), new Date().toISOString());
   $("#q").addEventListener("input", renderGrid);
   $("#sort").addEventListener("change", renderGrid);
