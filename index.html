@@ -180,8 +180,6 @@
   /* ---------- Section icons ---------- */
   svg.ic { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(60,35,20,.18)); }
   .sec-ic { display: inline-block; flex: none; font-style: normal; }
-  .banner .eyebrow { display: flex; align-items: center; gap: 10px; }
-  .eyebrow .sec-ic { width: 34px; height: 34px; }
   .toolbar h2 { display: flex; align-items: center; gap: 14px; }
   .toolbar h2 .sec-ic { width: 52px; height: 52px; transform: rotate(-6deg); transition: transform .4s ease; }
   .toolbar h2:hover .sec-ic { transform: rotate(6deg) scale(1.06); }
@@ -573,7 +571,6 @@
           </div>
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
-        <p class="eyebrow"><i class="sec-ic" id="eyebrowIcon"></i>Recipes from my kitchen</p>
         <h1><span class="ln"><em>Bakery</em></span><br><span class="ln">with Alborz</span></h1>
         <div class="stats" id="stats"></div>
       </div>
@@ -1601,7 +1598,6 @@
   // Page section icons
   $("#h2Icon").innerHTML = iconSVG("cake");
   $("#labelIcon").innerHTML = iconSVG("pencil");
-  $("#eyebrowIcon").innerHTML = iconSVG("whisk");
   setDate($("#indexDate"), new Date().toISOString());
   $("#q").addEventListener("input", renderGrid);
   $("#sort").addEventListener("change", renderGrid);
