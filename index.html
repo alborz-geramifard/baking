@@ -602,10 +602,11 @@
   .btrack { height: 16px; display: flex; align-items: center; }
   .seg {
     display: block; height: 100%; width: calc(var(--w) * 100%); min-width: 3px; border-radius: 0 4px 4px 0; background: var(--c);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent); /* keeps pale bars (flour, sugar, cream) visible on the paper */
     cursor: default; outline: none; transform-origin: 0 50%; animation: grow .9s var(--ease-out) both; animation-delay: calc(var(--i) * 70ms + 250ms);
     transition: filter .2s;
   }
-  .seg:focus-visible { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .seg:focus-visible { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
   @keyframes grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
   .comp[data-hot] .brow:not([data-hot]) > * { opacity: .45; }
   .comp[data-hot] .brow:not([data-hot]) .seg { filter: saturate(.4); }
@@ -1776,6 +1777,20 @@
     }
     if (!tiles.length) { $("#glance").innerHTML = ""; return; }
     let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile${x.includes("time-parts") ? " time" : ""}" style="--i:${i}">${x}</div>`).join("")}</div>`;
+    // each bar wears its ingredient's own colour; first matching name wins, so specific names come before general ones
+    const INGREDIENT_COLOURS = [
+      [/dark choc|choc\w* dark/, "#3b2418"], [/nutella/, "#5a3524"], [/oreo/, "#2b2522"], [/choc|cocoa/, "#5b3522"],
+      [/biscoff/, "#b8692e"], [/graham|gram cracker|biscu|cookie|cracker/, "#c99a5f"],
+      [/coconut/, "#f1ece2"], [/walnut/, "#8a5a36"], [/hazelnut|almond|pecan|nut/, "#9c6a3e"],
+      [/condensed/, "#efdfb3"], [/evaporated/, "#ebdcbc"],
+      [/cream cheese|mascarpone/, "#f4efdf"], [/sour ?cream|yogh?urt/, "#f3f0e7"], [/cream/, "#f7eed6"], [/milk/, "#f6f2e8"],
+      [/egg white/, "#efebdf"], [/yolk|egg/, "#f2b632"], [/butter/, "#f3d36b"],
+      [/brown sugar/, "#a86b32"], [/molasses/, "#3f2414"], [/honey|maple/, "#dc9a1e"], [/syrup|glucose/, "#ebe2c6"],
+      [/sugar/, "#f5f2eb"], [/flour|starch/, "#efe5cf"],
+      [/banana/, "#f0d24a"], [/orange/, "#f39a2b"], [/lemon/, "#f4dc4c"], [/juice|fruit|berr/, "#d9573f"],
+      [/oil/, "#e2c35a"], [/coffee|espresso/, "#4a2c1c"], [/water/, "#a9d3e8"],
+    ];
+    const ingredientColour = (name) => (INGREDIENT_COLOURS.find(([re]) => re.test(name.toLowerCase())) || [, "var(--accent)"])[1];
     // composition: a bar chart of what goes in, by weight, heaviest first (top 7, the rest folded into "other")
     if (a.items.length >= 2) {
       const top = a.items.slice(0, a.items.length > 8 ? 7 : 8), rest = a.items.slice(top.length), parts = top.map((x) => ({ ...x }));
@@ -1785,7 +1800,7 @@
       const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
       html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>ml counted as g, eggs ≈ 50 g</small></div>
         <ul class="bars" aria-label="Ingredients by weight">${parts.map((x, i) =>
-          `<li class="brow" data-k="${i}"><span class="bname">${esc(cap(x.name))}</span><span class="btrack"><span class="seg" tabindex="0" style="--w:${(x.g / max).toFixed(4)};--c:var(--${x.other ? "c-other" : "accent"});--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent"></span></span><span class="bval"><b>${fmtG(x.g)}</b><em>${pct(x.g)}%</em></span></li>`).join("")}</ul></div>`;
+          `<li class="brow" data-k="${i}"><span class="bname">${esc(cap(x.name))}</span><span class="btrack"><span class="seg" tabindex="0" style="--w:${(x.g / max).toFixed(4)};--c:${x.other ? "var(--c-other)" : ingredientColour(x.name)};--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent"></span></span><span class="bval"><b>${fmtG(x.g)}</b><em>${pct(x.g)}%</em></span></li>`).join("")}</ul></div>`;
     }
     const g = $("#glance");
     g.innerHTML = html;
