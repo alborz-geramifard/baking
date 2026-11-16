@@ -482,16 +482,7 @@
   .card:hover .art svg .steam, .feature .art svg .steam, .recipe-hero .art svg .steam { opacity: .55; }
   @keyframes steam { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
 
-  /* card info chips */
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--ink-soft);
-    background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 7px;
-  }
-  .chip svg { width: 13px; height: 13px; color: var(--accent); }
-  .card .chips { margin-top: auto; padding-top: 8px; }
-
-  /* size + release-date pills, shown under each cake's name */
+  /* cake pills: the release date sits under the name; size, temp, time and ingredient count share one row at the bottom */
   .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
   .pill {
     display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap;
@@ -499,11 +490,17 @@
     border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 999px; padding: 4px 11px 4px 8px;
   }
   .pill svg { width: 13px; height: 13px; flex: none; }
-  .pill.date { color: var(--ink-soft); background: var(--bg-2); border-color: var(--line); font-weight: 500; font-variant-numeric: tabular-nums; }
-  .pill.date svg { color: var(--accent); }
+  /* the date gets its own colour (honey/gold) so it never blends in with the terracotta info pills */
+  .pill.date {
+    color: color-mix(in srgb, var(--accent-2) 55%, var(--ink)); background: color-mix(in srgb, var(--accent-2) 20%, var(--paper));
+    border-color: color-mix(in srgb, var(--accent-2) 45%, transparent); font-variant-numeric: tabular-nums;
+  }
+  .pill.date svg { color: color-mix(in srgb, var(--accent-2) 80%, var(--ink)); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .card .pills { margin: 2px 0 4px; }
-  .feature .pills { margin: 8px 4px 2px; }
+  .card .pills.top { margin: 2px 0 4px; }
+  .card .pills.bottom { margin-top: auto; padding-top: 8px; }
+  .feature .pills.top { margin: 8px 4px 8px; }
+  .feature .pills.bottom { margin: 12px 4px 0; }
 
   /* scroll reveal */
   .reveal { opacity: 0; translate: 0 26px; transition: opacity .8s var(--ease-out), translate .8s var(--ease-out); transition-delay: var(--rd, 0ms); }
@@ -1126,7 +1123,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.name)}</h3>${pillsHTML(r)}<small>${esc(firstSentence(r.teaser))}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.name)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
       i++;
     };
     show();
@@ -1144,9 +1141,9 @@
         <div class="art" data-id="${esc(r.id)}">${artHTML(r)}</div>
         <div class="card-body">
           <h3>${esc(r.name)}</h3>
-          ${pillsHTML(r)}
+          ${dateTopHTML(r)}
           <p>${esc(r.teaser)}</p>
-          ${chipsHTML(r)}
+          ${bottomPillsHTML(r)}
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
     reveal([...$("#grid").querySelectorAll(".card")]);
@@ -1356,22 +1353,28 @@
   };
   // Pills under a cake's name: its size (from the title) and when it was first written down.
   // Cards use a short month + year; the recipe page shows the full date.
-  function pillsHTML(r, full) {
-    const out = r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+  const sizePills = (r) => r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+  function datePill(r, full) {
     const d = toDate(r.created);
-    if (r.created && !isNaN(d)) {
-      const label = d.toLocaleDateString(undefined, full ? { year: "numeric", month: "long", day: "numeric" } : { year: "numeric", month: "short" });
-      out.push(`<li class="pill date" title="Released ${esc(fmtDate(r.created))}"><span class="sr">Released </span>${PILL_ICO.date}<time datetime="${esc(String(r.created).slice(0, 10))}">${esc(label)}</time></li>`);
-    }
-    return out.length ? `<ul class="pills">${out.join("")}</ul>` : "";
+    if (!r.created || isNaN(d)) return "";
+    const label = d.toLocaleDateString(undefined, full ? { year: "numeric", month: "long", day: "numeric" } : { year: "numeric", month: "short" });
+    return `<li class="pill date" title="Released ${esc(fmtDate(r.created))}"><span class="sr">Released </span>${PILL_ICO.date}<time datetime="${esc(String(r.created).slice(0, 10))}">${esc(label)}</time></li>`;
   }
-
-  function chipsHTML(r) {
-    const a = analyze(r), c = [];
-    if (a.temp) c.push(`<span class="chip">${ICO.temp}${esc(a.temp.label)}</span>`);
-    if (a.time) c.push(`<span class="chip">${ICO.time}≈ ${esc(a.time.label)} total</span>`);
-    if (a.count) c.push(`<span class="chip">${ICO.list}${a.count} ingredients</span>`);
-    return c.length ? `<div class="chips">${c.join("")}</div>` : "";
+  const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };
+  // Recipe page: size and date side by side.
+  const pillsHTML = (r, full) => pillList([...sizePills(r), datePill(r, full)]);
+  // Cake cards: only the release date sits under the name…
+  const dateTopHTML = (r) => pillList([datePill(r)], " top");
+  // …and everything else (size, oven temp, total time, ingredient count) shares one row of pills at the bottom.
+  function bottomPillsHTML(r, withFacts = true) {
+    const out = sizePills(r);
+    if (withFacts) {
+      const a = analyze(r);
+      if (a.temp) out.push(`<li class="pill">${ICO.temp}${esc(a.temp.label)}</li>`);
+      if (a.time) out.push(`<li class="pill">${ICO.time}≈ ${esc(a.time.label)} total</li>`);
+      if (a.count) out.push(`<li class="pill">${ICO.list}${a.count} ingredients</li>`);
+    }
+    return pillList(out, " bottom");
   }
 
   const fmtG = (g) => g >= 1000 ? `${(g / 1000).toFixed(g >= 10000 ? 0 : 1)} kg` : `${Math.round(g)} g`;
