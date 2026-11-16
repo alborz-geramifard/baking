@@ -2105,8 +2105,10 @@
 
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
-    const r = RECIPES.find((x) => x.id === id);
+    // A renamed recipe lists its old ids in "aliases", so links shared before the rename still open it.
+    const r = RECIPES.find((x) => x.id === id) || RECIPES.find((x) => (x.aliases || []).includes(id));
     if (!r) { location.hash = ""; return; }
+    if (r.id !== id) history.replaceState(null, "", "#/recipe/" + encodeURIComponent(r.id));
     document.title = nameText(r) + " · Bakery with Alborz";
     $("#rTitle").innerHTML = nameHTML(r);
     $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
