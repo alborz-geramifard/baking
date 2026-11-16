@@ -223,6 +223,10 @@
   .layer-stack ol .n { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; color: #fff; background: var(--accent); }
   .layer-stack .more, .layer-stack .lnote { display: block; margin-top: 6px; }
   .layer-stack .lnote { font-size: 13px; opacity: .8; }
+  /* An illustrated slice of the cake with the same numbered layers, under the list; click for full size. */
+  .layer-stack .layer-art { display: block; width: min(100%, 380px); margin-top: 12px; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 22px rgba(60, 30, 10, .16); transition: transform .25s var(--ease-out), box-shadow .25s; }
+  .layer-stack .layer-art:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(60, 30, 10, .22); }
+  .layer-stack .layer-art img { display: block; width: 100%; height: auto; }
   /* Credits: recipes I adapted from someone else's, with the source's own icon */
   .credits { margin-top: 22px; }
   .credits:empty { display: none; }
@@ -930,7 +934,7 @@
       <div>
         <h1 id="rTitle"></h1>
         <ul class="pills" id="rPills"></ul>
-        <p class="layer-stack" id="rLayers" hidden></p>
+        <div class="layer-stack" id="rLayers" hidden></div>
         <section class="credits" id="rCredits" aria-label="Credits"></section>
         <section class="insta" id="rInsta" aria-label="Photos from Instagram"></section>
       </div>
@@ -1122,7 +1126,7 @@
       const base = L.stack.map(String), extra = (L.extra || []).map(String), n = base.length, max = n + extra.length;
       const label = `${n}${max > n ? "–" + max : ""} layers`;
       const all = base.concat(extra).map((x, i) => `${i + 1}. ${x}`);
-      r.layerInfo = { label, base, extra, note: String(L.note || ""),
+      r.layerInfo = { label, base, extra, note: String(L.note || ""), image: String(L.image || ""),
         // plain text for the pill's tooltip
         stack: `Bottom to top: ${all.slice(0, n).join(", ")}${extra.length ? `; sponge sliced into 3: + ${all.slice(n).join(", ")}` : ""}.` };
     } else r.layerInfo = null;
@@ -1727,7 +1731,8 @@
     const n = li.base.length;
     return `<b>${esc(li.label)}</b>, bottom to top:<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`
       + (li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "")
-      + (li.note ? `<span class="lnote">${esc(li.note)}</span>` : "");
+      + (li.note ? `<span class="lnote">${esc(li.note)}</span>` : "")
+      + (li.image ? `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(li.label)}, numbered bottom to top" width="1024" height="1024" loading="lazy" onerror="this.parentNode.remove()"></a>` : "");
   };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };

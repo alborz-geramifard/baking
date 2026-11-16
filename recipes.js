@@ -2,7 +2,7 @@
 // Add a "description" to any recipe for its card blurb (about the recipe, not its ingredients);
 // Add "layers" for a layered cake's layer pill: {"stack": every layer bottom to top once the sponge is
 // sliced, fillings and toppings included; "extra": layers a third sponge slice adds (gives a range);
-// "note": what isn't counted, e.g. a glaze}. The page counts the list, so the number always matches.
+// "note": what isn't counted, e.g. a glaze; "image": an illustrated slice in images/layers/}. The page counts the list.
 // Add "credits" to a recipe adapted from someone else's: a list of
 // {"name", "url", "icon", "note"} (icon = a file in images/sources/).
 // Add "glance" for a checked ingredient count and total time: {"ingredients": how many different
@@ -58,7 +58,8 @@ window.RECIPES = [
         "Sponge",
         "Banana walnut mousse"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/banana-cake.webp"
     },
     "glance": {
       "ingredients": 21,
@@ -116,7 +117,8 @@ window.RECIPES = [
         "Milk-soaked sponge",
         "Biscoff cream",
         "Biscoff spread with crushed biscuits"
-      ]
+      ],
+      "image": "images/layers/biscoff-yemeni-milk-cake-8-8-inch-square.webp"
     },
     "glance": {
       "ingredients": 16,
@@ -172,7 +174,8 @@ window.RECIPES = [
         "Banana mousse",
         "Chocolate Nutella mousse"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/chocolate-banana-8-inch-round.webp"
     },
     "glance": {
       "ingredients": 18,
@@ -233,7 +236,8 @@ window.RECIPES = [
         "Coconut mousse",
         "Chocolate Nutella mousse"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/chocolate-coconut-8-inch-round.webp"
     },
     "glance": {
       "ingredients": 21,
@@ -289,7 +293,8 @@ window.RECIPES = [
         "Coconut mousse",
         "Ganache"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/chocolate-hazelnut-coconut-mousse-cake-5-layers.webp"
     },
     "glance": {
       "ingredients": 23,
@@ -351,7 +356,8 @@ window.RECIPES = [
         "Hazelnut crunch",
         "Chocolate Nutella mousse",
         "Ganache"
-      ]
+      ],
+      "image": "images/layers/chocolate-hazelnut-mocha-mousse-cheesecake-8-inch.webp"
     },
     "glance": {
       "ingredients": 17,
@@ -422,7 +428,8 @@ window.RECIPES = [
         "Raspberry layer",
         "Chocolate mousse",
         "Chocolate topping"
-      ]
+      ],
+      "image": "images/layers/chocolate-mousse-cake-with-raspberry.webp"
     },
     "glance": {
       "ingredients": 16,
@@ -480,7 +487,8 @@ window.RECIPES = [
         "Coffee-orange sponge",
         "Mocha mousse"
       ],
-      "note": "The insert goes in upside down, and the mocha mousse wraps it top and bottom. Glaze not counted."
+      "note": "The insert goes in upside down, and the mocha mousse wraps it top and bottom. Glaze not counted.",
+      "image": "images/layers/entreme-mold-cake.webp"
     },
     "glance": {
       "ingredients": 19,
@@ -547,7 +555,8 @@ window.RECIPES = [
         "Dark chocolate hazelnut mousse",
         "Sponge",
         "Ganache"
-      ]
+      ],
+      "image": "images/layers/flour-mousse-cake.webp"
     },
     "credits": [
       {
@@ -648,7 +657,8 @@ window.RECIPES = [
         "Orange walnut mousse",
         "Sponge"
       ],
-      "note": "Thin outer coat not counted."
+      "note": "Thin outer coat not counted.",
+      "image": "images/layers/orange-coffee-mousse-cake.webp"
     },
     "glance": {
       "ingredients": 18,
@@ -700,7 +710,8 @@ window.RECIPES = [
         "Hazelnut crunch",
         "Mocha mousse",
         "Ganache"
-      ]
+      ],
+      "image": "images/layers/orange-mocha-hazelnut-mousse-cake-8-inch-7-layers.webp"
     },
     "glance": {
       "ingredients": 20,
@@ -769,7 +780,8 @@ window.RECIPES = [
         "Fruit mousse (coconut, banana or passion fruit)",
         "Chocolate mousse"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/passion-chocolate-squares-8x-2x2-inch.webp"
     },
     "glance": {
       "ingredients": 18,
@@ -863,7 +875,8 @@ window.RECIPES = [
         "Coconut mousse",
         "Chocolate Nutella mousse"
       ],
-      "note": "Mirror glaze not counted."
+      "note": "Mirror glaze not counted.",
+      "image": "images/layers/space-square-cake.webp"
     },
     "glance": {
       "ingredients": 24,
@@ -993,7 +1006,8 @@ window.RECIPES = [
         "Banana walnut cream",
         "Sponge"
       ],
-      "note": "Thin outer coat not counted."
+      "note": "Thin outer coat not counted.",
+      "image": "images/layers/chocolate-coffee-banana-walnut-cake-3-layers.webp"
     },
     "glance": {
       "ingredients": 16,
@@ -1054,7 +1068,8 @@ window.RECIPES = [
         "Rose walnut cream",
         "Sponge"
       ],
-      "note": "Thin outer coat not counted."
+      "note": "Thin outer coat not counted.",
+      "image": "images/layers/walnute-sponge-coffee-cake.webp"
     },
     "glance": {
       "ingredients": 13,
