@@ -34,6 +34,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "recipes.js"
+# Notes kept in the recipe folder that aren't recipes; always skipped (whole title, any case).
+DEFAULT_EXCLUDE = ["Dessert Tricks"]
+
+
+def is_recipe(title):
+    if title.strip().lower() in {t.lower() for t in DEFAULT_EXCLUDE}:
+        print(f"Skipped (not a recipe): {title.strip()}")
+        return False
+    return True
 
 JXA_LIST = r"""
 function run() {
@@ -126,7 +135,8 @@ def from_notes(spec):
         where = f'"{folder}" in account "{account}"' if account else f'"{folder}"'
         sys.exit(f"No notes found in a folder named {where}. Folders available:\n" + osascript(JXA_LIST))
     return [{"title": n["title"].strip(), "body": drop_title_line(n["body"], n["title"]),
-             "created": n["created"][:10], "modified": n["modified"][:10]} for n in raw]
+             "created": n["created"][:10], "modified": n["modified"][:10]}
+            for n in raw if is_recipe(n["title"])]
 
 
 ICLOUD_DRIVE = Path("~/Library/Mobile Documents/com~apple~CloudDocs").expanduser()
@@ -176,6 +186,8 @@ def from_dir(spec):
                 while lines and not lines[0].strip():
                     lines = lines[1:]
             body = "\n".join(lines).rstrip()  # plain text: shown with its line breaks untouched
+        if not is_recipe(title):
+            continue
         st = f.stat()
         recipes.append({"title": title, "body": body, "base": f.parent,
                         "created": date.fromtimestamp(getattr(st, "st_birthtime", st.st_mtime)).isoformat(),
