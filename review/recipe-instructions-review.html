@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipe Instructions Review · Approve or reject each change</title>
+<style>
+  :root {
+    --bg: #faf7f2; --card: #ffffff; --ink: #2b2420; --muted: #75685f; --line: #e8e0d6;
+    --accent: #b5623d; --ok: #2f8a4c; --ok-bg: #e6f4ea; --no: #b33a3a; --no-bg: #fbe9e9;
+    --hi: #b33a3a; --med: #c98a1a; --lo: #6f7f8f; --chip: #f2ece4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1816; --card: #252120; --ink: #efe8e1; --muted: #a99c92; --line: #3a3431;
+      --accent: #e08a5e; --ok: #5cc27d; --ok-bg: #1f3426; --no: #e57373; --no-bg: #3a2222;
+      --hi: #e57373; --med: #e0b050; --lo: #9aa8b5; --chip: #322c29;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 120px; }
+  h1 { font-size: 1.7rem; margin: 0 0 6px; line-height: 1.25; }
+  .lede { color: var(--muted); margin: 0 0 18px; }
+  .how { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; font-size: .95rem; }
+  .how ol { margin: 6px 0 0; padding-left: 20px; }
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0; border-bottom: 1px solid var(--line); margin-bottom: 16px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .progress { flex: 1 1 220px; font-size: .92rem; color: var(--muted); }
+  .progress b { color: var(--ink); }
+  .meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 4px; display: flex; }
+  .meter i { display: block; height: 100%; }
+  .meter .a { background: var(--ok); } .meter .r { background: var(--no); }
+  select, button { font: inherit; }
+  select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  .btn { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn:hover { filter: brightness(.97); }
+  section.recipe { margin: 26px 0 8px; }
+  .rhead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .rhead h2 { font-size: 1.2rem; margin: 0; }
+  .rhead .count { color: var(--muted); font-size: .88rem; }
+  .rhead .bulk { margin-left: auto; display: flex; gap: 6px; }
+  .rhead .bulk button { font-size: .8rem; padding: 4px 9px; }
+  .item { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 10px 0; transition: border-color .15s, background .15s; }
+  .item.approved { border-left-color: var(--ok); }
+  .item.rejected { border-left-color: var(--no); opacity: .8; }
+  .meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  .sev { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--chip); }
+  .sev.high { color: var(--hi); } .sev.med { color: var(--med); } .sev.low { color: var(--lo); }
+  .num { font-size: .78rem; color: var(--muted); }
+  .issue { margin: 0 0 8px; }
+  .change { background: var(--chip); border-radius: 8px; padding: 8px 12px; margin: 0 0 10px; font-size: .95rem; }
+  .change .lbl { color: var(--accent); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: 2px; }
+  .ask { font-style: italic; color: var(--muted); font-size: .9rem; margin: -4px 0 10px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .actions button { padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-weight: 600; }
+  .actions .yes[aria-pressed="true"] { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+  .actions .no[aria-pressed="true"] { background: var(--no-bg); border-color: var(--no); color: var(--no); }
+  .actions input { flex: 1 1 200px; min-width: 0; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: .92rem; }
+  code { background: var(--chip); padding: 0 4px; border-radius: 4px; font-size: .9em; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); width: min(720px, 94vw); padding: 16px; }
+  dialog textarea { width: 100%; height: 50vh; font: 13px/1.45 ui-monospace, Menlo, monospace; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+  .hidden { display: none !important; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: .9rem; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Recipe Instructions Review</h1>
+  <p class="lede">Every change I recommend for the 20 recipes, one card each. Approve the ones you want and reject the rest. Nothing has been edited yet.</p>
+  <div class="how">
+    <b>How to use it</b>
+    <ol>
+      <li>Tap <b>Approve</b> or <b>Reject</b> on each change. You can add a note, for example "use 1 tsp instead" or "this is intentional".</li>
+      <li>Your choices are saved in this browser, so you can stop and come back later.</li>
+      <li>When you're done, press <b>Copy decisions</b> and paste the result onto the card. I'll then apply only the approved changes.</li>
+    </ol>
+    Changes marked <i>"your call"</i> need a number or fact only you know. If you approve one, add the answer in the note.
+  </div>
+
+  <div class="bar">
+    <div class="progress">
+      <span id="prog"></span>
+      <div class="meter"><i class="a" id="mA"></i><i class="r" id="mR"></i></div>
+    </div>
+    <select id="filter" aria-label="Filter">
+      <option value="all">Show all</option>
+      <option value="open">Undecided only</option>
+      <option value="high">High impact only</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+    <button class="btn primary" id="copy">Copy decisions</button>
+    <button class="btn" id="reset" title="Clear every choice">Reset</button>
+  </div>
+
+  <div id="list"></div>
+</main>
+
+<dialog id="out">
+  <p style="margin-top:0"><b>Your decisions</b>: copied to the clipboard. If copying didn't work, select the text below and copy it.</p>
+  <textarea id="outText" readonly></textarea>
+  <p style="text-align:right;margin-bottom:0"><button class="btn" id="closeOut">Close</button></p>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+// sev: high = changes how the bake turns out; med = confusing or inconsistent; low = tidy-up / typo.
+// ask: set when approving needs an answer from the baker.
+const ITEMS = [
+  // ---- Banana bread
+  ["banana-bread","Banana bread","high","1 tbsp (17 g) baking soda for 188 g flour is about 3× the usual amount (soapy, metallic taste). 1 tbsp of soda also weighs about 14 g, not 17.","Change to <b>1 tsp (5 g) baking soda</b> in both the ingredient list and step 5."],
+  ["banana-bread","Banana bread","med","\"3 banana (1/2 cup)\": three bananas mash to about 1¼–1½ cups.","Change to <b>3 very ripe bananas (about 1¼ cups / 300 g mashed)</b>.","Your call: is it 3 bananas or ½ cup? Put which one in the note."],
+  ["banana-bread","Banana bread","med","Step 10 adds saffron and orange zest, but neither is in the ingredient list.","Add <b>pinch of saffron (optional)</b> and <b>zest of 1 orange (optional)</b> to the ingredients."],
+  ["banana-bread","Banana bread","med","No pan size is given for the 1 h 15 min bake.","Add the pan size to step 11, e.g. <b>\"Pour into a greased 9×5-inch loaf pan\"</b>.","Your call: which pan do you use?"],
+  ["banana-bread","Banana bread","low","\"Separately Alak 188 g flour\": Alak is Farsi for sift. \"Mush\" should be \"mash\".","Change to <b>\"Separately sift 188 g flour…\"</b> and <b>\"Mash 3 bananas\"</b>."],
+
+  // ---- Banana Cake
+  ["banana-cake","Banana Cake","med","Salt is ½ tsp in the list but ¼ tsp in step 3.","Make both <b>½ tsp</b>.","Your call: if you meant ¼ tsp, say so in the note."],
+  ["banana-cake","Banana Cake","med","Banana is \"about 220 g mashed\" in the list but 200 g in step 5.","Make both <b>200 g mashed (2 medium)</b>."],
+  ["banana-cake","Banana Cake","high","The banana mixture goes into the mousse twice: once with the mascarpone (step 12) and again with the walnuts (step 14).","Change step 14 to <b>\"Fold in 120 g toasted walnuts.\"</b>"],
+  ["banana-cake","Banana Cake","med","The cake gets only 15 minutes to \"set\" and is then wrapped as \"the cooled cake\". Wrapping it warm traps steam.","Change step 7 to <b>\"Cool in the pan 15 min, then on a rack until completely cool (about 1 hr).\"</b>"],
+  ["banana-cake","Banana Cake","low","Walnut step: \"Blend 120 g walnut and then spread on pan and toast\".","Reword to <b>\"Toast 120 g walnuts at 325°F for 8 min, cool, then chop finely.\"</b> (toast before chopping so the bits don't burn)."],
+  ["banana-cake","Banana Cake","low","Leftover chat text: \"This version should be much cleaner structurally while still tasting like your banana bread…\".","<b>Delete</b> that line."],
+  ["banana-cake","Banana Cake","med","The Spiderweb note (main glaze 80°F, web glaze 122°F) doesn't match this recipe's own glaze step (90–95°F), and there's no recipe for the web glaze.","Move it to <b>Tips</b> as \"Spiderweb option: pour the main glaze at 27°C (80°F), then pipe a contrasting web glaze at 50°C (122°F)\" and name the web glaze.","Your call: which glaze do you use for the web?"],
+  ["banana-cake","Banana Cake","low","\"200 g ,mashed banana\" has a stray comma.","Fix to <b>\"200 g mashed banana\"</b>."],
+
+  // ---- Biscoff
+  ["biscoff-yemeni-milk-cake-8-8-inch-square","Biscoff Yemeni Milk Cake","med","The title and full ingredient list appear twice, so the checklist shows every ingredient twice.","<b>Delete the second copy</b> of the title and ingredient list."],
+  ["biscoff-yemeni-milk-cake-8-8-inch-square","Biscoff Yemeni Milk Cake","low","Stray <code>‘</code> character at the end of the note, plus an empty heading at the top.","<b>Delete</b> both."],
+
+  // ---- Chocolate Banana 8 inch
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","high","The title says 8-inch round, but the mousse goes into a \"7 inch / 18 cm\" mold.","Make the sizes agree.","Your call: is the finished cake 7-inch or 8-inch?"],
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","med","\"Pour the mousse into a silicone mold …, lined with\" stops mid-sentence. \"Dive the cake\" should probably be \"drop\".","Change to <b>\"Pour the mousse into the silicone mold.\"</b> and <b>\"Let it set a bit, then press the frozen cake in, sponge side up.\"</b>"],
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","med","Ribbon: an \"18 inch\" pastry disk is far bigger than a 7–8\" cake. \"…act quickly as your chocolate will lose\" stops mid-sentence. \"Trim the sides\" appears twice. \"After the cake was cooled down\" should be \"thawed\".","Change to <b>18 cm disk</b>, finish the sentence as <b>\"…will lose its temper\"</b>, merge the two trim steps, and use <b>\"Once the cake has thawed, wrap the ribbon around the base.\"</b>","Your call: confirm it's 18 cm."],
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","low","Glaze: \"cool down to 35-34 degrees\" has the range reversed and no unit.","Change to <b>\"cool to 34–35 °C\"</b>."],
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","low","\"Cook 14-16 on 325 f\" has no unit or pan size. Banana mousse says to pipe \"over the chocolate layer\", but it goes on the cookie layer.","Change to <b>\"Bake 14–16 min at 325°F\"</b> and <b>\"Pipe over the cookie layer\"</b>."],
+  ["chocolate-banana-8-inch-round","Chocolate Banana – 8 Inch Round","low","Typos: \"Gram Cracker\", \"Coco powder\".","Fix to <b>Graham cracker</b> and <b>cocoa powder</b>."],
+
+  // ---- Chocolate Coconut 8 inch
+  ["chocolate-coconut-8-inch-round","Chocolate Coconut – 8 Inch Round","high","Same size conflict as the banana version: 8-inch in the title, 7 in / 18 cm mold in the steps.","Make the sizes agree.","Your call: 7-inch or 8-inch?"],
+  ["chocolate-coconut-8-inch-round","Chocolate Coconut – 8 Inch Round","med","Same unfinished mold sentence, \"dive the cake\", 18-inch disk and repeated ribbon steps as the banana version.","Apply the <b>same fixes</b> as the Chocolate Banana cake."],
+  ["chocolate-coconut-8-inch-round","Chocolate Coconut – 8 Inch Round","low","\"Put walnut on top\" gives no amount. Also \"35-34 degrees\", \"Gram Cracker\", \"Coco powder\".","Change to <b>\"Sprinkle 40 g chopped walnuts on top\"</b>, plus the same typo and temperature fixes.","Your call: how many grams of walnuts?"],
+
+  // ---- 5 layers
+  ["chocolate-hazelnut-coconut-mousse-cake-5-layers","Chocolate Hazelnut Coconut Mousse Cake (5 Layers)","high","The ingredient summary doesn't match the steps: 2.5 eggs (1 used), about 4 g flour (63 g), 100 g butter (1 tbsp), 75 g chocolate chips (never used), 400 ml cream (about 860 ml used). Oil, milk, baking powder, coconut cream, shaved coconut, vanilla and coffee are missing.","<b>Rebuild the summary from the steps</b> so every amount matches."],
+  ["chocolate-hazelnut-coconut-mousse-cake-5-layers","Chocolate Hazelnut Coconut Mousse Cake (5 Layers)","high","The coconut mousse is made (2 days ahead) but never added to the cake.","Add a step before the ganache: <b>\"Re-whisk the coconut mousse to stiff peaks and spread it over the chocolate mousse. Freeze 15 min.\"</b>"],
+  ["chocolate-hazelnut-coconut-mousse-cake-5-layers","Chocolate Hazelnut Coconut Mousse Cake (5 Layers)","med","Ganache: \"Wait for cream to reaches 40-50 C,   at 30 C\" is garbled. \"put itin freezer\" is a typo.","Change to <b>\"Let the cream cool to 40–50 °C\"</b> and <b>\"put it in the freezer\"</b>.","Your call: what does \"at 30 C\" refer to (the pouring temperature)?"],
+  ["chocolate-hazelnut-coconut-mousse-cake-5-layers","Chocolate Hazelnut Coconut Mousse Cake (5 Layers)","low","\"Whisk until fluffy and add salt\" isn't a bullet, so the checklist misses it. Also \"Gram Cracker\", \"Coco powder\" and the same ribbon wording problems.","Make it a step and apply the <b>same typo and ribbon fixes</b>."],
+
+  // ---- Cheesecake
+  ["chocolate-hazelnut-mocha-mousse-cheesecake-8-inch","Chocolate Hazelnut Mocha Mousse Cheesecake","high","The ingredient list doesn't match the steps. The steps use about ⅔ of the cheesecake amounts: cream cheese 680→450 g, sugar 140→95 g, eggs 3→2, sour cream 180→120 g, chocolate 120→80 g, espresso 2→1½ tsp, salt ¼→⅛ tsp.","<b>Update the ingredient list to match the steps</b> (the smaller amounts).","Your call: if the full-size amounts are right, say so and I'll scale the steps up instead."],
+  ["chocolate-hazelnut-mocha-mousse-cheesecake-8-inch","Chocolate Hazelnut Mocha Mousse Cheesecake","med","Crunch layer: wafers 60 g in the list but \"70 g crushed biscuits\" in the step. Nutella 40 vs 45 g, hazelnuts 20 vs 25 g. The ganache's 100 g chocolate isn't in the list.","Use <b>60 g wafers, 40 g Nutella, 20 g hazelnuts</b> in the step, and add the ganache chocolate to the list (dark chocolate total 300 g)."],
+  ["chocolate-hazelnut-mocha-mousse-cheesecake-8-inch","Chocolate Hazelnut Mocha Mousse Cheesecake","low","A short duplicate list (\"Oreo 250 g, SourCream 180 g…\") sits above the real ingredient list.","<b>Delete</b> the short duplicate list."],
+  ["chocolate-hazelnut-mocha-mousse-cheesecake-8-inch","Chocolate Hazelnut Mocha Mousse Cheesecake","low","The mousse fix says to fold in \"lightly whipped heavy cream\", but the list has \"whole milk (optional, if mousse becomes grainy)\". The notes give Callebaut 811 (54.5%) as a 60–70% example.","Make the list say <b>milk</b> to match the grainy-mousse fix, and drop <b>Callebaut 811</b> from the examples."],
+
+  // ---- Raspberry
+  ["chocolate-mousse-cake-with-raspberry","Chocolate Mousse Cake with Raspberry","high","The raspberry sauce is made but never put on the cake. As written it's a runny sauce with no gelatin.","Add <b>\"Spread a thin layer of cooled raspberry sauce over the sponge and chill 15 min\"</b> before the mousse, or serve it on the side.","Your call: on the cake or on the side? If it's on the cake, should it get 2 g gelatin so it sets?"],
+  ["chocolate-mousse-cake-with-raspberry","Chocolate Mousse Cake with Raspberry","med","The note has the raw version and the cleaned version back to back, plus a \"Video\" placeholder.","<b>Delete the raw version</b> and keep the cleaned one."],
+  ["chocolate-mousse-cake-with-raspberry","Chocolate Mousse Cake with Raspberry","med","The mousse sets only 15 min before the topping is poured, so warm topping can sink into soft mousse.","Change to <b>\"refrigerate at least 1 hour\"</b>."],
+  ["chocolate-mousse-cake-with-raspberry","Chocolate Mousse Cake with Raspberry","low","Heading \"6. Serve\" has no 1–5 before it.","Rename to <b>\"Serve\"</b>."],
+
+  // ---- Entreme
+  ["entreme-mold-cake","Entreme Mold Cake","med","It says to apply \"mirror glaze or velvet spray\" but has no glaze recipe.","Add a glaze section (copy the dark mirror glaze from the Chocolate Banana cake, scaled to fit), or change it to \"velvet spray\" only.","Your call: glaze or spray?"],
+  ["entreme-mold-cake","Entreme Mold Cake","med","It pipes gel into \"decorative cracks\" but never says how the cracks are made.","Add a step explaining how the cracks are made.","Your call: how do you make them (textured mold, knife, etc.)?"],
+  ["entreme-mold-cake","Entreme Mold Cake","low","Unmolding doesn't say whether to flip the cake (the insert goes in sponge-side up).","Add <b>\"Unmold and flip so the sponge becomes the base.\"</b>"],
+  ["entreme-mold-cake","Entreme Mold Cake","low","\"Orange 3 medium, 4 small\" probably means \"or\". The title is spelled \"Entreme\" (should be entremet). The outer mold is 17.5 cm (about 7 in), but the size pill says 6×6\".","Change to <b>\"Oranges: 3 medium or 4 small\"</b>, rename to <b>Entremet Mold Cake</b>, and change the size to <b>7×7 inch square</b>."],
+
+  // ---- Flour
+  ["flour-mousse-cake","Flour Mousse Cake","med","The ingredient totals don't add up: chocolate 650 g vs about 530 g used, sugar 250 vs 275 g, brewed coffee ¼ cup vs ¾ cup. Nutella, walnuts and shaved coconut are missing.","<b>Fix the totals</b>: chocolate 530 g, sugar 275 g, coffee ¾ cup. Add Nutella 85 g, shaved coconut 30 g and ground walnuts."],
+  ["flour-mousse-cake","Flour Mousse Cake","med","The same mousse is called \"Dark/Walnut\" in one place and \"Dark Chocolate/Hazelnut\" in another, and it's made with Nutella. The assembly adds \"grounded walnut\" with no amount.","Call it <b>\"Dark Chocolate Hazelnut Mousse\"</b> everywhere and give the walnut amount.","Your call: how many grams of walnuts?"],
+  ["flour-mousse-cake","Flour Mousse Cake","low","Half a 13×18\" sheet is about 9×13\" (23×33 cm), not 20×30.5 cm.","Change to <b>about 23×33 cm (9×13 in)</b>, or say you trim them to 20×30.5 cm."],
+  ["flour-mousse-cake","Flour Mousse Cake","low","No step says to separate the 10 eggs.","Add <b>\"Separate 10 eggs\"</b> as the first cake step."],
+  ["flour-mousse-cake","Flour Mousse Cake","low","Stray \"P B\" line. Typos: \"Scaled\" (scalded), \"eg white\", \"offset spatial\", \"peal\", \"13x18 racks\" (pans).","<b>Delete \"P B\"</b> and fix the typos."],
+
+  // ---- Ginger
+  ["ginger-cookies","Ginger Cookies","med","The open question is still in the note: \"¾ cup brown sugar as 230 g… Confirm which amount you intend to use.\"","Settle it and delete the note. Suggested: <b>¾ cup packed (165 g)</b>.","Your call: 165 g or 230 g?"],
+
+  // ---- Orange Coffee Mousse
+  ["orange-coffee-mousse-cake","Orange Coffee Mousse Cake","high","The sponge lists 1 tbsp orange zest and 40 g orange juice, but no step adds them, so the sponge has no orange in it.","Change step 6 to <b>\"Add 123 g sour cream, the cooled coffee, 1 tsp vanilla, 1 tbsp orange zest and 40 g orange juice.\"</b>"],
+  ["orange-coffee-mousse-cake","Orange Coffee Mousse Cake","high","50 g toasted walnuts are listed for the mousse but never folded in.","Change the mousse step to <b>\"Fold in 1 tbsp orange zest and 50 g chopped toasted walnuts.\"</b> (Also toast 130 g walnuts in step 2, not 80 g.)"],
+  ["orange-coffee-mousse-cake","Orange Coffee Mousse Cake","low","Walnuts toast at 325°F while the oven preheats to 350°F, which doesn't work with one oven.","Reorder: <b>toast the walnuts at 325°F first, then raise the oven to 350°F</b>."],
+
+  // ---- Orange Mocha 7 layers
+  ["orange-mocha-hazelnut-mousse-cake-8-inch-7-layers","Orange Mocha Hazelnut Mousse Cake (7 Layers)","high","The assembly steps are out of order. Mousse goes \"over the crunch layer\" before the crunch is spread, and the second crunch portion is never used.","Reorder to: <b>sponge → syrup → crunch (chill 10 min) → half the mousse → sponge → syrup → crunch → rest of the mousse</b>."],
+  ["orange-mocha-hazelnut-mousse-cake-8-inch-7-layers","Orange Mocha Hazelnut Mousse Cake (7 Layers)","high","The 30 g granulated sugar never goes into the sponge (the step creams butter with brown sugar only).","Change to <b>\"cream 113 g butter, 100 g brown sugar and 30 g granulated sugar\"</b>."],
+  ["orange-mocha-hazelnut-mousse-cake-8-inch-7-layers","Orange Mocha Hazelnut Mousse Cake (7 Layers)","med","The list doesn't match the steps: water 185 g (syrup uses 100 g, not 120), zest 5 tsp (3 used), hazelnuts 150 g (70 g used plus garnish).","Use <b>water 165 g</b>, <b>zest 3 tsp</b> and <b>hazelnuts 70 g + extra for garnish</b>, or change the syrup to 120 g water.","Your call: is the syrup 100 g or 120 g water?"],
+  ["orange-mocha-hazelnut-mousse-cake-8-inch-7-layers","Orange Mocha Hazelnut Mousse Cake (7 Layers)","low","\"or freeze for 30–45 minutes until fully firm\": a 30-minute freeze won't set a whole mousse cake. Typo \"Biscuts\".","Change to <b>\"or freeze 1–2 hours\"</b> and fix the spelling to <b>Biscuits</b>."],
+
+  // ---- Passion squares
+  ["passion-chocolate-squares-8x-2x2-inch","Passion Chocolate Squares","high","The sponge oil is 22.5 g, but every other sponge ingredient is 0.75× the base recipe, which would be about 36 g.","Change to <b>36 g oil</b>.","Your call: if less oil is on purpose, reject this."],
+  ["passion-chocolate-squares-8x-2x2-inch","Passion Chocolate Squares","low","The scale labels are wrong: chocolate mousse and glaze say 0.4× but are 0.6×; coconut mousse, cookie and sponge say 0.5× but are 0.75×.","Change the labels to the <b>actual factors</b>."],
+  ["passion-chocolate-squares-8x-2x2-inch","Passion Chocolate Squares","low","An 8×8 tray gives sixteen 2×2 squares, not eight.","Change to <b>\"cut into sixteen 2×2 in squares (8 needed, extras are the baker's treat)\"</b>, or bake in a smaller pan."],
+  ["passion-chocolate-squares-8x-2x2-inch","Passion Chocolate Squares","low","\"Buy: Gram Cracker, Nutella,\" note, stray \"/\" at the end. The totals table only covers the banana option.","Delete both. Label the table <b>\"Totals (banana option)\"</b>."],
+
+  // ---- Shirini Nargili
+  ["shirini-nargili-irani-persian-coconut-cookies","Shirini Nargili (Coconut Cookies)","high","\"Heat oil until your hand burns on the side to the temperature specified in your source recipe\" gives no real temperature, and it's about hot oil.","Change to <b>\"Heat 75 g oil until hot but not smoking (about 80 °C / 175 °F)\"</b>.","Your call: what temperature do you use?"],
+  ["shirini-nargili-irani-persian-coconut-cookies","Shirini Nargili (Coconut Cookies)","med","The list says granulated sugar but the step says powdered sugar.","Make both <b>powdered sugar</b>.","Your call: which sugar?"],
+  ["shirini-nargili-irani-persian-coconut-cookies","Shirini Nargili (Coconut Cookies)","med","The 1 tbsp rice flour step isn't in the ingredient list.","Add <b>\"Rice flour: 1 tbsp\"</b> to the ingredients."],
+  ["shirini-nargili-irani-persian-coconut-cookies","Shirini Nargili (Coconut Cookies)","low","The \"Instructions\" heading is split into \"I\" and \"nstructions\".","Merge into <b>Instructions</b>."],
+
+  // ---- Space Square
+  ["space-square-cake","Space Square Cake","high","The outer mousse is \"scaled for 9.5-inch square mold\" but is poured into a \"7 in / 18 cm\" mold.","Change to <b>\"Pour into the 9.5-inch square silicone mold\"</b>.","Your call: which mold?"],
+  ["space-square-cake","Space Square Cake","med","The coconut mousse is never added to the cake, and it wasn't scaled 1.5× like the other layers.","Add <b>\"Spread the coconut mousse over the cookie layer and freeze\"</b> and scale it 1.5×: 540 ml cream, 90 g coconut cream, 45 g coconut."],
+  ["space-square-cake","Space Square Cake","med","Decoration: \"Slowly mix in 5 g of water\" will normally make tempered chocolate seize.","Check this is on purpose. If not, <b>delete the water step</b>.","Your call: is the water on purpose?"],
+  ["space-square-cake","Space Square Cake","med","\"75 g sweetened condensed milk (75 ml heavy cream)\": is the cream a substitute or an addition? The spiderweb note names a \"base glaze\" but the recipe has only the white glaze.","Change to <b>\"75 g sweetened condensed milk (or 75 ml heavy cream)\"</b>, and name or add the base glaze.","Your call: substitute or addition? Which base glaze?"],
+  ["space-square-cake","Space Square Cake","low","\"Video\" placeholder, \"butteZ\" typo, the 18-inch disk, and \"After cake cools\" (should be thawed).","Delete the placeholder, fix to <b>butter</b>, use an <b>18 cm</b> disk and <b>\"once thawed\"</b>."],
+
+  // ---- Walnut Persian Cookie
+  ["walnut-persian-cookie","Walnut Persian Cookie","med","\"Portion onto parchment with no cap\" isn't clear.","Change to <b>\"Portion walnut-sized mounds onto parchment, about 5 cm apart\"</b>.","Your call: what did \"no cap\" mean?"],
+  ["walnut-persian-cookie","Walnut Persian Cookie","med","\"Leave for 3 min to continue back outside\" doesn't make sense.","Change to <b>\"Leave on the tray for 3 min after baking; they keep cooking from the heat of the tray\"</b>."],
+  ["walnut-persian-cookie","Walnut Persian Cookie","low","The English rest is 30 min but the Farsi says 30–60 min.","Make the English <b>\"Rest 30–60 min at room temperature\"</b>."],
+
+  // ---- Bundt
+  ["walnut-raisin-bundt-cake","Walnut–Raisin Bundt Cake","med","240 g flour is small for a 10-inch (12-cup) bundt, so the cake will come out short.","Change to a <b>6-cup bundt pan</b>, or scale the recipe 1.5×.","Your call: which pan do you actually use?"],
+  ["walnut-raisin-bundt-cake","Walnut–Raisin Bundt Cake","low","\"Toss with 1 tsp flour\" comes before \"soaked raisins. Pat dry\", which is the wrong order. The 1 tsp flour isn't listed.","Change to <b>\"Pat the raisins dry, toss the walnuts and raisins with 1 tsp flour, then fold in.\"</b> Add the extra 1 tsp flour to the list."],
+  ["walnut-raisin-bundt-cake","Walnut–Raisin Bundt Cake","low","The syrup makes about 150 g but only 2–4 tbsp is used.","Halve the syrup to <b>60 g water + 15 g sugar + ½ tsp each Nescafé and rosewater</b>."],
+
+  // ---- Chocolate Coffee Banana Walnut
+  ["chocolate-coffee-banana-walnut-cake-3-layers","Chocolate Coffee Banana Walnut Cake","high","No chocolate anywhere, even though the title and description say it has some.","Either add chocolate (e.g. <b>2 tbsp cocoa in the sponge or a ganache top</b>) or rename it to <b>Coffee Banana Walnut Cake</b>.","Your call: add chocolate or rename?"],
+  ["chocolate-coffee-banana-walnut-cake-3-layers","Chocolate Coffee Banana Walnut Cake","low","Walnuts toast at 325°F while the oven preheats to 350°F.","Reorder: <b>toast first, then raise to 350°F</b>."],
+
+  // ---- Walnute sponge
+  ["walnute-sponge-coffee-cake","Walnut Sponge Coffee Cake","high","20 g cornstarch is listed but never used.","Change the sift step to <b>\"Sift 130 g cake flour + 20 g cornstarch + baking powder + salt\"</b>."],
+  ["walnute-sponge-coffee-cake","Walnut Sponge Coffee Cake","med","No pan size is given, but the bake time is an exact 23 min.","Add the pan, e.g. <b>\"one 9-inch round pan, 3 in deep\"</b>.","Your call: which pan?"],
+  ["walnute-sponge-coffee-cake","Walnut Sponge Coffee Cake","low","The title is spelled \"Walnute\". The list says \"Sugar 250 g\" but the cream uses powdered sugar. Nescafé is listed as 8–9 g but about 7 g is used.","Rename to <b>Walnut Sponge Coffee Cake</b>, list <b>50 g powdered sugar</b> separately, and change Nescafé to <b>about 7 g</b>."],
+
+  // ---- Shared
+  ["_all","All recipes","low","Leftover typos across notes.","Fix them in every recipe: <b>Graham</b> (not Gram), <b>cocoa</b> (not Coco), and degree units on every temperature."],
+];
+
+const KEY = "recipe-review-302";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} render(); };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const strip = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent; };
+
+const items = ITEMS.map(([rid, recipe, sev, issue, change, ask], i) => ({ id: "c" + (i + 1), rid, recipe, sev, issue, change, ask }));
+const groups = [];
+items.forEach((it) => { let g = groups.find((x) => x.rid === it.rid); if (!g) groups.push(g = { rid: it.rid, recipe: it.recipe, items: [] }); g.items.push(it); });
+
+const list = document.getElementById("list");
+list.innerHTML = groups.map((g) => `
+  <section class="recipe" data-rid="${g.rid}">
+    <div class="rhead"><h2>${esc(g.recipe)}</h2><span class="count"></span>
+      <span class="bulk"><button class="btn" data-bulk="approve">Approve all</button><button class="btn" data-bulk="reject">Reject all</button></span></div>
+    ${g.items.map((it) => `
+      <article class="item" id="${it.id}" data-sev="${it.sev}">
+        <div class="meta"><span class="sev ${it.sev}">${{ high: "High impact", med: "Unclear", low: "Tidy-up" }[it.sev]}</span><span class="num">#${it.id.slice(1)}</span></div>
+        <p class="issue">${esc(it.issue)}</p>
+        <div class="change"><span class="lbl">Proposed change</span>${it.change}</div>
+        ${it.ask ? `<p class="ask">${esc(it.ask)}</p>` : ""}
+        <div class="actions">
+          <button class="yes" data-v="approve" aria-pressed="false">✓ Approve</button>
+          <button class="no" data-v="reject" aria-pressed="false">✕ Reject</button>
+          <input type="text" placeholder="Note (optional)" aria-label="Note">
+        </div>
+      </article>`).join("")}
+  </section>`).join("");
+
+list.addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.bulk) {
+    const sec = b.closest("section");
+    groups.find((g) => g.rid === sec.dataset.rid).items.forEach((it) => { state[it.id] = { ...(state[it.id] || {}), v: b.dataset.bulk }; });
+    return save();
+  }
+  const id = b.closest(".item").id, cur = state[id] || {};
+  state[id] = { ...cur, v: cur.v === b.dataset.v ? undefined : b.dataset.v };
+  save();
+});
+list.addEventListener("input", (e) => {
+  if (e.target.tagName !== "INPUT") return;
+  const id = e.target.closest(".item").id;
+  state[id] = { ...(state[id] || {}), note: e.target.value };
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {}
+});
+
+const filterEl = document.getElementById("filter");
+filterEl.addEventListener("change", render);
+
+function render() {
+  const f = filterEl.value;
+  let a = 0, r = 0;
+  items.forEach((it) => {
+    const s = state[it.id] || {}, el = document.getElementById(it.id);
+    if (s.v === "approve") a++; if (s.v === "reject") r++;
+    el.classList.toggle("approved", s.v === "approve");
+    el.classList.toggle("rejected", s.v === "reject");
+    el.querySelector(".yes").setAttribute("aria-pressed", s.v === "approve");
+    el.querySelector(".no").setAttribute("aria-pressed", s.v === "reject");
+    const inp = el.querySelector("input"); if (document.activeElement !== inp) inp.value = s.note || "";
+    const show = f === "all" || (f === "open" && !s.v) || (f === "high" && it.sev === "high") || (f === "approved" && s.v === "approve") || (f === "rejected" && s.v === "reject");
+    el.classList.toggle("hidden", !show);
+  });
+  document.querySelectorAll("section.recipe").forEach((sec) => {
+    const g = groups.find((x) => x.rid === sec.dataset.rid);
+    const done = g.items.filter((it) => (state[it.id] || {}).v).length;
+    sec.querySelector(".count").textContent = `${done}/${g.items.length} decided`;
+    sec.classList.toggle("hidden", !sec.querySelector(".item:not(.hidden)"));
+  });
+  const n = items.length;
+  document.getElementById("prog").innerHTML = `<b>${a + r}</b> of ${n} decided · <b>${a}</b> approved · <b>${r}</b> rejected`;
+  document.getElementById("mA").style.width = (a / n * 100) + "%";
+  document.getElementById("mR").style.width = (r / n * 100) + "%";
+}
+
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); }
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const line = (it) => { const s = state[it.id] || {}; return `#${it.id.slice(1)} [${it.recipe}] ${strip(it.change)}${s.note ? `\n    Note: ${s.note}` : ""}`; };
+  const pick = (v) => items.filter((it) => (state[it.id] || {}).v === v);
+  const open = items.filter((it) => !(state[it.id] || {}).v);
+  const txt = [
+    `Recipe review decisions (${pick("approve").length} approved, ${pick("reject").length} rejected, ${open.length} undecided)`,
+    "", "APPROVED:", ...(pick("approve").map(line).length ? pick("approve").map(line) : ["  (none)"]),
+    "", "REJECTED:", ...(pick("reject").map(line).length ? pick("reject").map(line) : ["  (none)"]),
+    "", "UNDECIDED: " + (open.length ? open.map((it) => "#" + it.id.slice(1)).join(", ") : "none"),
+  ].join("\n");
+  document.getElementById("outText").value = txt;
+  let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {}
+  document.getElementById("out").showModal();
+  if (ok) toast("Copied to clipboard");
+});
+document.getElementById("closeOut").addEventListener("click", () => document.getElementById("out").close());
+document.getElementById("reset").addEventListener("click", () => {
+  if (!Object.keys(state).length) return;
+  state = {}; save(); toast("All choices cleared");
+});
+render();
+</script>
+</body>
+</html>
