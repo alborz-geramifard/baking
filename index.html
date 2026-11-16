@@ -1086,11 +1086,20 @@
     let temp = null;
     const tm = t.match(/(\d{3})\s*°\s*([CF])?/) || t.match(/\b(\d{3})\s*(?:degrees\s*)?([FC])\b/);
     if (tm) { const v = +tm[1], f = tm[2] === "F" || (!tm[2] && v > 260); temp = { label: `${v}°${f ? "F" : "C"}`, c: f ? Math.round((v - 32) * 5 / 9) : v }; }
-    // bake time: the longest "N–M min" / "N hr" span mentioned
+    // bake time: the longest duration stated in a baking clause ("Bake for 45–50 minutes", "Cook 8–14 min at 325°F",
+    // "Cook 14-16 on 325 f", "Time: 18 min"). Chill, freeze, rest and mixing times are not oven time, so a duration
+    // only counts when its own sentence, up to that number, says bake/baking or gives an oven temperature, or an
+    // oven temperature follows it directly.
     let time = null;
-    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(min(?:ute)?s?|h(?:ou)?rs?|hours?)\b/gi)) {
-      const k = /^h/i.test(m[3]) ? 60 : 1, hi = (+(m[2] || m[1])) * k;
-      if (!time || hi > time.max) time = { max: hi, label: m[2] ? `${m[1]}–${m[2]} ${k === 60 ? "hr" : "min"}` : `${m[1]} ${k === 60 ? "hr" : "min"}` };
+    const BAKE_CLAUSE = /\bbak(?:e|es|ed)\b|\bbaking\b(?!\s*(?:powder|soda|sheet|paper|pan|tray|dish|rack|cooling|mat))|\btime\s*:|\d{3}\s*°?\s*[FC]\b|\b\d{3}\s*degrees/i;
+    const TEMP_AFTER = /^\s*(?:at|on)\s*\d{3}\s*°?\s*[FC]\b/i;
+    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(?:(min(?:ute)?s?|h(?:ou)?rs?|hours?|h)\b(?:\s*(?:and\s*)?(\d+)\s*min(?:ute)?s?\b)?|(?=(?:at|on)\s*\d{3}\s*°?\s*[FC]\b))/gi)) {
+      const before = t.slice(Math.max(0, m.index - 80), m.index), clause = before.split(/[.!?;]\s|\n/).pop();
+      const tempAfter = TEMP_AFTER.test(t.slice(m.index + m[0].length, m.index + m[0].length + 20));
+      if (!(BAKE_CLAUSE.test(clause) || tempAfter) || /\blast\s*$/i.test(clause)) continue; // skip "during the last 10 minutes of baking"
+      const hr = /^h/i.test(m[3] || ""), extra = +(m[4] || 0), k = hr ? 60 : 1, hi = (+(m[2] || m[1])) * k + extra;
+      const unit = hr ? "hr" : "min", span = m[2] ? `${m[1]}–${m[2]}` : m[1];
+      if (!time || hi > time.max) time = { max: hi, label: extra ? `${span} ${unit} ${extra} min` : `${span} ${unit}` };
     }
     // weighed ingredients (ml counted as g; an egg ≈ 50 g)
     const parts = new Map(); let prev = "";
