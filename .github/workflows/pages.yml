@@ -1,5 +1,5 @@
 # Publishes the Baking Book to GitHub Pages on every push to main.
-# Live at https://<your-username>.github.io/baking/ when the repo is named "baking".
+# Live at https://alborz-geramifard.com/baking/
 name: Deploy to GitHub Pages
 
 on:
