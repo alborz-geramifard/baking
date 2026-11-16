@@ -34,13 +34,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "recipes.js"
-# Notes kept in the recipe folder that aren't recipes; always skipped (whole title, any case).
-DEFAULT_EXCLUDE = ["Dessert Tricks"]
+# Notes kept in the recipe folder that shouldn't be published (non-recipes and removed recipes);
+# always skipped. Whole title, ignoring case, punctuation/dash style and extra spaces.
+DEFAULT_EXCLUDE = ["Dessert Tricks", "Opera Cake - Louise Lindberg"]
+
+
+def title_key(title):
+    return " ".join(re.sub(r"[\W_]+", " ", title.lower()).split())
 
 
 def is_recipe(title):
-    if title.strip().lower() in {t.lower() for t in DEFAULT_EXCLUDE}:
-        print(f"Skipped (not a recipe): {title.strip()}")
+    if title_key(title) in {title_key(t) for t in DEFAULT_EXCLUDE}:
+        print(f"Skipped (excluded): {title.strip()}")
         return False
     return True
 
