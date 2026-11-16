@@ -47,3 +47,15 @@ python3 scripts/import_notes.py --dir ~/Desktop/BakingNotes
 Paths with spaces are fine. `--dir "iCloud / Dessert"` is read as the Dessert folder in iCloud Drive.
 
 Each note's title becomes the cake's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables.
+
+### Pictures
+
+Pictures in your notes come along automatically. The script saves each one as a JPEG in `images/recipes/` (at most 1400 px wide, so the page stays fast) and the first picture in a note becomes that cake's photo on the cards and the recipe page. Notes without a picture keep the drawn cake.
+
+This works with both `--notes-folder` (Apple Notes hands the pictures over inside the note) and `--dir`, as long as the export kept the pictures: Notes' **File › Export as PDF** does not, so use an exporter that saves HTML with images (it puts them next to the `.html` files, which the script picks up).
+
+To leave out notes in the folder that aren't recipes, add `--exclude` with part of the title, as many times as you need:
+
+```sh
+python3 scripts/import_notes.py --notes-folder "iCloud / Dessert" --exclude "Australia Trip" --exclude "Less shakiness"
+```

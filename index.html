@@ -170,7 +170,8 @@
   .card .meta { margin-top: auto; padding-top: 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
   .empty { text-align: center; color: var(--ink-soft); padding: 60px 0 100px; font-family: var(--serif); font-size: 22px; font-style: italic; }
 
-  .art svg { width: 100%; height: 100%; display: block; }
+  .art svg, .art img.photo { width: 100%; height: 100%; display: block; }
+  .art img.photo { object-fit: cover; }
 
   /* ---------- Section icons ---------- */
   svg.ic { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(60,35,20,.18)); }
@@ -415,6 +416,7 @@
      Keeps the note's structure (lines, bold/italic/underline, lists, headings, tables, links, images)
      but drops scripts, event handlers and inline styling so it can't break the page. */
   const ALLOWED = new Set("DIV P BR B STRONG I EM U S STRIKE DEL SUB SUP SPAN UL OL LI H1 H2 H3 H4 BLOCKQUOTE PRE TT CODE TABLE THEAD TBODY TR TD TH A IMG HR".split(" "));
+  const LOCAL_IMG = /^images\/recipes\/[\w.-]+$/; // photos saved by import_notes.py
   function sanitize(html) {
     const doc = new DOMParser().parseFromString("<body>" + html + "</body>", "text/html");
     (function walk(node) {
@@ -425,7 +427,7 @@
         }
         for (const a of [...el.attributes]) {
           const keep = (el.tagName === "A" && a.name === "href" && /^(https?:|mailto:)/i.test(a.value)) ||
-                       (el.tagName === "IMG" && a.name === "src" && /^(https?:|data:image\/)/i.test(a.value)) ||
+                       (el.tagName === "IMG" && a.name === "src" && (/^(https?:|data:image\/)/i.test(a.value) || LOCAL_IMG.test(a.value))) ||
                        ((el.tagName === "TD" || el.tagName === "TH") && /^(colspan|rowspan)$/.test(a.name));
           if (!keep) el.removeAttribute(a.name);
         }
@@ -563,6 +565,11 @@
     { bg: "#e9e1cf", sponge: "#a0663b", cream: "#f6eadb", top: "#e8b862", berry: "#6b3b22" },
   ];
   const hash = (s) => { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  // The note's own photo if it has one, otherwise the drawn cake.
+  const cakeArt = (r, lazy) => r.image && LOCAL_IMG.test(r.image)
+    ? `<img class="photo" src="${esc(r.image)}" alt="${esc(r.title)}"${lazy ? ' loading="lazy"' : ""} onerror="cakeFallback(this)">`
+    : cakeSVG(r.title);
+  window.cakeFallback = (img) => { img.outerHTML = cakeSVG(img.alt); }; // photo missing → drawn cake
   function cakeSVG(name) {
     const h = hash(name), p = PALETTES[h % PALETTES.length];
     const tiers = 2 + ((h >> 4) % 2), drips = 5 + ((h >> 6) % 4), berries = 2 + ((h >> 9) % 3);
@@ -625,7 +632,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art">${cakeSVG(r.title)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art">${cakeArt(r)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
       i++;
     };
     show();
@@ -640,7 +647,7 @@
     $("#count").textContent = q ? `${list.length} of ${RECIPES.length}` : `${RECIPES.length}`;
     $("#grid").innerHTML = list.length ? list.map((r, k) => `
       <a class="card" href="${href(r)}" style="animation-delay:${Math.min(k, 12) * 40}ms">
-        <div class="art">${cakeSVG(r.title)}</div>
+        <div class="art">${cakeArt(r, true)}</div>
         <div class="card-body">
           <h3>${esc(r.title)}</h3>
           <p>${esc(r.teaser)}</p>
@@ -701,12 +708,18 @@
     $("#rTitle").textContent = r.title;
     const c = fmtDate(r.created), m = fmtDate(r.modified);
     $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
-    $("#rArt").innerHTML = cakeSVG(r.title);
+    $("#rArt").innerHTML = cakeArt(r);
     setDate($("#recipeDate"), r.modified || r.created);
     const body = $("#rBody");
     body.classList.toggle("plain", !r.isHTML);
     // Section icons first, so quantities bolded afterwards ("3 eggs") aren't mistaken for headings.
     if (r.isHTML) { body.innerHTML = sanitize(r.body); decorateSections(body); } else body.innerHTML = decoratePlain(r.body);
+    // The photo already sits at the top of the page, so don't show it twice inside the recipe.
+    if (r.image) body.querySelectorAll("img").forEach((img) => {
+      if (img.getAttribute("src") !== r.image) return;
+      const p = img.parentElement; img.remove();
+      if (p !== body && !p.textContent.trim() && !p.querySelector("img")) p.remove();
+    });
     boldQuantities(body);
     const prev = sorted[(idx - 1 + sorted.length) % sorted.length], next = sorted[(idx + 1) % sorted.length];
     $("#pager").innerHTML = sorted.length > 1
