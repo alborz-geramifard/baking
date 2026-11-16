@@ -20,6 +20,8 @@ The banner shows an anime-style illustration of me as a baker (`images/baker-por
 
 Use the **Share** button (top right of the book, or next to **Print** on a recipe) to pick a platform: WhatsApp, Facebook, X, Pinterest, Reddit, Telegram, Email or Text. You can also copy the link. On phones and in Safari, **More…** opens the device's own share menu. A shared recipe links straight to that recipe. Links only work for other people once the page is online. A `file://` link only opens on your own computer.
 
+**Comments.** Every recipe page ends with a **Comments** section. GitHub Pages only serves files, so the comments are stored in this repo's [GitHub Discussions](https://github.com/alborz-geramifard/baking/discussions) and shown on the page with [giscus](https://giscus.app). Visitors sign in with GitHub to comment or react. Each recipe gets its own discussion (in the Announcements category, so only you and giscus can start one), created with its first comment and titled `recipe/<recipe id>`. You can reply, edit or delete comments right on GitHub. The settings are in the `GISCUS` line of the script in `index.html`. Until the [giscus app](https://github.com/apps/giscus) is installed on the repo, the section just says "Comments are opening soon."
+
 ## Putting it online (GitHub Pages)
 
 The site is live at **https://alborz-geramifard.com/baking/** (repo: github.com/alborz-geramifard/baking). It is published by the workflow in `.github/workflows/pages.yml`, which runs on every push to `main`.
