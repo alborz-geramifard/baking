@@ -8,7 +8,7 @@ Use the **Share** button (top right of the book, or next to **Print** on a recip
 
 ## Putting it online (GitHub Pages)
 
-The site is published to **https://YOUR-USERNAME.github.io/baking/** by the workflow in `.github/workflows/pages.yml`, which runs on every push to `main`.
+The site is live at **https://alborz-geramifard.com/baking/** (repo: github.com/alborz-geramifard/baking). It is published by the workflow in `.github/workflows/pages.yml`, which runs on every push to `main`.
 
 One-time setup:
 
