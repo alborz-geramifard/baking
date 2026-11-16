@@ -274,6 +274,180 @@
   footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
   footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
 
+  /* =====================================================================
+     Visual layer: paper grain, living banner, tilt cards, glance panel
+     ===================================================================== */
+  :root {
+    --c1: #c0573f; --c2: #3a73c4; --c3: #d99a2b; --c4: #9b2f45; --c5: #5f9a4a; --c6: #7a5bb5; --c-other: #a39488;
+    --c1-ink: #fff; --c2-ink: #fff; --c3-ink: #2d211b; --c4-ink: #fff; --c5-ink: #fff; --c6-ink: #fff; --c-other-ink: #2d211b;
+    --glass: color-mix(in srgb, var(--paper) 72%, transparent);
+    --ease-out: cubic-bezier(.2, .8, .2, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --c1: #d4644a; --c2: #4f88d6; --c3: #bd8016; --c4: #d0507a; --c5: #3f8f2e; --c6: #9a80dc; --c-other: #7d7068;
+      --c3-ink: #1b1512; --c-other-ink: #fff;
+    }
+  }
+  /* paper grain over everything */
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: .07; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  @media (prefers-color-scheme: dark) { body::after { mix-blend-mode: screen; opacity: .05; } }
+
+  /* --- living banner: drifting colour blobs + floating ingredients with pointer parallax --- */
+  .banner { --px: 0; --py: 0; isolation: isolate; }
+  .aurora { position: absolute; inset: -20%; z-index: -1; pointer-events: none; filter: blur(60px); opacity: .55; }
+  .aurora i { position: absolute; border-radius: 50%; animation: drift 22s ease-in-out infinite alternate; }
+  .aurora i:nth-child(1) { width: 46vw; height: 46vw; left: 50%; top: 0; background: color-mix(in srgb, var(--accent-2) 70%, transparent); }
+  .aurora i:nth-child(2) { width: 38vw; height: 38vw; left: 5%; top: 40%; background: color-mix(in srgb, var(--accent) 45%, transparent); animation-duration: 28s; animation-delay: -8s; }
+  .aurora i:nth-child(3) { width: 30vw; height: 30vw; left: 70%; top: 50%; background: color-mix(in srgb, #e9a5b3 55%, transparent); animation-duration: 34s; animation-delay: -15s; }
+  @keyframes drift { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-6vw, 4vw) scale(1.12); } 100% { transform: translate(4vw, -3vw) scale(.94); } }
+  .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .floaters span {
+    position: absolute; width: var(--s, 54px); aspect-ratio: 1; opacity: .9;
+    transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
+    transition: transform .6s var(--ease-out);
+  }
+  .floaters span > svg { animation: bob 7s ease-in-out infinite; animation-delay: var(--delay, 0s); }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-12px) rotate(6deg); } }
+  .banner-inner { z-index: 1; }
+  .banner h1 em {
+    background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 30%, var(--accent) 55%, #b23a5a 80%, var(--accent) 100%);
+    background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 9s ease-in-out infinite; padding-right: .08em;
+  }
+  @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .banner h1 .ln { display: inline-block; animation: rise .9s var(--ease-out) both; }
+  .banner h1 .ln + br + .ln { animation-delay: .12s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(.35em); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+  .stat b { font-variant-numeric: proportional-nums; }
+
+  /* --- tilt + glare (feature and cards) --- */
+  .tilt { --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; transform-style: preserve-3d; will-change: transform; }
+  .card.tilt { transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(var(--lift, 0)); transition: transform .5s var(--ease-out), box-shadow .3s ease, opacity .7s var(--ease-out); }
+  .card.tilt:hover, .card.tilt:focus-visible { --lift: -6px; transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(var(--lift)); transition: transform .12s linear, box-shadow .3s ease; }
+  .feature.tilt { transform: perspective(1100px) rotate(1.2deg) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .5s var(--ease-out); }
+  .feature.tilt:hover { transform: perspective(1100px) rotate(0deg) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-3px); transition: transform .12s linear; }
+  .card, .feature { position: relative; }
+  .card::after, .feature::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(420px circle at var(--mx) var(--my), rgba(255,255,255,.35), transparent 45%);
+    mix-blend-mode: soft-light;
+  }
+  .card:hover::after, .feature:hover::after { opacity: 1; }
+  .card .art { overflow: hidden; position: relative; }
+  .art svg .cake { transition: transform .6s var(--ease-out); transform-origin: 50% 80%; }
+  .card:hover .art svg .cake, .feature:hover .art svg .cake { transform: scale(1.05) translateY(-4px); }
+  .art svg .steam { opacity: 0; transition: opacity .6s; }
+  .art svg .steam path { stroke-dasharray: 60 140; animation: steam 3.2s linear infinite; }
+  .art svg .steam path:nth-child(2) { animation-delay: -1s; } .art svg .steam path:nth-child(3) { animation-delay: -2.1s; }
+  .card:hover .art svg .steam, .feature .art svg .steam, .recipe-hero .art svg .steam { opacity: .55; }
+  @keyframes steam { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+
+  /* card info chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--ink-soft);
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 7px;
+  }
+  .chip svg { width: 13px; height: 13px; color: var(--accent); }
+  .card .meta { display: flex; align-items: center; gap: 6px; }
+  .card .meta .arr { transition: transform .3s var(--ease-out); }
+  .card:hover .meta .arr { transform: translateX(5px); }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; translate: 0 26px; transition: opacity .8s var(--ease-out), translate .8s var(--ease-out); transition-delay: var(--rd, 0ms); }
+  .reveal.in { opacity: 1; translate: 0 0; }
+  .grid .card { animation: none; }
+
+  /* --- recipe view --- */
+  .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 50; pointer-events: none; transform-origin: 0 50%; transform: scaleX(var(--p, 0));
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); display: none; }
+  body.viewing .progress { display: block; }
+  .recipe-top { position: relative; overflow: hidden; isolation: isolate;
+    background: radial-gradient(900px 420px at 80% 10%, color-mix(in srgb, var(--tint, var(--accent-2)) 55%, transparent), transparent 65%), var(--bg-2); }
+  .recipe-hero h1 { animation: rise .7s var(--ease-out) both; }
+  .recipe-hero .art { transition: transform .5s var(--ease-out); }
+  .recipe-hero .art:hover { transform: rotate(0deg) scale(1.02); }
+
+  .glance {
+    max-width: 760px; margin: -28px auto 22px; position: relative; z-index: 2;
+    background: var(--glass); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    border: 1px solid color-mix(in srgb, var(--line) 80%, transparent); border-radius: var(--radius); box-shadow: var(--shadow-lift);
+    padding: 22px 26px 20px;
+  }
+  .glance:empty { display: none; }
+  .glance + .recipe-card { margin-top: 0; }
+  .glance h2 { font-family: var(--sans); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .tile { display: flex; align-items: center; gap: 12px; min-width: 0; animation: rise .6s var(--ease-out) both; animation-delay: calc(var(--i) * 80ms + 150ms); }
+  .tile .viz { flex: none; width: 52px; height: 52px; }
+  .tile .viz svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .tile b { display: block; font-family: var(--sans); font-weight: 600; font-size: 21px; line-height: 1.1; color: var(--ink); white-space: nowrap; }
+  .tile span { font-size: 12.5px; color: var(--ink-soft); }
+  .tile .track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .tile .fill { stroke: var(--accent); transition: stroke-dashoffset 1.2s var(--ease-out); }
+  .tile .needle { transition: transform 1.2s var(--ease-out); transform-origin: 26px 30px; }
+
+  .comp { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
+  .comp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .comp-head h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 19px; }
+  .comp-head small { color: var(--ink-soft); font-size: 12.5px; }
+  .bar { display: flex; gap: 2px; height: 28px; }
+  .seg {
+    flex: var(--w) 1 0; min-width: 0; border-radius: 4px; background: var(--c); color: var(--ci);
+    font-size: 12px; font-weight: 600; line-height: 28px; padding-left: 8px; overflow: hidden; white-space: nowrap;
+    cursor: default; outline: none; transform-origin: 0 50%; animation: grow .9s var(--ease-out) both; animation-delay: calc(var(--i) * 70ms + 250ms);
+    transition: filter .2s, transform .2s;
+  }
+  .bar:hover .seg:not(:hover), .bar:focus-within .seg:not(:focus) { filter: saturate(.4) opacity(.55); }
+  .seg:focus-visible { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  @keyframes grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--ink); }
+  .legend li { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+  .legend em { font-style: normal; color: var(--ink-soft); }
+  .comp details { margin-top: 10px; font-size: 13px; color: var(--ink-soft); }
+  .comp summary { cursor: pointer; width: fit-content; }
+  .comp table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .comp td, .comp th { padding: 4px 14px 4px 0; text-align: left; border-bottom: 1px solid var(--line); }
+  .comp td:not(:first-child), .comp th:not(:first-child) { text-align: right; }
+  .tip {
+    position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 1.35;
+    padding: 7px 10px; border-radius: 10px; box-shadow: var(--shadow-lift); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity .15s;
+  }
+  .tip.on { opacity: 1; }
+  .tip b { font-weight: 600; }
+
+  /* view transitions: card art morphs into the recipe art */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; }
+  ::view-transition-group(cake-art) { animation-duration: .55s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aurora i, .floaters span > svg, .banner h1 em, .art svg .steam path { animation: none !important; }
+    .reveal { opacity: 1; translate: none; transition: none; }
+    .seg, .tile, .banner h1 .ln, .recipe-hero h1 { animation: none; }
+    .tilt { --rx: 0deg !important; --ry: 0deg !important; }
+  }
+  @media (max-width: 860px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
+    .floaters span { --s: 40px !important; }
+  }
+  @media (max-width: 560px) {
+    .glance { margin-left: 12px; margin-right: 12px; padding: 18px 18px 16px; }
+    .floaters span:nth-child(n+4) { display: none; }
+    .banner-inner { padding-top: 68px; }
+    .recipe-nav { padding: 14px 16px; }
+    .recipe-nav .btn { padding: 8px 12px; gap: 6px; }
+    .tiles { gap: 14px 10px; }
+    .tile { gap: 9px; }
+    .tile .viz { width: 40px; height: 40px; }
+    .tile b { font-size: 17px; white-space: normal; }
+  }
+  .btn { white-space: nowrap; }
+  @media print { .glance, .progress, .tip { display: none !important; } body::after { display: none; } }
   @media (max-width: 860px) {
     .banner-inner { grid-template-columns: 1fr; padding-top: 48px; }
     .feature { max-width: 420px; }
@@ -302,7 +476,9 @@
 
 <!-- ============ INDEX ============ -->
 <div class="index-view">
-  <header class="banner">
+  <header class="banner" id="banner">
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="floaters" id="floaters" aria-hidden="true"></div>
     <button class="btn share-fab" type="button" data-share aria-haspopup="dialog">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
       Share
@@ -318,10 +494,10 @@
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
         <p class="eyebrow"><i class="sec-ic" id="eyebrowIcon"></i>Recipes from my kitchen</p>
-        <h1>The <em>Baking</em><br>Book</h1>
+        <h1><span class="ln">The <em>Baking</em></span><br><span class="ln">Book</span></h1>
         <div class="stats" id="stats"></div>
       </div>
-      <a class="feature" id="feature" href="#"></a>
+      <a class="feature tilt" id="feature" href="#"></a>
     </div>
   </header>
 
@@ -347,8 +523,9 @@
 
 <!-- ============ RECIPE ============ -->
 <article class="recipe-view" id="recipeView">
+  <div class="progress" id="progress" aria-hidden="true"></div>
   <div class="recipe-top">
-    <div class="wrap recipe-nav" style="padding-left:0;padding-right:0">
+    <div class="wrap recipe-nav">
       <a class="btn" href="#">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         All recipes
@@ -364,7 +541,7 @@
         </button>
       </div>
     </div>
-    <div class="wrap recipe-hero" style="padding-left:0;padding-right:0">
+    <div class="wrap recipe-hero">
       <div>
         <p class="eyebrow">Recipe</p>
         <h1 id="rTitle"></h1>
@@ -373,6 +550,7 @@
       <div class="art" id="rArt"></div>
     </div>
   </div>
+  <section class="glance" id="glance" aria-label="At a glance"></section>
   <div class="recipe-card">
     <div class="label"><i class="sec-ic" id="labelIcon"></i>As written</div>
     <div class="note" id="rBody"></div>
@@ -398,6 +576,8 @@
     </div>
   </div>
 </dialog>
+
+<div class="tip" id="tip" role="tooltip"></div>
 
 <script src="recipes.js"></script>
 <script>
@@ -546,52 +726,136 @@
     }).join("\n");
   }
 
-  /* ---------- Cake illustrations (unique per recipe, generated from its name) ---------- */
+  /* ---------- Cake illustrations (unique per recipe, generated from its name) ----------
+     Four shapes picked from the title (layer cake, loaf, bundt, Basque cheesecake), a palette picked from
+     flavour words (chocolate, lemon, carrot…) or from a hash of the name, then lit with gradients so each
+     reads like a little painted still life. Every call gets its own gradient ids so many can share a page. */
   const PALETTES = [
-    { bg: "#f6d6cf", sponge: "#e9b77b", cream: "#fff5ea", top: "#c0573f", berry: "#8f2d3a" },
-    { bg: "#f3e3c2", sponge: "#f0cc7a", cream: "#fffaf0", top: "#f2d36b", berry: "#d27f2a" },
-    { bg: "#d9e6d3", sponge: "#c9965f", cream: "#fbf7ef", top: "#7a9a6a", berry: "#c24f4f" },
-    { bg: "#e3d5ec", sponge: "#5a3426", cream: "#f7eee7", top: "#3d2219", berry: "#b23a5a" },
-    { bg: "#d8e4ee", sponge: "#e7c59a", cream: "#ffffff", top: "#9cb8d4", berry: "#3f5f8a" },
-    { bg: "#f2dccd", sponge: "#d58a4f", cream: "#fff3e6", top: "#f4e2c8", berry: "#7a4a2a" },
-    { bg: "#f6e1e6", sponge: "#f1d7a8", cream: "#fff8f6", top: "#e9a5b3", berry: "#c23b5f" },
-    { bg: "#e9e1cf", sponge: "#a0663b", cream: "#f6eadb", top: "#e8b862", berry: "#6b3b22" },
+    { bg: "#f6d6cf", bg2: "#efb9ab", sponge: "#e9b77b", cream: "#fff5ea", top: "#c0573f", berry: "#8f2d3a" }, // 0 raspberry
+    { bg: "#f6e7bf", bg2: "#efd38a", sponge: "#f0cc7a", cream: "#fffaf0", top: "#f5d65e", berry: "#e2a020" }, // 1 lemon
+    { bg: "#dbe8d3", bg2: "#bcd3ae", sponge: "#c9965f", cream: "#fbf7ef", top: "#7a9a6a", berry: "#c24f4f" }, // 2 pistachio
+    { bg: "#e6d8ee", bg2: "#cdb6dd", sponge: "#5a3426", cream: "#f7eee7", top: "#3d2219", berry: "#b23a5a" }, // 3 chocolate
+    { bg: "#d8e4ee", bg2: "#b5cbe0", sponge: "#e7c59a", cream: "#ffffff", top: "#9cb8d4", berry: "#3f5f8a" }, // 4 blueberry
+    { bg: "#f6dccb", bg2: "#eebd9c", sponge: "#d58a4f", cream: "#fff3e6", top: "#fbeedd", berry: "#e07a2e" }, // 5 carrot
+    { bg: "#f8e0e6", bg2: "#efbccb", sponge: "#f1d7a8", cream: "#fff8f6", top: "#e9a5b3", berry: "#c23b5f" }, // 6 strawberry
+    { bg: "#efe3cc", bg2: "#e0c9a0", sponge: "#a0663b", cream: "#f6eadb", top: "#e8b862", berry: "#6b3b22" }, // 7 caramel
+    { bg: "#f3e6d4", bg2: "#e6cba8", sponge: "#f3dcae", cream: "#fffaf2", top: "#5b3216", berry: "#e8b862" }, // 8 burnt basque
   ];
+  const FLAVOURS = [
+    [/choc|cocoa|devil|mocha|brownie/i, 3], [/lemon|citrus|lime|yuzu/i, 1], [/carrot|pumpkin|spice|ginger/i, 5],
+    [/basque|burnt/i, 8], [/straw|rose|cherry/i, 6], [/blue|lavender/i, 4], [/pistach|matcha|olive/i, 2],
+    [/caramel|toffee|coffee|banana|brown butter/i, 7], [/rasp|berry|red velvet/i, 0],
+  ];
+  const SHAPES = [[/cheesecake/i, "basque"], [/loaf|bread|pound|banana/i, "loaf"], [/bundt|olive oil|ring/i, "bundt"]];
   const hash = (s) => { let h = 2166136261; for (const c of s) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  let svgUid = 0;
   function cakeSVG(name) {
-    const h = hash(name), p = PALETTES[h % PALETTES.length];
-    const tiers = 2 + ((h >> 4) % 2), drips = 5 + ((h >> 6) % 4), berries = 2 + ((h >> 9) % 3);
-    const W = 400, H = 320, cx = 200, baseY = 250, w = 230, tierH = tiers === 3 ? 34 : 46;
-    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of ${esc(name)}">`;
-    s += `<rect width="${W}" height="${H}" fill="${p.bg}"/>`;
-    // scattered sprinkles in background
-    for (let i = 0; i < 16; i++) { const x = (hash(name + i) % W), y = (hash(i + name) % (H - 80)); s += `<circle cx="${x}" cy="${y}" r="${2 + (i % 3)}" fill="${p.cream}" opacity=".55"/>`; }
-    // stand
-    s += `<ellipse cx="${cx}" cy="${baseY + 14}" rx="${w / 2 + 34}" ry="16" fill="#000" opacity=".08"/>`;
-    s += `<ellipse cx="${cx}" cy="${baseY + 6}" rx="${w / 2 + 28}" ry="14" fill="${p.cream}"/><rect x="${cx - 10}" y="${baseY + 8}" width="20" height="30" fill="${p.cream}"/><ellipse cx="${cx}" cy="${baseY + 40}" rx="44" ry="8" fill="${p.cream}"/>`;
-    // body: sponge + cream layers
-    const top = baseY - tiers * tierH - (tiers - 1) * 10;
-    s += `<path d="M${cx - w / 2} ${top} V${baseY} Q${cx} ${baseY + 20} ${cx + w / 2} ${baseY} V${top} Z" fill="${p.sponge}"/>`;
-    for (let t = 1; t < tiers; t++) { const y = baseY - t * (tierH + 10); s += `<path d="M${cx - w / 2} ${y} Q${cx} ${y + 18} ${cx + w / 2} ${y} v10 Q${cx} ${y + 28} ${cx - w / 2} ${y + 10} Z" fill="${p.cream}"/>`; }
-    // shading
-    s += `<path d="M${cx + w / 2 - 34} ${top} V${baseY - 2} Q${cx + w / 2 - 10} ${baseY - 6} ${cx + w / 2} ${baseY} V${top} Z" fill="#000" opacity=".07"/>`;
-    // top glaze with drips
-    s += `<ellipse cx="${cx}" cy="${top}" rx="${w / 2}" ry="20" fill="${p.top}"/>`;
-    let d = `M${cx - w / 2} ${top}`;
-    for (let i = 0; i <= drips; i++) {
-      const x = Math.min(cx + w / 2 - 8, Math.max(cx - w / 2 + 8, cx - w / 2 + (w / drips) * i)), len = 14 + (hash(name + "d" + i) % 34);
-      d += ` L${x - 8} ${top + 8} Q${x - 8} ${top + len} ${x} ${top + len} Q${x + 8} ${top + len} ${x + 8} ${top + 8}`;
+    const h = hash(name);
+    const fl = FLAVOURS.find(([re]) => re.test(name));
+    const p = PALETTES[fl ? fl[1] : h % PALETTES.length];
+    const shape = (SHAPES.find(([re]) => re.test(name)) || [, "layer"])[1];
+    const u = "c" + (++svgUid), W = 400, H = 320, cx = 200, rnd = (k, m) => hash(name + k) % m;
+    const defs = `<defs>
+      <radialGradient id="${u}bg" cx="70%" cy="20%" r="95%"><stop offset="0" stop-color="${p.bg}"/><stop offset="1" stop-color="${p.bg2}"/></radialGradient>
+      <linearGradient id="${u}sp" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#000" stop-opacity=".04"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient>
+      <linearGradient id="${u}sv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.sponge}"/><stop offset="1" stop-color="${p.sponge}" stop-opacity=".82"/></linearGradient>
+      <linearGradient id="${u}st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="${p.cream}"/></linearGradient>
+      <radialGradient id="${u}be" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".25" stop-color="${p.berry}"/><stop offset="1" stop-color="${p.berry}" stop-opacity=".9"/></radialGradient>
+      <radialGradient id="${u}bu" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="${p.top}" stop-opacity=".55"/><stop offset=".55" stop-color="${p.top}"/><stop offset="1" stop-color="#1a0d06"/></radialGradient>
+      <radialGradient id="${u}sh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    </defs>`;
+    let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of ${esc(name)}" preserveAspectRatio="xMidYMid slice">${defs}`;
+    s += `<rect width="${W}" height="${H}" fill="url(#${u}bg)"/>`;
+    // window light + confetti sprinkles
+    s += `<circle cx="${300 + rnd("sun", 60)}" cy="40" r="120" fill="#fff" opacity=".22"/>`;
+    for (let i = 0; i < 18; i++) {
+      const x = hash(name + i) % W, y = hash(i + name) % (H - 90), r = hash("r" + i + name) % 180;
+      s += i % 3 ? `<rect x="${x}" y="${y}" width="10" height="3.4" rx="1.7" transform="rotate(${r} ${x + 5} ${y + 1.7})" fill="${[p.cream, p.top, p.berry][i % 3]}" opacity=".5"/>`
+                 : `<circle cx="${x}" cy="${y}" r="${2 + (i % 3)}" fill="${p.cream}" opacity=".6"/>`;
     }
-    d += ` L${cx + w / 2} ${top} Z`;
-    s += `<path d="${d}" fill="${p.top}"/>`;
-    s += `<ellipse cx="${cx - 30}" cy="${top - 6}" rx="40" ry="6" fill="#fff" opacity=".22"/>`;
-    // berries / decorations
-    for (let i = 0; i < berries; i++) {
-      const bx = cx - 40 + i * (80 / Math.max(1, berries - 1)), by = top - 10 - (i % 2) * 4;
-      s += `<circle cx="${bx}" cy="${by}" r="12" fill="${p.berry}"/><circle cx="${bx - 4}" cy="${by - 4}" r="3" fill="#fff" opacity=".45"/>`;
-      s += `<path d="M${bx} ${by - 12} q4 -10 10 -12" stroke="#5f7d4a" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    const steam = (x, y) => `<g class="steam" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55">
+      <path d="M${x - 22} ${y} c-10 -14 10 -22 0 -36 s10 -22 0 -34"/><path d="M${x + 4} ${y - 6} c-10 -14 10 -22 0 -36 s10 -22 0 -34"/><path d="M${x + 30} ${y} c-10 -14 10 -22 0 -36 s10 -22 0 -34"/></g>`;
+    const berry = (bx, by, r = 12) => `<circle cx="${bx}" cy="${by}" r="${r}" fill="url(#${u}be)"/><path d="M${bx} ${by - r} q4 -10 10 -12" stroke="#5f7d4a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M${bx + 2} ${by - r - 2} q10 -6 18 2 q-10 4 -18 -2Z" fill="#7fa05f"/>`;
+    s += `<g class="cake">`;
+
+    if (shape === "loaf") {
+      const x0 = 80, x1 = 320, y0 = 150, y1 = 252;
+      s += `<ellipse cx="${cx}" cy="${y1 + 18}" rx="170" ry="20" fill="url(#${u}sh)"/>`;
+      s += `<rect x="40" y="${y1 - 2}" width="320" height="22" rx="8" fill="#b98455"/><rect x="40" y="${y1 - 2}" width="320" height="6" rx="3" fill="#fff" opacity=".25"/>`;
+      s += `<path d="M${x0} ${y1} V${y0 + 20} Q${x0} ${y0 - 34} ${cx} ${y0 - 38} Q${x1} ${y0 - 34} ${x1} ${y0 + 20} V${y1} Z" fill="url(#${u}sv)"/>`;
+      s += `<path d="M${x0} ${y0 + 6} Q${x0} ${y0 - 34} ${cx} ${y0 - 38} Q${x1} ${y0 - 34} ${x1} ${y0 + 6} Q${cx} ${y0 - 8} ${x0} ${y0 + 6}Z" fill="#000" opacity=".1"/>`;
+      s += `<path d="M${cx - 6} ${y0 - 34} q 12 18 0 34" stroke="#000" stroke-opacity=".12" stroke-width="4" fill="none"/>`;
+      s += `<path d="M${x0} ${y0 + 20} V${y1} H${x1} V${y0 + 20}" fill="url(#${u}sp)"/>`;
+      // glaze drizzle
+      let d = `M${x0 + 4} ${y0 - 2}`;
+      for (let i = 0; i <= 8; i++) { const x = x0 + 14 + i * 26, len = 18 + rnd("g" + i, 30); d += ` Q${x - 6} ${y0 - 26 + (i % 2) * 6} ${x} ${y0 - 6} L${x} ${y0 + len} q5 8 10 0 L${x + 10} ${y0 - 4}`; }
+      s += `<path d="M${x0 + 2} ${y0 + 2} Q${x0 + 6} ${y0 - 32} ${cx} ${y0 - 36} Q${x1 - 6} ${y0 - 32} ${x1 - 2} ${y0 + 2} Q${cx} ${y0 - 14} ${x0 + 2} ${y0 + 2}Z" fill="url(#${u}st)"/>`;
+      s += `<path d="${d}" fill="none" stroke="url(#${u}st)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>`;
+      // citrus slices on top
+      for (let i = 0; i < 3; i++) {
+        const lx = 140 + i * 60, ly = y0 - 34 + Math.abs(i - 1) * 6;
+        s += `<g transform="rotate(${-18 + i * 18} ${lx} ${ly})"><ellipse cx="${lx}" cy="${ly}" rx="17" ry="8" fill="${p.berry}"/><ellipse cx="${lx}" cy="${ly - 1}" rx="14" ry="6" fill="${p.top}"/>` +
+             `<path d="M${lx - 12} ${ly - 1}h24M${lx} ${ly - 6}v10M${lx - 8} ${ly - 5}l16 8M${lx + 8} ${ly - 5}l-16 8" stroke="#fff" stroke-width="1.2" opacity=".7"/></g>`;
+      }
+      s += steam(cx, y0 - 52);
+    } else if (shape === "basque") {
+      const rx = 118, top = 150, bot = 240;
+      s += `<ellipse cx="${cx}" cy="${bot + 24}" rx="168" ry="22" fill="url(#${u}sh)"/>`;
+      s += `<ellipse cx="${cx}" cy="${bot + 12}" rx="160" ry="22" fill="#fffdf9"/><ellipse cx="${cx}" cy="${bot + 8}" rx="148" ry="17" fill="#f1ebe3"/>`;
+      // crumpled parchment collar
+      let pc = `M${cx - rx - 14} ${top - 6}`;
+      for (let i = 0; i <= 12; i++) pc += ` L${cx - rx - 14 + i * ((2 * rx + 28) / 12)} ${top - 6 - (i % 2 ? 18 + rnd("p" + i, 14) : 0)}`;
+      pc += ` L${cx + rx + 14} ${bot + 4} Q${cx} ${bot + 34} ${cx - rx - 14} ${bot + 4} Z`;
+      s += `<path d="${pc}" fill="#fbf4e8" stroke="#e6d8c2" stroke-width="2" stroke-linejoin="round"/>`;
+      s += `<path d="M${cx - rx} ${top} V${bot} Q${cx} ${bot + 26} ${cx + rx} ${bot} V${top} Z" fill="url(#${u}sv)"/>`;
+      s += `<path d="M${cx - rx} ${top} V${bot} Q${cx} ${bot + 26} ${cx + rx} ${bot} V${top} Z" fill="url(#${u}sp)"/>`;
+      s += `<path d="M${cx - rx} ${top + 4} Q${cx} ${top + 50} ${cx + rx} ${top + 4} V${top + 22} Q${cx} ${top + 66} ${cx - rx} ${top + 22}Z" fill="${p.top}" opacity=".55"/>`;
+      s += `<ellipse cx="${cx}" cy="${top}" rx="${rx}" ry="28" fill="url(#${u}bu)"/>`;
+      for (let i = 0; i < 7; i++) s += `<ellipse cx="${cx - 70 + rnd("b" + i, 140)}" cy="${top - 14 + rnd("c" + i, 26)}" rx="${8 + rnd("e" + i, 14)}" ry="4" fill="#000" opacity=".22"/>`;
+      s += `<ellipse cx="${cx - 34}" cy="${top - 10}" rx="44" ry="6" fill="#fff" opacity=".14"/>`;
+      s += steam(cx, top - 28);
+    } else if (shape === "bundt") {
+      const top = 150, bot = 246, rT = 112, rB = 134;
+      s += `<ellipse cx="${cx}" cy="${bot + 22}" rx="${rB + 40}" ry="22" fill="url(#${u}sh)"/>`;
+      s += `<ellipse cx="${cx}" cy="${bot + 8}" rx="${rB + 26}" ry="16" fill="${p.cream}"/>`;
+      s += `<path d="M${cx - rT} ${top} L${cx - rB} ${bot} Q${cx} ${bot + 28} ${cx + rB} ${bot} L${cx + rT} ${top} Z" fill="url(#${u}sv)"/>`;
+      for (let i = 1; i < 8; i++) { const t = i / 8, xt = cx - rT + 2 * rT * t, xb = cx - rB + 2 * rB * t, yb = bot + Math.sin(Math.PI * t) * 14; s += `<path d="M${xt} ${top + 8} L${xb} ${yb}" stroke="#000" stroke-opacity=".12" stroke-width="7" stroke-linecap="round"/><path d="M${xt + 6} ${top + 8} L${xb + 7} ${yb}" stroke="#fff" stroke-opacity=".16" stroke-width="3" stroke-linecap="round"/>`; }
+      s += `<path d="M${cx - rT} ${top} L${cx - rB} ${bot} Q${cx} ${bot + 28} ${cx + rB} ${bot} L${cx + rT} ${top} Z" fill="url(#${u}sp)"/>`;
+      s += `<ellipse cx="${cx}" cy="${top}" rx="${rT}" ry="24" fill="${p.sponge}"/>`;
+      let d = `M${cx - rT} ${top}`;
+      for (let i = 0; i <= 9; i++) { const x = cx - rT + 10 + i * ((2 * rT - 20) / 9), len = 18 + rnd("d" + i, 40); d += ` L${x - 7} ${top + 6} Q${x - 7} ${top + len} ${x} ${top + len} Q${x + 7} ${top + len} ${x + 7} ${top + 6}`; }
+      s += `<path d="${d} L${cx + rT} ${top} A${rT} 24 0 0 0 ${cx - rT} ${top}Z" fill="url(#${u}st)"/>`;
+      s += `<ellipse cx="${cx}" cy="${top}" rx="${rT}" ry="24" fill="url(#${u}st)"/>`;
+      s += `<ellipse cx="${cx}" cy="${top + 1}" rx="30" ry="8" fill="${p.sponge}"/><ellipse cx="${cx}" cy="${top + 2}" rx="24" ry="6" fill="#000" opacity=".35"/>`;
+      s += `<ellipse cx="${cx - 50}" cy="${top - 10}" rx="34" ry="5" fill="#fff" opacity=".5"/>`;
+      s += berry(cx - 62, top - 6, 10) + berry(cx + 58, top - 4, 10);
+      s += steam(cx, top - 26);
+    } else {
+      const tiers = 2 + ((h >> 4) % 2), drips = 5 + ((h >> 6) % 4), berries = 2 + ((h >> 9) % 3);
+      const baseY = 250, w = 230, tierH = tiers === 3 ? 34 : 46;
+      s += `<ellipse cx="${cx}" cy="${baseY + 44}" rx="${w / 2 + 50}" ry="16" fill="url(#${u}sh)"/>`;
+      s += `<ellipse cx="${cx}" cy="${baseY + 6}" rx="${w / 2 + 28}" ry="14" fill="url(#${u}st)"/><path d="M${cx - 12} ${baseY + 8} h24 l6 30 h-36Z" fill="url(#${u}st)"/><ellipse cx="${cx}" cy="${baseY + 40}" rx="44" ry="8" fill="url(#${u}st)"/>`;
+      s += `<ellipse cx="${cx}" cy="${baseY + 10}" rx="${w / 2 + 28}" ry="10" fill="#000" opacity=".05"/>`;
+      const top = baseY - tiers * tierH - (tiers - 1) * 10;
+      s += `<path d="M${cx - w / 2} ${top} V${baseY} Q${cx} ${baseY + 20} ${cx + w / 2} ${baseY} V${top} Z" fill="url(#${u}sv)"/>`;
+      for (let t = 1; t < tiers; t++) { const y = baseY - t * (tierH + 10); s += `<path d="M${cx - w / 2} ${y} Q${cx} ${y + 18} ${cx + w / 2} ${y} v10 Q${cx} ${y + 28} ${cx - w / 2} ${y + 10} Z" fill="url(#${u}st)"/>`; }
+      s += `<path d="M${cx - w / 2} ${top} V${baseY} Q${cx} ${baseY + 20} ${cx + w / 2} ${baseY} V${top} Z" fill="url(#${u}sp)"/>`;
+      s += `<ellipse cx="${cx}" cy="${top}" rx="${w / 2}" ry="20" fill="${p.top}"/>`;
+      let d = `M${cx - w / 2} ${top}`;
+      for (let i = 0; i <= drips; i++) {
+        const x = Math.min(cx + w / 2 - 8, Math.max(cx - w / 2 + 8, cx - w / 2 + (w / drips) * i)), len = 14 + rnd("d" + i, 34);
+        d += ` L${x - 8} ${top + 8} Q${x - 8} ${top + len} ${x} ${top + len} Q${x + 8} ${top + len} ${x + 8} ${top + 8}`;
+      }
+      s += `<path d="${d} L${cx + w / 2} ${top} Z" fill="${p.top}"/>`;
+      s += `<path d="${d} L${cx + w / 2} ${top} Z" fill="url(#${u}sp)" opacity=".8"/>`;
+      s += `<ellipse cx="${cx - 30}" cy="${top - 6}" rx="44" ry="6" fill="#fff" opacity=".28"/>`;
+      for (let i = 0; i < berries; i++) {
+        const bx = cx - 40 + i * (80 / Math.max(1, berries - 1)), by = top - 10 - (i % 2) * 4;
+        s += berry(bx, by);
+      }
+      s += steam(cx, top - 30);
     }
-    s += `</svg>`;
+    s += `</g></svg>`;
     return s;
   }
 
@@ -611,16 +875,17 @@
     const n = RECIPES.length;
     const newest = [...RECIPES].sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))[0];
     $("#stats").innerHTML =
-      `<div class="stat"><b>${n}</b><span>recipe${n === 1 ? "" : "s"}</span></div>` +
+      `<div class="stat"><b data-count>${n}</b><span>recipe${n === 1 ? "" : "s"}</span></div>` +
       (newest && newest.modified ? `<div class="stat"><b>${esc(fmtDate(newest.modified).split(",")[0])}</b><span>last updated</span></div>` : "");
 
+    document.querySelectorAll("[data-count]").forEach(countUp);
     // Featured recipe — rotates every few seconds through the collection
     if (!n) { $("#feature").style.display = "none"; return; }
     let i = Math.floor(Math.random() * n);
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art">${cakeSVG(r.title)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art" data-id="${esc(r.id)}">${cakeSVG(r.title)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
       i++;
     };
     show();
@@ -634,14 +899,16 @@
     list.sort(sort === "new" ? (a, b) => String(b.modified || "").localeCompare(String(a.modified || "")) : (a, b) => a.title.localeCompare(b.title));
     $("#count").textContent = q ? `${list.length} of ${RECIPES.length}` : `${RECIPES.length}`;
     $("#grid").innerHTML = list.length ? list.map((r, k) => `
-      <a class="card" href="${href(r)}" style="animation-delay:${Math.min(k, 12) * 40}ms">
-        <div class="art">${cakeSVG(r.title)}</div>
+      <a class="card tilt" href="${href(r)}">
+        <div class="art" data-id="${esc(r.id)}">${cakeSVG(r.title)}</div>
         <div class="card-body">
           <h3>${esc(r.title)}</h3>
           <p>${esc(r.teaser)}</p>
-          <div class="meta">View recipe →</div>
+          ${chipsHTML(r)}
+          <div class="meta">View recipe <span class="arr">→</span></div>
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
+    reveal([...$("#grid").querySelectorAll(".card")]);
   }
 
   /* ---------- Bold the amounts to be mixed ----------
@@ -686,6 +953,170 @@
     }
   }
 
+  /* ---------- Reading a recipe for the "at a glance" panel ----------
+     Pulls oven temperature, bake time, an ingredient count and the weighed ingredients out of the note text.
+     Only for the visual summary; the recipe itself is still shown exactly as written. */
+  const ADJ = /^(?:good|whole|melted|browned|grated|toasted|hot|warm|cold|soft(?:ened)?|room|temp|chopped|sifted|fresh|unsalted|salted|plain|full[- ]fat|of)\s+/i;
+  const TINTS = { white: 1, brown: 1, caster: 1, light: 1, dark: 1, golden: 1 };
+  function analyze(r) {
+    if (r._a) return r._a;
+    const t = r.text.replace(/ /g, " ");
+    // oven temperature (°C; °F converted for the gauge)
+    let temp = null;
+    const tm = t.match(/(\d{3})\s*°\s*([CF])?/) || t.match(/\b(\d{3})\s*(?:degrees\s*)?([FC])\b/);
+    if (tm) { const v = +tm[1], f = tm[2] === "F" || (!tm[2] && v > 260); temp = { label: `${v}°${f ? "F" : "C"}`, c: f ? Math.round((v - 32) * 5 / 9) : v }; }
+    // bake time: the longest "N–M min" / "N hr" span mentioned
+    let time = null;
+    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(min(?:ute)?s?|h(?:ou)?rs?|hours?)\b/gi)) {
+      const k = /^h/i.test(m[3]) ? 60 : 1, hi = (+(m[2] || m[1])) * k;
+      if (!time || hi > time.max) time = { max: hi, label: m[2] ? `${m[1]}–${m[2]} ${k === 60 ? "hr" : "min"}` : `${m[1]} ${k === 60 ? "hr" : "min"}` };
+    }
+    // weighed ingredients (ml counted as g; an egg ≈ 50 g)
+    const parts = new Map(); let prev = "";
+    const add = (name, g) => { if (!name || !g) return; parts.set(name, (parts.get(name) || 0) + g); };
+    for (const m of t.matchAll(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\s+([a-z][a-z ]*?)(?=\s*(?:[,+.(\n:;—–]|$| for | to | and | in |\s{2}))/gim)) {
+      let name = m[3].toLowerCase().trim().replace(/^whole milk (\w+)/, "$1");
+      while (ADJ.test(name)) name = name.replace(ADJ, "");
+      name = name.replace(/\bchoc\b/, "chocolate").split(/\s+/).slice(-2).join(" ");
+      if (TINTS[name] && prev) name = name + " " + prev.split(" ").pop(); // "100 g white" after "brown sugar"
+      const unit = m[2].toLowerCase(), v = parseFloat(m[1].replace(",", "."));
+      add(name, unit === "kg" || unit === "l" ? v * 1000 : v); prev = name;
+    }
+    for (const m of t.matchAll(/\b(\d+)\s+(?:large\s+|whole\s+)?eggs?\b/gi)) add("eggs", +m[1] * 50);
+    const items = [...parts].map(([name, g]) => ({ name, g })).sort((a, b) => b.g - a.g);
+    const total = items.reduce((s, x) => s + x.g, 0);
+    // ingredient count = amounts the page would bold
+    const probe = document.createElement("div");
+    probe.innerHTML = r.isHTML ? sanitize(r.body) : esc(r.body);
+    boldQuantities(probe);
+    const count = probe.querySelectorAll("b.qty").length;
+    return (r._a = { temp, time, items, total, count });
+  }
+
+  const ICO = {
+    temp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0Z"/></svg>',
+    time: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
+  };
+  function chipsHTML(r) {
+    const a = analyze(r), c = [];
+    if (a.temp) c.push(`<span class="chip">${ICO.temp}${esc(a.temp.label)}</span>`);
+    if (a.time) c.push(`<span class="chip">${ICO.time}${esc(a.time.label)}</span>`);
+    if (a.count) c.push(`<span class="chip">${ICO.list}${a.count} ingredients</span>`);
+    return c.length ? `<div class="chips">${c.join("")}</div>` : "";
+  }
+
+  const fmtG = (g) => g >= 1000 ? `${(g / 1000).toFixed(g >= 10000 ? 0 : 1)} kg` : `${Math.round(g)} g`;
+  const SLOTS = ["c1", "c2", "c3", "c4", "c5", "c6"];
+  function renderGlance(r) {
+    const a = analyze(r), tiles = [];
+    // oven: half-dial gauge from 140 °C to 240 °C
+    if (a.temp) {
+      const f = Math.max(0, Math.min(1, (a.temp.c - 140) / 100)), L = Math.PI * 20;
+      tiles.push(`<div class="viz"><svg viewBox="0 0 52 40" aria-hidden="true"><path class="track" d="M6 30a20 20 0 0 1 40 0" fill="none" stroke-width="6" stroke-linecap="round"/>
+        <path class="fill" d="M6 30a20 20 0 0 1 40 0" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L}" data-to="${L * (1 - f)}"/>
+        <g class="needle" style="transform:rotate(-90deg)" data-rot="${-90 + 180 * f}"><path d="M26 30V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="26" cy="30" r="3.2" fill="currentColor"/></svg></div>
+        <div><b>${esc(a.temp.label)}</b><span>oven</span></div>`);
+    }
+    // bake time: ring filled against one hour
+    if (a.time) {
+      const C = 2 * Math.PI * 20, f = Math.min(1, a.time.max / 60);
+      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="20" fill="none" stroke-width="6"/>
+        <circle class="fill" cx="26" cy="26" r="20" fill="none" stroke-width="6" stroke-linecap="round" transform="rotate(-90 26 26)" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-to="${C * (1 - f)}"/>
+        <text x="26" y="30" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="Inter, sans-serif">${a.time.max > 90 ? Math.round(a.time.max / 6) / 10 + "h" : a.time.max + "′"}</text></svg></div>
+        <div><b>${esc(a.time.label)}</b><span>in the oven</span></div>`);
+    }
+    if (a.count) {
+      const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
+      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true">${dots}</svg></div><div><b>${a.count}</b><span>ingredients</span></div>`);
+    }
+    if (a.total) {
+      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><path d="M10 20h32l-4 24H14Z" fill="color-mix(in srgb, var(--accent-2) 35%, transparent)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M19 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="2.2"/><text x="26" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Inter, sans-serif">kg</text></svg></div>
+        <div><b>≈ ${fmtG(a.total)}</b><span>weighed in</span></div>`);
+    }
+    if (!tiles.length) { $("#glance").innerHTML = ""; return; }
+    let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile" style="--i:${i}">${x}</div>`).join("")}</div>`;
+    // composition: one tall segmented bar of what goes in, by weight (top 6 + other)
+    if (a.items.length >= 2) {
+      const top = a.items.slice(0, 6), rest = a.items.slice(6), parts = top.map((x, k) => ({ ...x, slot: SLOTS[k] }));
+      if (rest.length) parts.push({ name: rest.length === 1 ? rest[0].name : `other (${rest.length})`, g: rest.reduce((s, x) => s + x.g, 0), slot: "c-other" });
+      const pct = (g) => Math.round((g / a.total) * 100);
+      const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+      html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>${fmtG(a.total)} total · ml counted as g, eggs ≈ 50 g</small></div>
+        <div class="bar" role="list" aria-label="Ingredients by weight">${parts.map((x, i) =>
+          `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent">${x.g / a.total >= 0.07 ? pct(x.g) + "%" : ""}</div>`).join("")}</div>
+        <ul class="legend">${parts.map((x) => `<li><i style="--c:var(--${x.slot})"></i>${esc(cap(x.name))}${x.g / a.total < 0.07 ? ` <em>${pct(x.g)}%</em>` : ""}</li>`).join("")}</ul>
+        <details><summary>Show as table</summary><table><thead><tr><th>Ingredient</th><th>Weight</th><th>Share</th></tr></thead><tbody>${a.items.map((x) =>
+          `<tr><td>${esc(cap(x.name))}</td><td>${fmtG(x.g)}</td><td>${pct(x.g)}%</td></tr>`).join("")}</tbody></table></details></div>`;
+    }
+    const g = $("#glance");
+    g.innerHTML = html;
+    // animate dials once painted
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      g.querySelectorAll("[data-to]").forEach((el) => el.style.strokeDashoffset = el.dataset.to);
+      g.querySelectorAll("[data-rot]").forEach((el) => el.style.transform = `rotate(${el.dataset.rot}deg)`);
+    }));
+  }
+
+  // one shared tooltip for the composition bar (pointer + keyboard)
+  const tip = $("#tip");
+  const showTip = (el, x, y) => { tip.innerHTML = el.dataset.tip; tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("on"); };
+  $("#glance").addEventListener("pointermove", (e) => { const s = e.target.closest(".seg"); if (s) showTip(s, e.clientX, e.clientY); else tip.classList.remove("on"); });
+  $("#glance").addEventListener("pointerleave", () => tip.classList.remove("on"));
+  $("#glance").addEventListener("focusin", (e) => { const s = e.target.closest(".seg"); if (!s) return; const b = s.getBoundingClientRect(); showTip(s, b.left + b.width / 2, b.top); });
+  $("#glance").addEventListener("focusout", () => tip.classList.remove("on"));
+
+  /* ---------- Motion helpers ---------- */
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  // 3D tilt with a glare that follows the pointer
+  function bindTilt(root) {
+    if (calm || !finePointer) return;
+    root.addEventListener("pointermove", (e) => {
+      const el = e.target.closest(".tilt"); if (!el) return;
+      const b = el.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+      el.style.setProperty("--ry", `${(x - .5) * 10}deg`); el.style.setProperty("--rx", `${(.5 - y) * 8}deg`);
+      el.style.setProperty("--mx", `${x * 100}%`); el.style.setProperty("--my", `${y * 100}%`);
+    });
+    root.addEventListener("pointerout", (e) => {
+      const el = e.target.closest(".tilt"); if (!el || el.contains(e.relatedTarget)) return;
+      el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg");
+    });
+  }
+  // fade cards up as they scroll into view
+  const revealer = "IntersectionObserver" in window && !calm
+    ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); revealer.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" })
+    : null;
+  function reveal(els) { els.forEach((el, k) => { if (!revealer) return; el.classList.add("reveal"); el.style.setProperty("--rd", `${(k % 4) * 70}ms`); revealer.observe(el); }); }
+
+  // banner: floating ingredients that drift with the pointer
+  function renderFloaters() {
+    const F = [["berries", 4, 8, 64, 2.2, -12], ["wheat", 47, 6, 46, 1.2, 14], ["eggs", 92, 62, 58, 1.8, -8], ["whisk", 56, 84, 50, 2.6, 10], ["sparkle", 88, 12, 40, 3, 0], ["piping", 2, 78, 52, 1.5, -16], ["jar", 42, 52, 34, 3.4, 8]];
+    $("#floaters").innerHTML = F.map(([n, x, y, s, d, r], k) => `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--delay:${-k * 1.3}s">${iconSVG(n)}</span>`).join("");
+    if (calm || !finePointer) return;
+    const banner = $("#banner");
+    banner.addEventListener("pointermove", (e) => {
+      const b = banner.getBoundingClientRect();
+      banner.style.setProperty("--px", ((e.clientX - b.left) / b.width - .5) * 24);
+      banner.style.setProperty("--py", ((e.clientY - b.top) / b.height - .5) * 24);
+    });
+    banner.addEventListener("pointerleave", () => { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); });
+  }
+  // count stat numbers up from zero
+  function countUp(el) {
+    const to = +el.textContent; if (calm || !(to > 1)) return;
+    const t0 = performance.now(), dur = 900;
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+    el.textContent = "0"; requestAnimationFrame(step);
+  }
+  // reading progress on a recipe
+  const progress = $("#progress");
+  addEventListener("scroll", () => {
+    if (!document.body.classList.contains("viewing")) return;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
+  }, { passive: true });
+
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
     const sorted = [...RECIPES].sort((a, b) => a.title.localeCompare(b.title));
@@ -697,6 +1128,8 @@
     const c = fmtDate(r.created), m = fmtDate(r.modified);
     $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
     $("#rArt").innerHTML = cakeSVG(r.title);
+    $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
+    renderGlance(r);
     setDate($("#recipeDate"), r.modified || r.created);
     const body = $("#rBody");
     body.classList.toggle("plain", !r.isHTML);
@@ -805,8 +1238,26 @@
   setDate($("#indexDate"), new Date().toISOString());
   $("#q").addEventListener("input", renderGrid);
   $("#sort").addEventListener("change", renderGrid);
-  window.addEventListener("hashchange", route);
+  /* Card art morphs into the recipe art (and back) where the browser supports view transitions. */
+  let clickedArt = null;
+  document.querySelector(".index-view").addEventListener("click", (e) => { clickedArt = e.target.closest("a")?.querySelector(".art[data-id]") || null; });
+  const artFor = (id) => (clickedArt && clickedArt.dataset.id === id && clickedArt.isConnected ? clickedArt : null) ||
+    [...document.querySelectorAll(".grid .art[data-id]")].find((a) => a.dataset.id === id);
+  let lastId = null;
+  window.addEventListener("hashchange", () => {
+    const m = location.hash.match(/^#\/recipe\/(.+)$/), id = m ? decodeURIComponent(m[1]) : null;
+    const going = id && !document.body.classList.contains("viewing"), back = !id && lastId;
+    if (!document.startViewTransition || calm || !(going || back)) { route(); lastId = id; return; }
+    const src = artFor(going ? id : lastId), dst = $("#rArt");
+    const a = going ? src : dst, b = going ? dst : src;
+    if (a) a.style.viewTransitionName = "cake-art";
+    const vt = document.startViewTransition(() => { if (a) a.style.viewTransitionName = ""; route(); if (b) b.style.viewTransitionName = "cake-art"; });
+    vt.finished.finally(() => { if (b) b.style.viewTransitionName = ""; });
+    lastId = id;
+  });
+  renderFloaters(); bindTilt(document.querySelector(".index-view"));
   renderBanner(); renderGrid(); route();
+  lastId = (location.hash.match(/^#\/recipe\/(.+)$/) || [])[1] ? decodeURIComponent(location.hash.slice(9)) : null;
 })();
 </script>
 </body>

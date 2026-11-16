@@ -2,6 +2,8 @@
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to see its recipe exactly as written.
 
+Each recipe page opens with an **At a glance** panel: oven temperature, bake time, how many ingredients, and a bar showing what goes in by weight (ml counted as grams, an egg as about 50 g). These are read from the note's text. The recipe below them is still shown exactly as written. Each cake picture is drawn from the recipe name: loaves, bundts, cheesecakes and layer cakes get their own shapes, and flavours like chocolate, lemon or carrot pick the colours.
+
 The banner shows an anime-style cartoon of me as a baker (`images/baker-portrait.webp`), generated with ChatGPT from my profile photo. To swap it, replace that file with another square image. If the file is missing, the portrait is simply hidden.
 
 Use the **Share** button (top right of the book, or next to **Print** on a recipe) to pick a platform: WhatsApp, Facebook, X, Pinterest, Reddit, Telegram, Email or Text. You can also copy the link. On phones and in Safari, **More…** opens the device's own share menu. A shared recipe links straight to that recipe. Links only work for other people once the page is online. A `file://` link only opens on your own computer.
