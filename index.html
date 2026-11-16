@@ -570,6 +570,11 @@
   .tile span { font-size: 12.5px; color: var(--ink-soft); }
   .tile .track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
   .tile .fill { stroke: var(--accent); transition: stroke-dashoffset 1.2s var(--ease-out); }
+  .tile.time { grid-column: span 2; }
+  .time-parts { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12.5px; color: var(--ink-soft); }
+  .time-parts li { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .time-parts li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+  .tile .time-parts b { display: inline; font-size: 12.5px; font-weight: 600; color: var(--ink); }
   .tile .arc { transition: stroke-dashoffset 1.2s var(--ease-out); }
   .tile .needle { transition: transform 1.2s var(--ease-out); transform-origin: 26px 30px; }
 
@@ -1477,23 +1482,25 @@
     }
     // total time: a ring split into hands-on work, oven and waiting (cooling, chilling, freezing, resting)
     if (a.time) {
-      const T = a.time, C = 2 * Math.PI * 20, short = (m) => m < 57.5 ? Math.round(m) + "′" : m < 600 ? Math.round(m / 6) / 10 + "h" : Math.round(m / 60) + "h";
+      const T = a.time, C = 2 * Math.PI * 20;
       let at = 0;
       const arcs = [["hands", "--c3"], ["oven", "--accent"], ["wait", "--c2"]].filter(([k]) => T[k] > 0).map(([k, c]) => {
         const len = C * T[k] / T.total, rot = -90 + 360 * at / C; at += len;
         return `<circle cx="26" cy="26" r="20" fill="none" stroke-width="6" style="stroke:var(${c})" transform="rotate(${rot} 26 26)" stroke-dasharray="${len} ${C}" stroke-dashoffset="${len}" data-to="0" class="arc"/>`;
       }).join("");
-      const parts = [T.oven && `${fmtDur(T.oven)} in the oven`, T.wait && `${fmtDur(T.wait)} cooling, chilling and resting`, `about ${fmtDur(T.hands)} hands-on`].filter(Boolean);
+      // the total sits beside the ring once; the ring and the legend under it show its parts
+      const legend = [["hands", "--c3", "manual work"], ["oven", "--accent", "cooking"], ["wait", "--c2", "cooling & chilling"]].filter(([k]) => T[k] > 0)
+        .map(([k, c, name]) => `<li style="--c:var(${c})"><b>${k === "hands" ? "~" : ""}${esc(fmtDur(T[k]))}</b> ${name}</li>`).join("");
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="20" fill="none" stroke-width="6"/>${arcs}
-        <text x="26" y="30" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="Inter, sans-serif">${short(T.total)}</text></svg></div>
-        <div title="${esc(parts.join(" + "))}"><b>≈ ${esc(T.label)}</b><span>total${T.oven ? `, ${esc(fmtDur(T.oven))} in oven` : ""}</span></div>`);
+        <path d="M26 18v8l5 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></div>
+        <div><b>≈ ${esc(T.label)}</b><span>total to prepare</span><ul class="time-parts">${legend}</ul></div>`);
     }
     if (a.count) {
       const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true">${dots}</svg></div><div><b>${a.count}</b><span>ingredients</span></div>`);
     }
     if (!tiles.length) { $("#glance").innerHTML = ""; return; }
-    let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile" style="--i:${i}">${x}</div>`).join("")}</div>`;
+    let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile${x.includes("time-parts") ? " time" : ""}" style="--i:${i}">${x}</div>`).join("")}</div>`;
     // composition: one tall segmented bar of what goes in, by weight (top 6 + other)
     if (a.items.length >= 2) {
       const top = a.items.slice(0, 6), rest = a.items.slice(6), parts = top.map((x, k) => ({ ...x, slot: SLOTS[k] }));
