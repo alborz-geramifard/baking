@@ -233,6 +233,79 @@
   .note img { max-width: 100%; height: auto; border-radius: 12px; }
   .note.plain { white-space: pre-wrap; }
 
+  /* ---------- Bake-along checklist: Ingredients / Instructions (Stage A, B…) / Tips ----------
+     Ticks are kept in this browser's localStorage only. */
+  .ck-top { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 14px; margin-bottom: 26px; }
+  .ck-top .label { margin: 0; }
+  .ck-meta { display: flex; align-items: center; gap: 12px; }
+  .ck-count { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ck-reset { padding: 7px 13px; font-size: 13px; }
+  .ck-bar { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 12%, transparent); overflow: hidden; }
+  .ck-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .45s var(--ease-out, ease); }
+  .ck-hint { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); }
+  .ck-top.hidden, .checklist:empty { display: none; }
+
+  .ck-sec + .ck-sec { margin-top: 38px; }
+  .ck-h { display: flex; align-items: center; gap: 12px; font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.1; margin: 0 0 16px; }
+  .ck-h svg.ic { width: 42px; height: 42px; flex: none; }
+  .ck-h small { margin-left: auto; font-family: var(--sans); font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+  .ck-group { display: flex; align-items: center; gap: 10px; font-family: var(--sans); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); margin: 22px 0 10px; }
+  .ck-group:first-of-type { margin-top: 4px; }
+  .stage-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 12px; letter-spacing: .06em; flex: none; }
+  .ck-stage { border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px 18px; background: color-mix(in srgb, var(--accent-2) 5%, transparent); }
+  .ck-stage + .ck-stage { margin-top: 16px; }
+  .ck-stage > .ck-group { margin: 0 0 12px; color: var(--ink); font-size: 14px; }
+  .ck-stage.all-done > .ck-group::after { content: "✓ done"; margin-left: auto; color: var(--accent); letter-spacing: .08em; }
+
+  .ck-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .ck-list.ing { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .ck-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 14px;
+    background: var(--paper); cursor: pointer; font-family: var(--serif); font-size: 17.5px; line-height: 1.5; transition: border-color .2s, background .2s, opacity .2s; }
+  .ck-item:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+  .ck-item input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .ck-box { flex: none; width: 22px; height: 22px; margin-top: 2px; border: 2px solid color-mix(in srgb, var(--accent) 60%, var(--line)); border-radius: 7px; display: grid; place-items: center; transition: background .15s, border-color .15s; }
+  .ck-box svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; fill: none; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset .25s ease; }
+  .ck-num { flex: none; min-width: 26px; height: 26px; border-radius: 99px; display: grid; place-items: center; font-family: var(--sans); font-size: 13px; font-weight: 600;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .ck-txt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .ck-txt b, .ck-txt strong { font-weight: 650; }
+  .ck-txt ul { margin: 4px 0 0; padding-left: 1.2em; font-size: .94em; }
+  .ck-txt ul li::marker { color: var(--accent); }
+  .ck-item input:focus-visible ~ .ck-box { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ck-item input:checked ~ .ck-box { background: var(--accent); border-color: var(--accent); }
+  .ck-item input:checked ~ .ck-box svg { stroke-dashoffset: 0; }
+  .ck-item:has(input:checked) { opacity: .55; background: color-mix(in srgb, var(--accent) 6%, var(--paper)); }
+  .ck-item input:checked ~ .ck-txt { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); text-decoration-thickness: 1.5px; }
+  .ck-empty { margin: 0; color: var(--ink-soft); font-style: italic; font-family: var(--serif); }
+  .ck-raw { margin: 10px 0 0; font-size: 16px; }
+  .ck-tips { margin: 0; padding: 16px 20px 16px 38px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--accent-2) 70%, var(--line));
+    background: color-mix(in srgb, var(--accent-2) 9%, transparent); font-family: var(--serif); font-size: 17px; line-height: 1.6; }
+  .ck-tips li { margin: .2em 0; overflow-wrap: anywhere; }
+  .ck-tips li::marker { color: var(--accent-2); }
+
+  .as-written { margin-top: 40px; border-top: 1px dashed var(--line); padding-top: 18px; }
+  .as-written > summary { cursor: pointer; font-size: 14px; font-weight: 500; color: var(--ink-soft); list-style: none; display: inline-flex; align-items: center; gap: 8px; }
+  .as-written > summary::-webkit-details-marker { display: none; }
+  .as-written > summary::before { content: "▸"; color: var(--accent); transition: transform .2s; }
+  .as-written[open] > summary::before { transform: rotate(90deg); }
+  .as-written > summary:hover { color: var(--accent); }
+  .as-written .note { margin-top: 18px; }
+  .as-written.only { margin-top: 0; border: 0; padding: 0; }
+  .as-written.only > summary { display: none; }
+  @media (max-width: 560px) {
+    .ck-top { grid-template-columns: 1fr; }
+    .ck-meta { justify-content: space-between; }
+    .ck-h { font-size: 25px; }
+    .ck-h svg.ic { width: 34px; height: 34px; }
+    .ck-stage { padding: 14px 12px; }
+    .ck-item { font-size: 16.5px; padding: 10px 12px; gap: 10px; }
+    .ck-list.ing { grid-template-columns: 1fr; }
+  }
+  @media print {
+    .ck-reset, .ck-bar, .ck-hint, .ck-count, .as-written { display: none !important; }
+    .ck-item { break-inside: avoid; opacity: 1 !important; }
+  }
+
   .pager { display: flex; justify-content: space-between; gap: 12px; max-width: 760px; margin: 0 auto 80px; padding: 0 4px; }
   .pager a { text-decoration: none; max-width: 48%; }
   .pager small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
@@ -559,8 +632,23 @@
   </div>
   <section class="glance" id="glance" aria-label="At a glance"></section>
   <div class="recipe-card">
-    <div class="label"><i class="sec-ic" id="labelIcon"></i>As written</div>
-    <div class="note" id="rBody"></div>
+    <div class="ck-top" id="ckTop">
+      <div class="label"><i class="sec-ic" id="labelIcon"></i>Bake along</div>
+      <div class="ck-meta">
+        <span class="ck-count" id="ckCount" aria-live="polite"></span>
+        <button class="btn ck-reset" id="ckReset" type="button" title="Untick every box on this recipe (only on this device)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
+      </div>
+      <div class="ck-bar" aria-hidden="true"><i id="ckBar"></i></div>
+      <p class="ck-hint">Tick things off as you go. Your ticks are saved only in this browser and nobody else sees them.</p>
+    </div>
+    <div class="checklist" id="rChecklist"></div>
+    <details class="as-written" id="asWritten">
+      <summary>Show the note as written</summary>
+      <div class="note" id="rBody"></div>
+    </details>
   </div>
   <nav class="pager" id="pager"></nav>
   <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" loading="lazy" onerror="this.replaceWith(this.alt)"></span>Baked with love · <time id="recipeDate"></time></footer>
@@ -1149,6 +1237,237 @@
     progress.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
   }, { passive: true });
 
+  /* ---------- Bake-along checklist ----------
+     Reads a note (however it was written) into one standard shape:
+       Ingredients (grouped by component), Instructions (Stage A, B, C… when there are several parts,
+       steps numbered 1, 2, 3 within each stage), and Tips.
+     Headings like "Ingredients" / "Steps" / "Tips" set the section; other headings ("Sponge", "Cookie Layer")
+     name a component. Runs of lines without a clear heading are sorted by what they look like: amounts
+     ("200 g sugar", "Butter: 100 g") are ingredients, sentences starting with a verb ("Mix…", "Bake…") are steps.
+     The original note stays available under "Show the note as written". */
+  // English, plus the Persian words used in some notes (مواد لازم = ingredients, مراحل/طرز تهیه = method, نکات = tips)
+  const H_ING = /\b(ingredients?|you.?ll need|what you need|shopping list|grocer(?:y|ies))\b|مواد لازم/i;
+  const H_STEPS = /\b(instructions?|method|steps?|directions?|how to make|procedure)\b|مراحل|طرز تهیه|دستور پخت/i;
+  const H_TIPS = /^[^\p{L}]*(tips?|notes?|tricks?|hints?|storage|storing|troubleshooting|make[- ]ahead|baker.?s notes?|result)\b|^[^\p{L}]*نکات/iu;
+  const VERBS = "preheat|heat|set|mix|add|bake|beat|whisk|stir|fold|pour|melt|cook|let|put|place|combine|sprinkle|blend|line|cool|chill|refrigerate|freeze|spread|layer|slice|cut|remove|transfer|toast|dissolve|pipe|garnish|decorate|top|brush|soak|whip|sift|grease|prepare|make|bring|boil|simmer|microwave|rest|leave|cover|wrap|roll|shape|knead|press|scrape|repeat|assemble|serve|store|keep|unmold|demold|release|trim|level|split|fill|drizzle|dust|toss|chop|grind|pulse|process|mash|mush|puree|zest|squeeze|separate|cream|warm|turn|flip|check|insert|use|take|start|finish|once|when|while|after|before|then|in a|in another|meanwhile|gently|slowly|carefully|quickly|continue|allow|wait|return|bloom|lightly|finally|next|first|stack|smooth|apply|crush|break|reduce|increase|lower|divide|portion|tap|swirl|weigh|measure|alak|sieve";
+  const VERB_RE = new RegExp(`^(?:\\d+[.)]\\s*)?(?:${VERBS})\\b`, "i");
+  const UNIT_RE = /\d\s*(?:g|gr|grams?|kg|ml|l|tsp|tbsp|tablespoons?|teaspoons?|cups?|oz|lb|sticks?|pinch(?:es)?)\b/i;
+  const normT = (s) => String(s || "").replace(/[ \s]+/g, " ").trim();
+
+  // Turn the sanitized note into a flat list of headings, lines (list items or plain lines), blanks and raw blocks.
+  function linearize(root) {
+    const out = [];
+    let listSeq = 0;
+    const ownHTML = (li) => { const c = li.cloneNode(true); c.querySelectorAll("ul, ol").forEach((x) => x.remove()); return { html: c.innerHTML.trim(), text: normT(c.textContent) }; };
+    // every item of a nested list becomes a sub-line of the item it belongs to
+    const collectSubs = (list, arr) => { for (const ch of list.children) {
+      if (ch.tagName === "LI") { const o = ownHTML(ch); if (o.text) arr.push(o.html); ch.querySelectorAll(":scope > ul, :scope > ol").forEach((l) => collectSubs(l, arr)); }
+      else if (/^(UL|OL)$/.test(ch.tagName)) collectSubs(ch, arr);
+    } };
+    function addList(list) {
+      const id = ++listSeq, kind = list.tagName.toLowerCase();
+      let last = null;
+      for (const ch of list.children) {
+        if (ch.tagName === "LI") {
+          const o = ownHTML(ch), nested = ch.querySelectorAll(":scope > ul, :scope > ol");
+          if (o.text) { last = { type: "line", html: o.html, text: o.text, list: kind, listId: id, subs: [], el: ch }; out.push(last); }
+          nested.forEach((l) => last ? collectSubs(l, last.subs) : addList(l));
+        } else if (/^(UL|OL)$/.test(ch.tagName)) { last ? collectSubs(ch, last.subs) : addList(ch); }
+      }
+    }
+    function line(el) {
+      const text = normT(el.textContent);
+      if (!text) { if (el.querySelector && el.querySelector("img")) out.push({ type: "raw", html: el.outerHTML }); else out.push({ type: "blank" }); return; }
+      out.push(isHeadLine(el, text) ? { type: "head", text: text.replace(/:\s*$/, "") , raw: text } : { type: "line", html: (el.innerHTML || esc(text)).trim(), text, list: null, listId: 0, subs: [], el });
+    }
+    (function walk(node) {
+      let inline = null; // loose inline content directly in a block
+      const flush = () => { if (inline) { line(inline); inline = null; } };
+      for (const ch of [...node.childNodes]) {
+        if (ch.nodeType === 3 || (ch.nodeType === 1 && !/^(DIV|P|BLOCKQUOTE|PRE|UL|OL|TABLE|H[1-6]|HR|IMG|BR)$/.test(ch.tagName) && !ch.querySelector("div, p, ul, ol, table, h1, h2, h3, h4, h5, h6"))) {
+          if (ch.nodeType === 3 && !ch.textContent.trim() && !inline) continue;
+          (inline ||= document.createElement("div")).append(ch.cloneNode(true)); continue;
+        }
+        if (ch.nodeType !== 1) continue;
+        if (ch.tagName === "BR") { flush(); continue; }
+        flush();
+        const t = ch.tagName;
+        if (t === "UL" || t === "OL") addList(ch);
+        else if (t === "TABLE") out.push({ type: "raw", html: ch.outerHTML });
+        else if (t === "IMG") out.push({ type: "raw", html: ch.outerHTML });
+        else if (t === "HR") out.push({ type: "blank" });
+        else if (/^H[1-6]$/.test(t)) { const x = normT(ch.textContent); if (x) out.push({ type: "head", text: x.replace(/:\s*$/, ""), raw: x, h: true }); }
+        else if (ch.querySelector("div, p, ul, ol, table, blockquote, pre")) walk(ch);
+        else if (ch.querySelector("h1, h2, h3, h4, h5, h6")) { const x = normT(ch.textContent); x ? out.push({ type: "head", text: x.replace(/:\s*$/, ""), raw: x, h: true }) : out.push({ type: "blank" }); }
+        else line(ch);
+      }
+      flush();
+    })(root);
+    return out;
+  }
+  // A short line that is entirely bold, or a label ending in ":", or a bold label followed by "(…)".
+  function isHeadLine(el, text) {
+    if (text.length > 70 || /https?:\/\//i.test(text)) return false;
+    const bold = normT([...el.querySelectorAll("b, strong")].filter((b) => !b.parentElement.closest("b, strong")).map((b) => b.textContent).join(""));
+    if (bold && bold.replace(/\W/g, "") === text.replace(/\W/g, "") && !UNIT_RE.test(text) && !/^[\d½¼¾⅓⅔⅛]/.test(text) && (text.split(" ").length <= 5 || !VERB_RE.test(text))) return true;
+    if (/:$/.test(text) && text.length <= 50 && !UNIT_RE.test(text)) return true;
+    if (bold && text.startsWith(bold) && /^\s*\(/.test(text.slice(bold.length)) && !UNIT_RE.test(bold)) return true;
+    return false;
+  }
+  const isTipLine = (l) => /^(note|tip|hint|ps|p\.s\.|makes|serves|yields?|designed for|link)\b\s*[:\-–]?/i.test(l.text) || /https?:\/\//i.test(l.text) ||
+    (!l.list && /^(this (version|recipe|cake)|these|you can|feel free|if you (like|want|prefer))\b/i.test(l.text)) ||
+    (l.el && !l.list && l.el.querySelector("i, em") && normT([...l.el.querySelectorAll("i, em")].map((x) => x.textContent).join("")).replace(/\W/g, "") === l.text.replace(/\W/g, ""));
+  const looksStep = (t) => VERB_RE.test(t) || t.length > 95 || (/[.!]$/.test(t) && t.split(/\s+/).length > 7);
+  // 1 = reads like an amount ("200 g sugar", "Butter: 100 g"); .5 = just short; 0 = no
+  const looksIng = (t) => (/^[~≈]?\s*[\d½¼¾⅓⅔⅛]/.test(t) && !/^\S+\s*(?:°|f\b|c\b|min)/i.test(t)) || (/^[^:.]{2,45}:\s*\S/.test(t) && !/^(time|temp|oven|bake|baking|cook)/i.test(t)) || (UNIT_RE.test(t) && t.split(/\s+/).length <= 12) ? 1 : t.split(/\s+/).length <= 4 ? .5 : 0;
+
+  function structure(r, root) {
+    let L = linearize(root);
+    const titleKey2 = titleKey(r.title);
+    // A note that repeats its own title as a heading after some content holds an earlier draft followed by
+    // a clean rewrite: build the checklist from the last rewrite (the draft is still under "as written").
+    const restart = L.reduce((at, x, i) => x.type === "head" && titleKey(x.text) === titleKey2 && L.slice(0, i).some((y) => y.type === "line") ? i : at, -1);
+    if (restart > 0) L = L.slice(restart);
+    const ing = [], stages = [], tips = [];
+    let mode = "auto", group = null, seenSteps = false;
+    const groupNamed = (arr, name) => { let g = arr[arr.length - 1]; if (!g || g.name !== name) arr.push(g = { name, items: [], raws: [] }); return g; };
+    // runs: consecutive lines from the same list (or consecutive plain lines) under the same heading
+    let run = [], runRaw = [];
+    function flushRun() {
+      if (!run.length && !runRaw.length) return;
+      const name = group;
+      if (mode === "tips") { run.forEach((l) => tips.push(l.html + subsHTML(l))); runRaw.forEach((h) => tips.push(h)); run = []; runRaw = []; return; }
+      const keep = [];
+      for (const l of run) { if (/^video$/i.test(l.text) || !/[\p{L}\p{N}]/u.test(l.text)) continue; if (isTipLine(l)) tips.push(l.html + subsHTML(l)); else keep.push(l); }
+      if (keep.length) {
+        const n = keep.length, s = keep.filter((l) => looksStep(l.text)).length / n, g = keep.reduce((a, l) => a + (looksStep(l.text) ? 0 : looksIng(l.text)), 0) / n;
+        const isOL = keep.every((l) => l.list === "ol");
+        // an explicit "Ingredients" / "Steps" heading counts for a lot; only a clearly different run overrides it
+        const sb = (mode === "steps" ? .6 : 0) + (isOL ? .25 : 0), ib = mode === "ing" ? .6 : 0;
+        const asSteps = s + sb > g + ib || (s + sb === g + ib && (seenSteps || mode === "steps" || isOL));
+        const target = asSteps ? groupNamed(stages, name) : groupNamed(ing, name);
+        // some notes paste the ingredient list twice: list each ingredient once per group
+        if (!asSteps) { const seen = new Set(target.items.map((l) => l.text)); for (const l of keep) if (!seen.has(l.text)) { seen.add(l.text); target.items.push(l); } }
+        else target.items.push(...keep); target.raws.push(...runRaw);
+        if (asSteps) seenSteps = true;
+      } else if (runRaw.length) {
+        groupNamed(mode === "ing" ? ing : (seenSteps || mode === "steps" ? stages : ing), name).raws.push(...runRaw);
+      }
+      run = []; runRaw = [];
+    }
+    let pendingHead = null; // a component heading with nothing under it yet
+    for (const x of L) {
+      if (x.type === "head") {
+        flushRun();
+        if (pendingHead && /:\s*\S/.test(pendingHead)) tips.push(esc(pendingHead));
+        pendingHead = null;
+        const t = x.text;
+        if (titleKey(t) === titleKey2) continue;
+        if (H_TIPS.test(t) && t.length <= 40 && !H_ING.test(t)) { mode = "tips"; group = null; continue; }
+        if (H_ING.test(t) && t.length <= 40) { mode = "ing"; group = null; continue; }
+        if (H_STEPS.test(t) && t.length <= 40) { mode = "steps"; group = null; continue; }
+        if (mode === "tips") mode = "auto";
+        group = t.replace(/^[^\p{L}\p{N}]+/u, "").replace(/^\d+\s*[.)\-–]\s*/, "").trim() || t; pendingHead = x.raw;
+        continue;
+      }
+      if (x.type === "blank") { flushRun(); continue; }
+      pendingHead = null;
+      if (x.type === "raw") { runRaw.push(x.html); continue; }
+      const prev = run[run.length - 1];
+      if (prev && prev.listId !== x.listId) flushRun();
+      run.push(x);
+    }
+    flushRun();
+    if (pendingHead && /:\s*\S/.test(pendingHead)) tips.push(esc(pendingHead));
+    // stage letters: A, B, C… when the instructions have more than one part
+    const multi = stages.length > 1;
+    // one stage that only inherited the last ingredient heading ("Wet") needs no name
+    if (!multi && stages[0] && ing.some((g) => g.name === stages[0].name)) stages[0].name = null;
+    stages.forEach((s, i) => { s.letter = multi ? String.fromCharCode(65 + (i % 26)) : ""; });
+    // an ingredient group that matches a stage's name gets the same letter
+    const words = (s) => new Set(String(s || "").toLowerCase().split(/[^\p{L}]+/u).filter((w) => w.length > 2 && !/^(the|and|for|with|layer|part|cake)$/.test(w)));
+    if (multi) for (const g of ing) {
+      if (!g.name) continue;
+      const gw = words(g.name); let best = null, bestN = 0;
+      for (const s of stages) { const n = [...words(s.name)].filter((w) => gw.has(w)).length; if (n > bestN) { bestN = n; best = s; } }
+      if (best) g.letter = best.letter;
+    }
+    return { ing, stages, tips, count: ing.reduce((n, g) => n + g.items.length, 0) + stages.reduce((n, s) => n + s.items.length, 0) };
+  }
+  const subsHTML = (l) => l.subs && l.subs.length ? `<ul>${l.subs.map((h) => `<li>${h}</li>`).join("")}</ul>` : "";
+
+  // Ticks live in localStorage, one entry per recipe: { itemKey: 1 }. Item keys come from the item's text,
+  // so they survive the page being re-rendered and only go stale if the recipe itself changes.
+  const CK_PREFIX = "bakingbook:checks:";
+  const loadChecks = (id) => { try { return JSON.parse(localStorage.getItem(CK_PREFIX + id)) || {}; } catch { return {}; } };
+  const saveChecks = (id, o) => { try { Object.keys(o).length ? localStorage.setItem(CK_PREFIX + id, JSON.stringify(o)) : localStorage.removeItem(CK_PREFIX + id); } catch { /* storage off: ticks just don't persist */ } };
+  const TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function renderChecklist(r, root) {
+    const host = $("#rChecklist"), top = $("#ckTop"), aw = $("#asWritten");
+    const s = structure(r, root);
+    if (s.count < 2) { host.innerHTML = ""; top.classList.add("hidden"); aw.classList.add("only"); aw.open = true; return; }
+    top.classList.remove("hidden"); aw.classList.remove("only"); aw.open = false;
+    const used = new Map();
+    const keyFor = (kind, stage, text) => { const base = `${kind}|${stage || ""}|${text}`; const k = used.get(base) || 0; used.set(base, k + 1); return hash(base + "#" + k).toString(36); };
+    const item = (kind, stage, l, num) => {
+      const k = keyFor(kind, stage, l.text);
+      return `<li><label class="ck-item"><input type="checkbox" data-k="${k}"><span class="ck-box">${TICK}</span>${num ? `<span class="ck-num">${num}</span>` : ""}<span class="ck-txt">${l.html}${subsHTML(l)}</span></label></li>`;
+    };
+    const raws = (g) => g.raws.map((h) => `<div class="note ck-raw">${h}</div>`).join("");
+    const head = (icon, title, extra = "") => `<h2 class="ck-h">${iconSVG(icon)}${title}${extra}</h2>`;
+    let html = `<section class="ck-sec">${head("bowl", "Ingredients")}`;
+    if (s.ing.length) for (const g of s.ing) {
+      if (g.name || g.letter) html += `<h3 class="ck-group">${g.letter ? `<span class="stage-tag">${g.letter}</span>` : ""}${esc(g.name || "")}</h3>`;
+      html += `<ul class="ck-list ing">${g.items.map((l) => item("i", g.name, l)).join("")}</ul>${raws(g)}`;
+    } else html += `<p class="ck-empty">The amounts are given in each step below.</p>`;
+    html += `</section>`;
+    if (s.stages.length) {
+      html += `<section class="ck-sec">${head("whisk", "Instructions", s.stages.length > 1 ? `<small>${s.stages.length} stages</small>` : "")}`;
+      for (const st of s.stages) {
+        const label = st.letter ? `<h3 class="ck-group"><span class="stage-tag">Stage ${st.letter}</span>${esc(st.name || "")}</h3>` : (st.name ? `<h3 class="ck-group">${esc(st.name)}</h3>` : "");
+        html += `<div class="ck-stage">${label}<ol class="ck-list">${st.items.map((l, i) => item("s", st.name, l, i + 1)).join("")}</ol>${raws(st)}</div>`;
+      }
+      html += `</section>`;
+    }
+    if (s.tips.length) html += `<section class="ck-sec">${head("pencil", "Tips")}<ul class="ck-tips">${s.tips.map((h) => `<li>${h}</li>`).join("")}</ul></section>`;
+    host.innerHTML = html;
+    host.querySelectorAll(".ck-txt, .ck-raw, .ck-tips").forEach(boldQuantities);
+    host.querySelectorAll(".ck-txt a, .ck-tips a").forEach((a) => a.addEventListener("click", (e) => e.stopPropagation()));
+    // restore this person's ticks
+    const saved = loadChecks(r.id);
+    host.querySelectorAll("input[data-k]").forEach((cb) => { cb.checked = !!saved[cb.dataset.k]; });
+    host.dataset.rid = r.id;
+    updateCount();
+  }
+  function updateCount() {
+    const host = $("#rChecklist"), boxes = host.querySelectorAll("input[data-k]"), done = host.querySelectorAll("input[data-k]:checked").length;
+    $("#ckCount").textContent = boxes.length ? `${done} of ${boxes.length} done` : "";
+    $("#ckBar").style.width = boxes.length ? `${(done / boxes.length) * 100}%` : "0";
+    $("#ckReset").disabled = !done;
+    host.querySelectorAll(".ck-stage").forEach((st) => { const b = st.querySelectorAll("input[data-k]"); st.classList.toggle("all-done", b.length > 0 && [...b].every((x) => x.checked)); });
+  }
+  $("#rChecklist").addEventListener("change", (e) => {
+    const cb = e.target.closest("input[data-k]"); if (!cb) return;
+    const id = $("#rChecklist").dataset.rid, o = loadChecks(id);
+    if (cb.checked) o[cb.dataset.k] = 1; else delete o[cb.dataset.k];
+    saveChecks(id, o); updateCount();
+  });
+  $("#ckReset").addEventListener("click", () => {
+    const host = $("#rChecklist");
+    saveChecks(host.dataset.rid, {});
+    host.querySelectorAll("input[data-k]").forEach((cb) => { cb.checked = false; });
+    updateCount();
+  });
+  // another tab of the same browser ticked something on this recipe: mirror it
+  addEventListener("storage", (e) => {
+    const host = $("#rChecklist");
+    if (!e.key || e.key !== CK_PREFIX + host.dataset.rid) return;
+    const o = loadChecks(host.dataset.rid);
+    host.querySelectorAll("input[data-k]").forEach((cb) => { cb.checked = !!o[cb.dataset.k]; });
+    updateCount();
+  });
+
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
     const sorted = [...RECIPES].sort((a, b) => a.title.localeCompare(b.title));
@@ -1169,6 +1488,11 @@
     if (r.isHTML) { body.innerHTML = sanitize(r.body); decorateSections(body); } else body.innerHTML = decoratePlain(r.body);
     // The photo is already shown at the top, so don't repeat it inside the note.
     if (r.photo) { const dup = [...body.querySelectorAll("img")].find((im) => im.getAttribute("src") === r.photo); if (dup) { const box = dup.parentElement; dup.remove(); if (box !== body && !box.textContent.trim() && !box.querySelector("img")) box.remove(); } }
+    // The standard checklist view is read from the note before the as-written copy is decorated.
+    const src = document.createElement("div");
+    if (r.isHTML) { src.innerHTML = sanitize(r.body); if (r.photo) [...src.querySelectorAll("img")].filter((im) => im.getAttribute("src") === r.photo).forEach((im) => im.remove()); }
+    else src.innerHTML = r.body.split("\n").map((l) => `<div>${esc(l)}</div>`).join("");
+    renderChecklist(r, src);
     boldQuantities(body);
     const prev = sorted[(idx - 1 + sorted.length) % sorted.length], next = sorted[(idx + 1) % sorted.length];
     $("#pager").innerHTML = sorted.length > 1
