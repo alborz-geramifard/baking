@@ -415,6 +415,14 @@
   /* The Farsi half of a bilingual name, e.g. "Walnut Cookies (شیرینی گردویی)". */
   .fa { font-family: "Vazirmatn", "Noto Naskh Arabic", "Geeza Pro", Tahoma, sans-serif; font-style: normal; font-weight: inherit; letter-spacing: 0; font-size: .92em; }
   .fa-paren { white-space: nowrap; }
+  /* ---------- Comments (giscus: GitHub Discussions, one thread per recipe) ---------- */
+  .comments { max-width: 760px; margin: 0 auto 40px; padding: 0 4px; }
+  .comments h2 { font-family: var(--serif); font-weight: 500; font-size: 30px; margin: 0 0 4px; }
+  .comments-sub { color: var(--ink-soft); margin: 0 0 18px; }
+  .comments .giscus { min-height: 120px; }
+  .comments-off { font-family: var(--serif); font-style: italic; color: var(--ink-soft); }
+  @media (max-width: 720px) { .comments { margin-left: 12px; margin-right: 12px; } }
+  @media print { .comments { display: none !important; } }
   footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
   footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
   footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
@@ -958,6 +966,11 @@
     <div class="checklist" id="rChecklist"></div>
     <div class="note as-written" id="rBody" hidden></div>
   </div>
+  <section class="comments" id="comments" aria-labelledby="commentsTitle">
+    <h2 id="commentsTitle">Comments</h2>
+    <p class="comments-sub">Baked this? Tell me how it went, or ask a question. Sign in with GitHub to post.</p>
+    <div class="giscus" id="giscus"></div>
+  </section>
   <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" loading="lazy" onerror="this.replaceWith(this.alt)"></span>Baked with love <span class="heart" aria-hidden="true">♥</span> · <time id="recipeDate"></time></footer>
 </article>
 
@@ -2566,6 +2579,49 @@
     if (s && document.body.classList.contains("viewing")) s.cb.closest(".ck-item").scrollIntoView({ block: "center" });
   });
 
+
+  /* ---------- Comments ----------
+     GitHub Pages can't run a server, so comments live in this repo's GitHub Discussions and are shown
+     with giscus (giscus.app). Each recipe gets its own thread, keyed by the recipe id, created on the
+     first comment. The widget is reloaded whenever a different recipe opens. */
+  const GISCUS = { repo: "alborz-geramifard/baking", repoId: "R_kgDOVv1-QQ", category: "Announcements", categoryId: "DIC_kwDOVv1-Qc4DLPOQ" };
+  let commentsFor = null;
+  // Signing in to comment sends you to GitHub and back with ?giscus=<session>, but giscus returns to the
+  // page without its #/recipe/… part. Keep the session the way giscus would, then reopen that recipe.
+  (() => {
+    const u = new URL(location.href), sess = u.searchParams.get("giscus");
+    if (!sess) return;
+    try { localStorage.setItem("giscus-session", JSON.stringify(sess)); } catch {}
+    u.searchParams.delete("giscus");
+    let id = null; try { id = sessionStorage.getItem("giscus-recipe"); } catch {}
+    u.hash = id ? "#/recipe/" + encodeURIComponent(id) : "";
+    history.replaceState(null, "", u);
+  })();
+  // Until the giscus app is installed on the repo the widget can only show an error, so say something kinder.
+  addEventListener("message", (e) => {
+    const err = e.origin === "https://giscus.app" && e.data?.giscus?.error;
+    if (err && /not installed/i.test(err)) $("#giscus").innerHTML = '<p class="comments-off">Comments are opening soon.</p>';
+  });
+  function loadComments(r) {
+    try { sessionStorage.setItem("giscus-recipe", r.id); } catch {}
+    if (commentsFor === r.id) return;
+    commentsFor = r.id;
+    const box = $("#giscus");
+    box.replaceChildren();
+    document.querySelectorAll("script[data-giscus]").forEach((x) => x.remove());
+    // The discussion links back to this recipe, not just the front page.
+    let back = document.querySelector('meta[name="giscus:backlink"]');
+    if (!back) { back = document.createElement("meta"); back.name = "giscus:backlink"; document.head.append(back); }
+    back.content = location.href.split("#")[0] + "#/recipe/" + encodeURIComponent(r.id);
+    const sc = document.createElement("script");
+    sc.src = "https://giscus.app/client.js"; sc.async = true; sc.crossOrigin = "anonymous";
+    Object.assign(sc.dataset, {
+      giscus: "", repo: GISCUS.repo, repoId: GISCUS.repoId, category: GISCUS.category, categoryId: GISCUS.categoryId,
+      mapping: "specific", term: "recipe/" + r.id, strict: "1", reactionsEnabled: "1", emitMetadata: "0",
+      inputPosition: "top", theme: "preferred_color_scheme", lang: "en", loading: "lazy",
+    });
+    box.after(sc);
+  }
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
     // A renamed recipe lists its old ids in "aliases", so links shared before the rename still open it.
@@ -2596,6 +2652,7 @@
     renderChecklist(r, src);
     reveal([...$("#rChecklist").querySelectorAll(".ck-sec > *")]); // sections rise in as you reach them
     boldQuantities(body);
+    loadComments(r);
     document.body.classList.add("viewing");
     window.scrollTo(0, 0);
   }
