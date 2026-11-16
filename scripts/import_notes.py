@@ -17,6 +17,10 @@ Two sources are supported:
 
 Each note's text is kept exactly as written (formatting, line breaks, lists),
 so the page shows the instructions the same way they appear in Notes.
+
+Pictures in a note are saved as JPEGs in images/recipes/ and the first one
+becomes the cake's photo. Notes that aren't recipes can be left out with
+--exclude "part of the title" (repeatable), on top of DEFAULT_EXCLUDE below.
 """
 import argparse
 import base64
@@ -47,8 +51,12 @@ def title_key(title):
     return " ".join(re.sub(r"[\W_]+", " ", title.lower()).split())
 
 
+EXTRA_EXCLUDE = []  # filled from --exclude: leave out notes whose title contains any of these
+
+
 def is_recipe(title):
-    if title_key(title) in {title_key(t) for t in DEFAULT_EXCLUDE}:
+    key = title_key(title)
+    if key in {title_key(t) for t in DEFAULT_EXCLUDE} or any(title_key(x) in key for x in EXTRA_EXCLUDE if title_key(x)):
         print(f"Skipped (excluded): {title.strip()}")
         return False
     return True
@@ -325,8 +333,11 @@ def main():
     src.add_argument("--dir", nargs="+", metavar="PATH",
                      help="directory of exported notes (.html/.txt/.md); spaces are fine")
     src.add_argument("--list-folders", action="store_true", help="list Apple Notes folders and exit")
+    ap.add_argument("--exclude", action="append", default=[], metavar="TITLE",
+                    help='leave out notes whose title contains this text (repeatable), e.g. --exclude "Trip"')
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"output file (default: {DEFAULT_OUT.name})")
     a = ap.parse_args()
+    EXTRA_EXCLUDE.extend(a.exclude)
     if a.list_folders:
         print(osascript(JXA_LIST))
         return

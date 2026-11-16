@@ -52,4 +52,14 @@ Paths with spaces are fine. `--dir "iCloud / Dessert"` is read as the Dessert fo
 
 Each note's title becomes the cake's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables.
 
+### Pictures
+
 Pictures in a note are saved as web-sized JPEGs in `images/recipes/` (for example `images/recipes/banana-cake.jpg`), and the first one becomes the cake's photo on its card and at the top of its page. The importer clears that folder on each run, so don't keep other files there. The script lists any recipe that has no photo.
+
+This works with both `--notes-folder` (Apple Notes hands the pictures over inside the note) and `--dir`, if the export saved the notes as HTML with their pictures. The script finds pictures embedded in the HTML or saved next to the `.html` files. It can't read PDFs, so Notes' **File › Export as PDF** won't work here.
+
+A few notes in the folder are always skipped (see `DEFAULT_EXCLUDE` in the script). To leave out more, add `--exclude` with part of the title, as many times as you need:
+
+```sh
+python3 scripts/import_notes.py --notes-folder "iCloud / Dessert" --exclude "Trip" --exclude "Shopping list"
+```
