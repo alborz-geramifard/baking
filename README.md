@@ -1,4 +1,4 @@
-# The Baking Book
+# Bakery with Alborz
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to see its recipe exactly as written.
 

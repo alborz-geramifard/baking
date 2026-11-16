@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Baking Book</title>
+<title>Bakery with Alborz</title>
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -574,7 +574,7 @@
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
         <p class="eyebrow"><i class="sec-ic" id="eyebrowIcon"></i>Recipes from my kitchen</p>
-        <h1><span class="ln">The <em>Baking</em></span><br><span class="ln">Book</span></h1>
+        <h1><span class="ln"><em>Bakery</em></span><br><span class="ln">with Alborz</span></h1>
         <div class="stats" id="stats"></div>
       </div>
       <a class="feature tilt" id="feature" href="#"></a>
@@ -1474,7 +1474,7 @@
     const idx = sorted.findIndex((r) => r.id === id);
     if (idx < 0) { location.hash = ""; return; }
     const r = sorted[idx];
-    document.title = r.title + " · The Baking Book";
+    document.title = r.title + " · Bakery with Alborz";
     $("#rTitle").textContent = r.title;
     const c = fmtDate(r.created), m = fmtDate(r.modified);
     $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
@@ -1510,7 +1510,7 @@
       showRecipe(decodeURIComponent(m[1]));
     } else {
       document.body.classList.remove("viewing");
-      document.title = "The Baking Book";
+      document.title = "Bakery with Alborz";
       window.scrollTo(0, indexScroll);
     }
   }
@@ -1547,8 +1547,8 @@
 
   function currentShare() {
     const viewing = document.body.classList.contains("viewing");
-    const title = viewing ? `${$("#rTitle").textContent} · The Baking Book` : "The Baking Book";
-    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share the Baking Book" };
+    const title = viewing ? `${$("#rTitle").textContent} · Bakery with Alborz` : "Bakery with Alborz";
+    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share Bakery with Alborz" };
   }
 
   function openShare() {
