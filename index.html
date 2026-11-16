@@ -147,7 +147,15 @@
     background: var(--paper); border: 1px solid var(--line); border-radius: 999px;
     padding: 11px 16px 11px 40px; outline: none; transition: border-color .2s, box-shadow .2s;
   }
-  .controls select { padding-left: 16px; width: auto; cursor: pointer; }
+  .controls select {
+    width: auto; cursor: pointer; padding: 11px 42px 11px 18px;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236f5d52' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 18px center; background-size: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .controls select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23bba696' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+  }
   .search input:focus, .controls select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
   .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); }
 
