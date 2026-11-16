@@ -589,10 +589,12 @@
 <script src="recipes.js"></script>
 <script>
 (() => {
-  // Notes that live in the recipe folder but aren't recipes, so they never show on the page.
-  const HIDDEN = new Set(["dessert tricks"]);
+  // Notes in the recipe folder that should never show on the page (non-recipes and removed recipes).
+  // Titles are compared ignoring case, punctuation/dash style and extra spaces.
+  const titleKey = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const HIDDEN = new Set(["Dessert Tricks", "Opera Cake - Louise Lindberg"].map(titleKey));
   const RECIPES = (window.RECIPES || [])
-    .filter((r) => !HIDDEN.has(String(r.title || "").trim().toLowerCase()))
+    .filter((r) => !HIDDEN.has(titleKey(r.title)))
     .map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
