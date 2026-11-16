@@ -237,6 +237,23 @@
   .credit small { display: block; color: var(--ink-soft); font-size: 13px; line-height: 1.35; margin-top: 1px; }
   .credit .go { margin-left: auto; color: var(--ink-soft); flex: none; }
   @media print { .credits .go { display: none; } .credit small::after { content: " · " attr(data-url); } }
+  /* Photos from my Instagram, under the credits */
+  .insta { margin-top: 22px; }
+  .insta:empty { display: none; }
+  .insta h2 { display: flex; align-items: center; gap: 7px; font-family: var(--sans); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 10px; }
+  .insta-shots { list-style: none; margin: 0; padding: 2px 2px 6px; display: flex; gap: 10px; overflow-x: auto; max-width: 520px; scrollbar-width: thin; }
+  .insta-shots li { flex: none; }
+  .insta-shots button { display: block; width: 72px; height: 72px; padding: 0; border: 0; border-radius: 14px; overflow: hidden; cursor: pointer; background: var(--bg-2);
+    box-shadow: 0 0 0 1px var(--line); transition: transform .2s, box-shadow .2s; }
+  .insta-shots button:hover { transform: translateY(-2px); }
+  .insta-shots button[aria-pressed] { box-shadow: 0 0 0 2.5px var(--accent); }
+  .insta-shots button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .insta-shots img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .insta-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; font-size: 14px; }
+  .insta-links a { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); text-decoration: none; font-weight: 600; }
+  .insta-links a:hover { text-decoration: underline; }
+  .insta-links .go { width: 14px; height: 14px; }
+  @media print { .insta-shots, .insta-links .go { display: none; } }
   .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
 
   .recipe-card {
@@ -816,7 +833,7 @@
   /* --- recipe page: pills pop in, the photo floats, sections rise as you reach them --- */
   .recipe-hero .pill { animation: pillPop .6s var(--spring) both; animation-delay: calc(var(--pi, 0) * 70ms + 250ms); }
   @keyframes pillPop { from { opacity: 0; scale: .5; } }
-  .recipe-hero .layer-stack, .recipe-hero .credits { animation: rise .7s var(--ease-out) .45s both; }
+  .recipe-hero .layer-stack, .recipe-hero .credits, .recipe-hero .insta { animation: rise .7s var(--ease-out) .45s both; }
   .recipe-hero .art { animation: bob 7s ease-in-out infinite; }
   @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
   .glance { animation: rise .8s var(--ease-out) .1s both; }
@@ -853,7 +870,7 @@
   @media (prefers-reduced-motion: reduce) {
     .banner h1 .ch, .banner h1 em.split .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
     .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg, .recipe-hero .pill, .recipe-hero .layer-stack,
-    .recipe-hero .credits, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after, .fx-done .big,
+    .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after, .fx-done .big,
     footer .sign-avatar, footer .heart, .card:hover .pill svg { animation: none !important; }
     .feature.rot .feature-fade::after { display: none; }
     .btn, .btn svg, .search svg { transition: border-color .2s, color .2s; }
@@ -862,7 +879,7 @@
   @media print {
     .reveal { opacity: 1 !important; translate: none !important; scale: none !important; rotate: none !important; }
     .sprinkles, .drip { display: none !important; }
-    .glance, .recipe-hero .art, .recipe-hero .pill, .recipe-hero .layer-stack, .recipe-hero .credits { animation: none !important; }
+    .glance, .recipe-hero .art, .recipe-hero .pill, .recipe-hero .layer-stack, .recipe-hero .credits, .recipe-hero .insta { animation: none !important; }
   }
 </style>
 </head>
@@ -941,6 +958,7 @@
         <ul class="pills" id="rPills"></ul>
         <p class="layer-stack" id="rLayers" hidden></p>
         <section class="credits" id="rCredits" aria-label="Credits"></section>
+        <section class="insta" id="rInsta" aria-label="Photos from Instagram"></section>
       </div>
       <div class="art" id="rArt"></div>
     </div>
@@ -1140,9 +1158,15 @@
     r.description = String(r.description || "").trim();
     r.teaser = r.description || `A homemade ${r.name.toLowerCase()}, baked from scratch and written down just the way I make it.`;
     r.search = (r.title + " " + r.name + " " + (r.fa || "") + " " + r.description + " " + r.text).toLowerCase();
-    // The cake's own photo: the importer's "image" field, else the first picture in the note.
+    // The note's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
-    r.photo = src && safeImg(src) ? src : "";
+    r.notePhoto = src && safeImg(src) ? src : "";
+    // Photos from my Instagram: [{ url, date, photos }], written in recipes.js. The first one leads, ahead of the note's photo.
+    r.insta = (Array.isArray(r.instagram) ? r.instagram : [])
+      .map((p) => ({ url: /^https:\/\/(www\.)?instagram\.com\//i.test(p?.url || "") ? p.url : "", date: String(p?.date || ""),
+        photos: (Array.isArray(p?.photos) ? p.photos : []).filter((x) => typeof x === "string" && safeImg(x)) }))
+      .filter((p) => p.photos.length);
+    r.photo = r.insta.length ? r.insta[0].photos[0] : r.notePhoto;
     // Credits for recipes adapted from someone else's: [{ name, url, icon, note }], written by hand in recipes.js.
     r.credits = (Array.isArray(r.credits) ? r.credits : [])
       .map((c) => ({ name: String(c?.name || "").trim(), note: String(c?.note || "").trim(),
@@ -1161,17 +1185,33 @@
     return `<li>${c.url ? `<a class="credit" href="${esc(c.url)}" target="_blank" rel="noopener">${inner}${GO_ICO}</a>` : `<div class="credit">${inner}</div>`}</li>`;
   }).join("")}</ul>` : "";
 
+  /* Photos from my Instagram, on the recipe page: tap one to show it big, or open the post on Instagram. */
+  const IG_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>';
+  const instaHTML = (r) => {
+    if (!r.insta.length) return "";
+    const shots = r.insta.flatMap((p) => p.photos);
+    const posts = r.insta.filter((p) => p.url);
+    return `<h2>${IG_ICO}From my Instagram</h2><ul class="insta-shots">${shots.map((src, i) =>
+      `<li><button type="button" data-shot="${esc(src)}" aria-label="Show photo ${i + 1} of ${shots.length}"${src === r.photo ? ' aria-pressed="true"' : ""}><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></button></li>`).join("")}</ul>`
+      + (posts.length ? `<p class="insta-links">${posts.map((p, i) => `<a href="${esc(p.url)}" target="_blank" rel="noopener">${posts.length > 1 ? `See post ${i + 1} on Instagram` : "See the post on Instagram"}${GO_ICO}</a>`).join("")}</p>` : "");
+  };
+
   /* The recipe's name as HTML: English, then the Farsi name (if any) in parentheses in a Farsi font. */
   const nameHTML = (r) => esc(r.name) + (r.fa ? ` <span class="fa-paren">(<bdi class="fa" lang="fa" dir="rtl">${esc(r.fa)}</bdi>)</span>` : "");
   const nameText = (r) => r.name + (r.fa ? ` (${r.fa})` : "");
 
   /* The cake art: the recipe's photo when it has one, else the drawn cake (also used if the photo fails to load). */
   function artHTML(r, eager) {
-    return r.photo ? `<img class="photo" src="${esc(r.photo)}" alt="${esc(r.title)}" data-title="${esc(r.title)}" decoding="async"${eager ? "" : ' loading="lazy"'}>` : cakeSVG(r.title);
+    const back = r.notePhoto && r.notePhoto !== r.photo ? ` data-fallback="${esc(r.notePhoto)}"` : "";
+    return r.photo ? `<img class="photo" src="${esc(r.photo)}" alt="${esc(r.title)}" data-title="${esc(r.title)}"${back} decoding="async"${eager ? "" : ' loading="lazy"'}>` : cakeSVG(r.title);
   }
   document.addEventListener("error", (e) => {
     const img = e.target;
-    if (img.tagName === "IMG" && img.classList.contains("photo")) img.outerHTML = cakeSVG(img.dataset.title || "");
+    if (img.tagName !== "IMG") return;
+    if (img.classList.contains("photo")) {
+      // an Instagram photo that won't load gives way to the note's own photo, then to the drawn cake
+      if (img.dataset.fallback) { img.src = img.dataset.fallback; delete img.dataset.fallback; } else img.outerHTML = cakeSVG(img.dataset.title || "");
+    } else if (img.closest(".insta-shots")) img.closest("li").remove();
   }, true);
 
   /* ---------- Section icons ----------
@@ -2623,6 +2663,15 @@
     box.after(sc);
   }
   /* ---------- Recipe ---------- */
+  $("#rInsta").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-shot]"); if (!b) return;
+    const art = $("#rArt"); let img = art.querySelector("img.photo");
+    if (!img) { art.innerHTML = '<img class="photo" alt="" decoding="async">'; img = art.querySelector("img.photo"); }
+    delete img.dataset.fallback;
+    img.src = b.dataset.shot;
+    $("#rInsta").querySelectorAll("button[data-shot]").forEach((x) => x.toggleAttribute("aria-pressed", x === b));
+    if (art.getBoundingClientRect().bottom < 0) art.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
   function showRecipe(id) {
     // A renamed recipe lists its old ids in "aliases", so links shared before the rename still open it.
     const r = RECIPES.find((x) => x.id === id) || RECIPES.find((x) => (x.aliases || []).includes(id));
@@ -2636,6 +2685,7 @@
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span><b>${esc(r.layerInfo.label)}:</b> ${esc(r.layerInfo.stack)}</span>`;
     $("#rArt").innerHTML = artHTML(r, true);
     $("#rCredits").innerHTML = creditsHTML(r);
+    $("#rInsta").innerHTML = instaHTML(r);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
     renderGlance(r);
     setDate($("#recipeDate"), r.modified || r.created);
@@ -2644,10 +2694,10 @@
     // Section icons first, so quantities bolded afterwards ("3 eggs") aren't mistaken for headings.
     if (r.isHTML) { body.innerHTML = sanitize(r.body); decorateSections(body); } else body.innerHTML = decoratePlain(r.body);
     // The photo is already shown at the top, so don't repeat it inside the note.
-    if (r.photo) { const dup = [...body.querySelectorAll("img")].find((im) => im.getAttribute("src") === r.photo); if (dup) { const box = dup.parentElement; dup.remove(); if (box !== body && !box.textContent.trim() && !box.querySelector("img")) box.remove(); } }
+    if (r.notePhoto) { const dup = [...body.querySelectorAll("img")].find((im) => im.getAttribute("src") === r.notePhoto); if (dup) { const box = dup.parentElement; dup.remove(); if (box !== body && !box.textContent.trim() && !box.querySelector("img")) box.remove(); } }
     // The standard checklist view is read from the note before the as-written copy is decorated.
     const src = document.createElement("div");
-    if (r.isHTML) { src.innerHTML = sanitize(r.body); if (r.photo) [...src.querySelectorAll("img")].filter((im) => im.getAttribute("src") === r.photo).forEach((im) => im.remove()); }
+    if (r.isHTML) { src.innerHTML = sanitize(r.body); if (r.notePhoto) [...src.querySelectorAll("img")].filter((im) => im.getAttribute("src") === r.notePhoto).forEach((im) => im.remove()); }
     else src.innerHTML = r.body.split("\n").map((l) => `<div>${esc(l)}</div>`).join("");
     renderChecklist(r, src);
     reveal([...$("#rChecklist").querySelectorAll(".ck-sec > *")]); // sections rise in as you reach them
