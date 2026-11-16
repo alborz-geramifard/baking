@@ -118,6 +118,14 @@ def drop_title_line(body, title):
     return body
 
 
+EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
+
+
+def clean_title(title):
+    """Note titles often start with an emoji (e.g. "🎂Walnut Cake"); the page shows plain names."""
+    return " ".join(EMOJI_RE.sub(" ", title).split())
+
+
 def slugify(s, taken):
     base = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-") or "recipe"
     slug, i = base, 2
@@ -221,7 +229,7 @@ def existing_descriptions(out):
     try:
         text = out.read_text(encoding="utf-8")
         start, end = text.index("["), text.rindex("]") + 1
-        return {str(r.get("title", "")).strip().lower(): r["description"]
+        return {clean_title(str(r.get("title", ""))).lower(): r["description"]
                 for r in json.loads(text[start:end]) if r.get("description")}
     except (OSError, ValueError, TypeError, AttributeError):
         return {}
@@ -296,6 +304,8 @@ def extract_photos(r, slug, img_dir, page_dir):
 
 def write(recipes, out):
     taken = set()
+    for r in recipes:
+        r["title"] = clean_title(r["title"])
     recipes.sort(key=lambda r: r["title"].lower())
     kept = existing_descriptions(out)
     data = []
