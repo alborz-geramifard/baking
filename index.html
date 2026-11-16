@@ -609,6 +609,8 @@
   @keyframes grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
   .comp[data-hot] .brow:not([data-hot]) > * { opacity: .45; }
   .comp[data-hot] .brow:not([data-hot]) .seg { filter: saturate(.4); }
+  .comp:has(.seg:focus-visible) .brow:not(:has(.seg:focus-visible)) > * { opacity: .45; }
+  .comp:has(.seg:focus-visible) .brow:not(:has(.seg:focus-visible)) .seg { filter: saturate(.4); }
   .brow > * { transition: opacity .2s; }
   @media (max-width: 520px) { .brow .bname { max-width: 13ch; } .brow .bval b { margin-right: 0; } .brow .bval em { display: none; } }
   .tip {
