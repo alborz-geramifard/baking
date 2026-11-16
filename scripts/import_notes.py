@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import baking recipes into recipes.js for the Bakery with Alborz page.
+"""Import baking recipes into recipes.js for the Baking with Alborz page.
 
 Two sources are supported:
 

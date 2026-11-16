@@ -1,4 +1,4 @@
-# Bakery with Alborz
+# Baking with Alborz
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to open its recipe.
 
