@@ -1156,10 +1156,6 @@
       const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true">${dots}</svg></div><div><b>${a.count}</b><span>ingredients</span></div>`);
     }
-    if (a.total) {
-      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><path d="M10 20h32l-4 24H14Z" fill="color-mix(in srgb, var(--accent-2) 35%, transparent)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M19 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="2.2"/><text x="26" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" font-family="Inter, sans-serif">kg</text></svg></div>
-        <div><b>≈ ${fmtG(a.total)}</b><span>weighed in</span></div>`);
-    }
     if (!tiles.length) { $("#glance").innerHTML = ""; return; }
     let html = `<h2>At a glance</h2><div class="tiles">${tiles.map((x, i) => `<div class="tile" style="--i:${i}">${x}</div>`).join("")}</div>`;
     // composition: one tall segmented bar of what goes in, by weight (top 6 + other)
@@ -1168,7 +1164,7 @@
       if (rest.length) parts.push({ name: rest.length === 1 ? rest[0].name : `other (${rest.length})`, g: rest.reduce((s, x) => s + x.g, 0), slot: "c-other" });
       const pct = (g) => Math.round((g / a.total) * 100);
       const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-      html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>${fmtG(a.total)} total · ml counted as g, eggs ≈ 50 g</small></div>
+      html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>ml counted as g, eggs ≈ 50 g</small></div>
         <div class="bar" role="list" aria-label="Ingredients by weight">${parts.map((x, i) =>
           `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent">${x.g / a.total >= 0.07 ? pct(x.g) + "%" : ""}</div>`).join("")}</div>
         <ul class="legend">${parts.map((x) => `<li><i style="--c:var(--${x.slot})"></i>${esc(cap(x.name))}${x.g / a.total < 0.07 ? ` <em>${pct(x.g)}%</em>` : ""}</li>`).join("")}</ul>
