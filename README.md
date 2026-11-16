@@ -2,7 +2,7 @@
 
 A one-page showcase of my baking recipes. Open `index.html` in a browser. Click a cake to see its recipe exactly as written.
 
-Each recipe page opens with an **At a glance** panel: oven temperature, bake time, how many ingredients, and a bar showing what goes in by weight (ml counted as grams, an egg as about 50 g). These are read from the note's text. The recipe below them is still shown exactly as written. Each cake picture is drawn from the recipe name: loaves, bundts, cheesecakes and layer cakes get their own shapes, and flavours like chocolate, lemon or carrot pick the colours.
+Each recipe page opens with an **At a glance** panel: oven temperature, bake time, how many ingredients, and a bar showing what goes in by weight (ml counted as grams, an egg as about 50 g). These are read from the note's text. The recipe below them is still shown exactly as written. Each cake is shown with its own photo: the first picture in the note. A recipe without a photo, or whose photo won't load, gets a drawn cake instead, made from the recipe name: loaves, bundts, cheesecakes and layer cakes get their own shapes, and flavours like chocolate, lemon or carrot pick the colours.
 
 The banner shows an anime-style cartoon of me as a baker (`images/baker-portrait.webp`), generated with ChatGPT from my profile photo. To swap it, replace that file with another square image. If the file is missing, the portrait is simply hidden.
 
@@ -49,3 +49,5 @@ python3 scripts/import_notes.py --dir ~/Desktop/BakingNotes
 Paths with spaces are fine. `--dir "iCloud / Dessert"` is read as the Dessert folder in iCloud Drive.
 
 Each note's title becomes the cake's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables.
+
+Pictures in a note are saved as web-sized JPEGs in `images/recipes/` (for example `images/recipes/banana-cake.jpg`), and the first one becomes the cake's photo on its card and at the top of its page. The importer clears that folder on each run, so don't keep other files there. The script lists any recipe that has no photo.
