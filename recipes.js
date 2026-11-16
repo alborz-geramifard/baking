@@ -127,7 +127,7 @@ window.RECIPES = [
       "stack": "Chocolate sponge, cookie crunch, banana mousse, chocolate Nutella mousse. Mirror glaze not counted."
     },
     "glance": {
-      "ingredients": 17,
+      "ingredients": 18,
       "hands": 100,
       "cook": [
         [
