@@ -587,7 +587,11 @@
 <script src="recipes.js"></script>
 <script>
 (() => {
-  const RECIPES = (window.RECIPES || []).map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
+  // Notes that live in the recipe folder but aren't recipes, so they never show on the page.
+  const HIDDEN = new Set(["dessert tricks"]);
+  const RECIPES = (window.RECIPES || [])
+    .filter((r) => !HIDDEN.has(String(r.title || "").trim().toLowerCase()))
+    .map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
