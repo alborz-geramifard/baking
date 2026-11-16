@@ -1048,7 +1048,30 @@
         walk(el);
       }
     })(doc.body);
+    hyperlink(doc.body);
     return doc.body.innerHTML;
+  }
+  /* Web addresses are never shown raw: each becomes a hyperlink with words on it.
+     A line that is only an address (optionally labelled, e.g. "Link: https://…") reads
+     "See more details about the steps here" and is listed with the recipe's tips;
+     an address inside a sentence is shown as its site name (e.g. "blossomtostem.net"). */
+  const URL_RE = /https?:\/\/[^\s<>"']*[^\s<>"'.,;:!?)\]]/gi;
+  const siteName = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "link"; } };
+  function hyperlink(root) {
+    const mk = (url, label) => { const a = root.ownerDocument.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.className = "src-link"; a.textContent = label; return a; };
+    for (const el of [...root.querySelectorAll("div, p, li")]) {
+      if (el.querySelector("div, p, li, ul, ol, table, img, a")) continue;
+      const m = el.textContent.replace(/\s+/g, " ").trim().match(/^(?:(?:link|source|recipe|reference|original)\s*[:\-–]?\s*)?(https?:\/\/\S+)$/i);
+      if (m) el.replaceChildren("See more details about the steps ", mk(m[1], "here"), ".");
+    }
+    const tw = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT), texts = [];
+    while (tw.nextNode()) if (!tw.currentNode.parentElement.closest("a")) texts.push(tw.currentNode);
+    for (const t of texts) {
+      const parts = []; let at = 0;
+      for (const m of t.data.matchAll(URL_RE)) { parts.push(t.data.slice(at, m.index), mk(m[0], siteName(m[0]))); at = m.index + m[0].length; }
+      if (parts.length) t.replaceWith(...parts, t.data.slice(at));
+    }
+    for (const a of root.querySelectorAll("a[href]")) if (/^https?:\/\/\S+$/i.test(a.textContent.trim())) { a.textContent = siteName(a.href); a.classList.add("src-link"); }
   }
   const looksLikeHTML = (s) => /<\/?(div|p|br|ul|ol|li|b|i|h\d|span|table)\b/i.test(s);
   const plainText = (html) => { const d = document.createElement("div"); d.innerHTML = html.replace(/<(br|\/div|\/p|\/li|\/h\d)>/gi, "$&\n"); return d.textContent; };
@@ -2268,7 +2291,7 @@
     if (bold && text.startsWith(bold) && /^\s*\(/.test(text.slice(bold.length)) && !UNIT_RE.test(bold)) return true;
     return false;
   }
-  const isTipLine = (l) => /^(note|tip|hint|ps|p\.s\.|makes|serves|yields?|designed for|link)\b\s*[:\-–]?/i.test(l.text) || /https?:\/\//i.test(l.text) ||
+  const isTipLine = (l) => /^(note|tip|hint|ps|p\.s\.|makes|serves|yields?|designed for|link)\b\s*[:\-–]?/i.test(l.text) || /https?:\/\//i.test(l.text) || !!(l.el && l.el.querySelector("a.src-link")) ||
     (!l.list && /^(this (version|recipe|cake)|these|you can|feel free|if you (like|want|prefer))\b/i.test(l.text)) ||
     (l.el && !l.list && l.el.querySelector("i, em") && normT([...l.el.querySelectorAll("i, em")].map((x) => x.textContent).join("")).replace(/\W/g, "") === l.text.replace(/\W/g, ""));
   const looksStep = (t) => VERB_RE.test(t) || t.length > 95 || (/[.!]$/.test(t) && t.split(/\s+/).length > 7);
