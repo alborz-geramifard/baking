@@ -1,4 +1,4 @@
-# Publishes Bakery with Alborz to GitHub Pages on every push to main.
+# Publishes Baking with Alborz to GitHub Pages on every push to main.
 # Live at https://alborz-geramifard.com/baking/
 name: Deploy to GitHub Pages
 

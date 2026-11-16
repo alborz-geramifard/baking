@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bakery with Alborz</title>
+<title>Baking with Alborz</title>
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -869,7 +869,7 @@
           </div>
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
-        <h1><span class="ln"><em>Bakery</em></span><br><span class="ln">with Alborz</span></h1>
+        <h1><span class="ln"><em>Baking</em></span><br><span class="ln">with Alborz</span></h1>
         <div class="stats" id="stats"></div>
       </div>
       <a class="feature tilt" id="feature" href="#"></a>
@@ -2487,7 +2487,7 @@
     const r = RECIPES.find((x) => x.id === id) || RECIPES.find((x) => (x.aliases || []).includes(id));
     if (!r) { location.hash = ""; return; }
     if (r.id !== id) history.replaceState(null, "", "#/recipe/" + encodeURIComponent(r.id));
-    document.title = nameText(r) + " · Bakery with Alborz";
+    document.title = nameText(r) + " · Baking with Alborz";
     $("#rTitle").innerHTML = nameHTML(r);
     $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     const ls = $("#rLayers");
@@ -2524,7 +2524,7 @@
       showRecipe(decodeURIComponent(m[1]));
     } else {
       document.body.classList.remove("viewing");
-      document.title = "Bakery with Alborz";
+      document.title = "Baking with Alborz";
       window.scrollTo(0, indexScroll);
     }
   }
@@ -2559,8 +2559,8 @@
 
   function currentShare() {
     const viewing = document.body.classList.contains("viewing");
-    const title = viewing ? `${$("#rTitle").textContent} · Bakery with Alborz` : "Bakery with Alborz";
-    return { url: location.href, title, heading: viewing ? `Share ${$("#rTitle").textContent}` : "Share Bakery with Alborz" };
+    const title = viewing ? `${$("#rTitle").textContent} · Baking with Alborz` : "Baking with Alborz";
+    return { url: location.href, title, heading: viewing ? `Share ${$("#rTitle").textContent}` : "Share Baking with Alborz" };
   }
 
   function openShare() {
