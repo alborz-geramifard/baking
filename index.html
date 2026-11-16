@@ -218,6 +218,11 @@
   .layer-stack[hidden] { display: none; }
   .layer-stack svg { width: 15px; height: 15px; flex: none; margin-top: 3px; color: var(--accent); }
   .layer-stack b { font-weight: 600; }
+  .layer-stack ol { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 6px 0 0; padding: 0; }
+  .layer-stack ol li { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 9%, transparent); }
+  .layer-stack ol .n { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; color: #fff; background: var(--accent); }
+  .layer-stack .more, .layer-stack .lnote { display: block; margin-top: 6px; }
+  .layer-stack .lnote { font-size: 13px; opacity: .8; }
   /* Credits: recipes I adapted from someone else's, with the source's own icon */
   .credits { margin-top: 22px; }
   .credits:empty { display: none; }
@@ -1109,10 +1114,18 @@
   RECIPES.forEach((r) => {
     r.body = r.body || "";
     Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
-    // Layer count worked out from the recipe itself ("layers" in recipes.js: a sponge sliced into 2–3 plus the
-    // mousse, cream, crunch and ganache between and on top). It replaces any count in the title, which goes stale.
-    const L = r.layers && +r.layers.min > 0 ? r.layers : null;
-    r.layerInfo = L ? { label: `${L.min}${+L.max > +L.min ? "–" + L.max : ""} layers`, stack: String(L.stack || "") } : null;
+    // Layers worked out from the recipe itself ("layers" in recipes.js: every layer bottom to top in "stack", plus
+    // the "extra" ones a sponge sliced into 3 instead of 2 adds). The count is the length of that list, so the number
+    // and the listed layers always agree. It replaces any count in the title, which goes stale.
+    const L = r.layers && Array.isArray(r.layers.stack) && r.layers.stack.length ? r.layers : null;
+    if (L) {
+      const base = L.stack.map(String), extra = (L.extra || []).map(String), n = base.length, max = n + extra.length;
+      const label = `${n}${max > n ? "–" + max : ""} layers`;
+      const all = base.concat(extra).map((x, i) => `${i + 1}. ${x}`);
+      r.layerInfo = { label, base, extra, note: String(L.note || ""),
+        // plain text for the pill's tooltip
+        stack: `Bottom to top: ${all.slice(0, n).join(", ")}${extra.length ? `; sponge sliced into 3: + ${all.slice(n).join(", ")}` : ""}.` };
+    } else r.layerInfo = null;
     if (r.layerInfo) r.sizes = r.sizes.filter((x) => !/layer/i.test(x));
     // A pan size written by hand in recipes.js ("size": "6×6 inch square"), for a cake whose title doesn't give one.
     if (r.size && !r.sizes.some((s) => PAN_SIZE.test(s))) r.sizes.unshift(fmtSize(String(r.size)));
@@ -1708,6 +1721,14 @@
   const layerPills = (r) => r.layerInfo
     ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
     : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
+  // The recipe page's layer line: each layer numbered, bottom to top, so the count can be checked at a glance.
+  const layerStackHTML = (li) => {
+    const item = (x, i) => `<li><span class="n">${i}</span>${esc(x)}</li>`;
+    const n = li.base.length;
+    return `<b>${esc(li.label)}</b>, bottom to top:<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`
+      + (li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "")
+      + (li.note ? `<span class="lnote">${esc(li.note)}</span>` : "");
+  };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };
   function cakePills(r) {
@@ -2656,8 +2677,8 @@
     $("#rTitle").innerHTML = nameHTML(r);
     $("#rPills").outerHTML = pillsHTML(r).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     const ls = $("#rLayers");
-    ls.hidden = !(r.layerInfo && r.layerInfo.stack);
-    ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span><b>${esc(r.layerInfo.label)}:</b> ${esc(r.layerInfo.stack)}</span>`;
+    ls.hidden = !r.layerInfo;
+    ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span>${layerStackHTML(r.layerInfo)}</span>`;
     $("#rArt").innerHTML = artHTML(r, true);
     $("#rCredits").innerHTML = creditsHTML(r);
     $("#rInsta").innerHTML = instaHTML(r);
