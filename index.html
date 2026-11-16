@@ -91,6 +91,14 @@
     box-shadow: var(--shadow-lift); transform: rotate(-3deg); transition: transform .4s ease;
   }
   .baker:hover .baker-frame { transform: rotate(0deg) scale(1.04); }
+  /* click the portrait: ingredients spring out from behind it (the layer sits under the photo) */
+  .baker-frame { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .baker-frame:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .baker-frame.pop { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes pop { 0% { scale: 1; } 30% { scale: .93; } 100% { scale: 1; } }
+  .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: -1; pointer-events: none; }
+  .burst span { position: absolute; left: calc(var(--s) / -2); top: calc(var(--s) / -2); width: var(--s); aspect-ratio: 1; will-change: transform, opacity; }
+  .burst svg.ic { filter: url(#floater-shade); }
   .baker img {
     width: 100%; height: 100%; display: block; object-fit: cover; border-radius: 50%;
     border: 4px solid var(--paper); background: var(--paper);
@@ -577,7 +585,7 @@
     <div class="wrap banner-inner">
       <div>
         <figure class="baker">
-          <div class="baker-frame">
+          <div class="baker-frame" role="button" tabindex="0" aria-label="Say hi — ingredients pop out from behind the portrait">
             <img src="images/baker-portrait.webp" alt="Anime-style illustration of me as a baker, in a chef's hat and apron" width="1024" height="1024" onerror="this.closest('.baker').remove()">
             <span class="spark s1" aria-hidden="true">✦</span>
             <span class="spark s2" aria-hidden="true">✦</span>
@@ -1248,6 +1256,13 @@
   // wheat beside the speech bubble, eggs beside "The Baking", whisk beside the stats, sparkle above the card.
   // Stacked (phone/tablet) layout keeps the % spots. In both, any icon that would touch the card, the text
   // or the Share button is hidden rather than tucked behind it.
+  // what the floating icons must stay clear of: the card, portrait, bubble, text and Share button (viewport rects)
+  function bannerBlocks() {
+    const banner = $("#banner");
+    const ink = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); }; // the text itself, not the full-width line
+    return [...banner.querySelectorAll("#feature, .baker-frame, .baker figcaption, h1 .ln, #stats > *, .share-fab")].map((e) => e.getBoundingClientRect())
+      .concat([...banner.querySelectorAll(".eyebrow")].map(ink));
+  }
   function placeFloaters() {
     const banner = $("#banner"), spans = [...banner.querySelectorAll("#floaters span")], card = $("#feature");
     const B = banner.getBoundingClientRect(), C = card.getBoundingClientRect();
@@ -1256,9 +1271,7 @@
     const statsRight = Math.max(0, ...[...$("#stats").children].map((e) => e.getBoundingClientRect().right));
     const twoCol = C.width && C.left > (r(banner.querySelector("h1")) || C).right - 1;
     spans.forEach((sp) => { sp.style.left = sp.style.top = sp.style.display = ""; });
-    const ink = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); }; // the text itself, not the full-width line
-    const blocks = [card, ...banner.querySelectorAll(".baker-frame, .baker figcaption, h1 .ln, #stats > *, .share-fab")].map((e) => e.getBoundingClientRect())
-      .concat([...banner.querySelectorAll(".eyebrow")].map(ink));
+    const blocks = bannerBlocks();
     const pad = 10; // room for the drift and pointer nudge
     const spots = twoCol && bubble && line1 && stats ? [
       [bubble.right + (C.left - bubble.right) * .55, bubble.top - 26],      // wheat
@@ -1274,6 +1287,49 @@
       if (y < B.top || y + size > B.bottom || blocks.some((b) => b.left < box.right && b.right > box.left && b.top < box.bottom && b.bottom > box.top)) { sp.style.display = "none"; return; }
       if (spots) { sp.style.left = `${x - B.left}px`; sp.style.top = `${y - B.top}px`; }
     });
+  }
+  // Click (or Enter/Space on) the portrait: the ingredients spring out from behind it, fan across the open banner,
+  // hang for a breath, then drift up and fade. Each click picks a fresh fan so it never plays quite the same twice.
+  function bindPortraitBurst() {
+    const frame = $(".baker-frame"); if (!frame) return;
+    const layer = document.createElement("div"); layer.className = "burst"; layer.setAttribute("aria-hidden", "true");
+    frame.prepend(layer);
+    const NAMES = ["berries", "wheat", "eggs", "whisk", "sparkle", "piping", "jar"];
+    const burst = () => {
+      frame.classList.remove("pop"); void frame.offsetWidth; frame.classList.add("pop");
+      if (layer.childElementCount > 21) return; // a few overlapping bursts at most
+      // landing spots: sample the open banner around the portrait and keep ones that sit clear of the text, card
+      // and Share button and aren't bunched together — so the icons fill the empty space instead of the words
+      const F = frame.getBoundingClientRect(), B = $("#banner").getBoundingClientRect(), blocks = bannerBlocks();
+      const cx = F.left + F.width / 2, cy = F.top + F.height / 2, R = F.width / 2, reach = Math.min(Math.max(B.right - F.right, 160), 420);
+      const order = [...NAMES].sort(() => Math.random() - .5), spots = [];
+      for (let t = 0; t < 400 && spots.length < order.length; t++) {
+        const a = (-55 + Math.random() * 125) * Math.PI / 180, dist = R + 30 + Math.random() * reach, size = 30 + Math.round(Math.random() * 14);
+        const x = cx + Math.cos(a) * dist, y = cy + Math.sin(a) * dist, h = size / 2 + 8;
+        if (x - h < B.left + 8 || x + h > B.right - 8 || y - h - 34 < B.top + 4 || y + h > B.bottom - 8) continue;
+        if (blocks.some((b) => b.left < x + h && b.right > x - h && b.top < y + h && b.bottom > y - h - 34)) continue; // incl. the 34px drift up
+        if (spots.some((p) => Math.hypot(p.x + cx - x, p.y + cy - y) < 70)) continue;
+        spots.push({ x: x - cx, y: y - cy, size });
+      }
+      spots.sort((p, q) => Math.atan2(p.y, p.x) - Math.atan2(q.y, q.x)); // stagger round the fan, top to bottom
+      spots.forEach(({ x, y, size }, k) => {
+        const n = order[k], rot = Math.random() * 50 - 25;
+        const el = document.createElement("span"); el.style.setProperty("--s", `${size}px`); el.innerHTML = iconSVG(n, "", true);
+        layer.append(el);
+        const anim = calm
+          ? el.animate([{ opacity: 0, transform: `translate(${x * .8}px, ${y * .8}px)` }, { opacity: 1, offset: .3 }, { opacity: 1, offset: .7 }, { opacity: 0, transform: `translate(${x * .8}px, ${y * .8}px)` }], { duration: 1800 })
+          : el.animate([
+              { transform: "translate(0, 0) scale(.3) rotate(0deg)", opacity: 0 },
+              { transform: `translate(${x * .35}px, ${y * .35 - 10}px) scale(.8) rotate(${rot * .5}deg)`, opacity: 1, offset: .12 },
+              { transform: `translate(${x}px, ${y}px) scale(1) rotate(${rot}deg)`, opacity: 1, offset: .42, easing: "ease-in-out" },
+              { transform: `translate(${x + (x > 0 ? 6 : -6)}px, ${y - 18}px) scale(1) rotate(${rot * 1.2}deg)`, opacity: .9, offset: .78 },
+              { transform: `translate(${x + (x > 0 ? 10 : -10)}px, ${y - 34}px) scale(.9) rotate(${rot * 1.3}deg)`, opacity: 0 },
+            ], { duration: 2600 + Math.random() * 500, delay: k * 45, easing: "cubic-bezier(.2, .8, .3, 1)", fill: "backwards" });
+        anim.onfinish = anim.oncancel = () => el.remove();
+      });
+    };
+    frame.addEventListener("click", burst);
+    frame.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); burst(); } });
   }
   // looking at the portrait or the featured cake: the floaters step back (works for hover, tap and keyboard focus)
   function bindHush() {
@@ -1675,7 +1731,7 @@
     vt.finished.finally(() => { if (b) b.style.viewTransitionName = ""; });
     lastId = id;
   });
-  renderFloaters(); bindHush(); bindTilt(document.querySelector(".index-view"));
+  renderFloaters(); bindHush(); bindPortraitBurst(); bindTilt(document.querySelector(".index-view"));
   renderBanner(); renderGrid(); route();
   lastId = (location.hash.match(/^#\/recipe\/(.+)$/) || [])[1] ? decodeURIComponent(location.hash.slice(9)) : null;
 })();
