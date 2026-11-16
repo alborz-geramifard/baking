@@ -518,7 +518,7 @@
   .card:hover .art svg .steam, .feature .art svg .steam, .recipe-hero .art svg .steam { opacity: .55; }
   @keyframes steam { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
 
-  /* cake pills: the release date sits under the name; size, temp, time and ingredient count share one row at the bottom */
+  /* cake pills: total time, layers, ingredient count and cake size, in one row */
   .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
   .pill {
     display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap;
@@ -526,16 +526,8 @@
     border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 999px; padding: 4px 11px 4px 8px;
   }
   .pill svg { width: 13px; height: 13px; flex: none; }
-  /* the date gets its own colour (honey/gold) so it never blends in with the terracotta info pills */
-  .pill.date {
-    color: color-mix(in srgb, var(--accent-2) 55%, var(--ink)); background: color-mix(in srgb, var(--accent-2) 20%, var(--paper));
-    border-color: color-mix(in srgb, var(--accent-2) 45%, transparent); font-variant-numeric: tabular-nums;
-  }
-  .pill.date svg { color: color-mix(in srgb, var(--accent-2) 80%, var(--ink)); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .card .pills.top { margin: 2px 0 4px; }
   .card .pills.bottom { margin-top: auto; padding-top: 8px; }
-  .feature .pills.top { margin: 8px 4px 8px; }
   .feature .pills.bottom { margin: 12px 4px 0; }
 
   /* scroll reveal */
@@ -1080,7 +1072,8 @@
      Split that off: the page shows the plain name, and the size parts become pills under the cake. */
   const SIZE_PART = /\d\s*(?:-\s*)?(?:inch(?:es)?|in\b|cm\b|layers?\b|["″])|^\d+\s*[x×]$/i;
   const fmtSize = (p) => {
-    p = p.trim().toLowerCase().replace(/(\d)\s*[x×]\s*(\d)/g, "$1×$2").replace(/(\d)\s*-?\s*(?:inch(?:es)?|in\b|["″])/g, "$1-inch").replace(/\s+/g, " ");
+    p = p.trim().toLowerCase().replace(/(\d)\s*[x×]\s*(\d)/g, "$1×$2").replace(/(\d)\s*-?\s*(?:inch(?:es)?|in\b|["″])/g, '$1"').replace(/\s+/g, " ");
+    if (/^\d+(?:\.\d+)?"$/.test(p)) p += " round"; // one measurement is a diameter: 8" → 8" round
     const m = p.match(/^(\d+)\s*[x×]$/);
     if (m) return "Makes " + m[1];
     return p.charAt(0).toUpperCase() + p.slice(1);
@@ -1100,8 +1093,8 @@
   }
   /* Cakes whose title gives no pan size are 8-inch: that's the pan these recipes are made in.
      Bundt, square and mold cakes are left alone, since their notes call for a different pan. */
-  const PAN_SIZE = /inch|cm|×/i;
-  const DEFAULT_SIZE = "8-inch";
+  const PAN_SIZE = /"|cm|×/i;
+  const DEFAULT_SIZE = '8" round';
   const assumesDefaultSize = (title, sizes) =>
     /\bcake\b|cheesecake/i.test(title) && !/bundt|square|mold|mould|entreme/i.test(title) && !sizes.some((s) => PAN_SIZE.test(s));
 
@@ -1430,7 +1423,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3><small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
       i++;
     };
     show();
@@ -1452,7 +1445,6 @@
         <div class="art" data-id="${esc(r.id)}">${moving ? artHTML(r, true).replace('decoding="async"', 'decoding="sync"') : artHTML(r)}</div>
         <div class="card-body">
           <h3>${nameHTML(r)}</h3>
-          ${dateTopHTML(r)}
           <p>${esc(r.teaser)}</p>
           ${creditLineHTML(r)}
           ${bottomPillsHTML(r)}
@@ -1662,34 +1654,29 @@
     size: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>',
     layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
     pieces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
-    date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   };
-  // Pills under a cake's name: its size (from the title) and when it was first written down.
-  // Cards use a short month + year; the recipe page shows the full date.
-  const sizePills = (r) => [...r.sizes.map((s, i) => `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch pan"' : ""}>${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`),
-    ...(r.layerInfo ? [`<li class="pill size layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`] : [])];
-  function datePill(r, full) {
-    const d = toDate(r.created);
-    if (!r.created || isNaN(d)) return "";
-    const label = d.toLocaleDateString(undefined, full ? { year: "numeric", month: "long", day: "numeric" } : { year: "numeric", month: "short" });
-    return `<li class="pill date" title="Released ${esc(fmtDate(r.created))}"><span class="sr">Released </span>${PILL_ICO.date}<time datetime="${esc(String(r.created).slice(0, 10))}">${esc(label)}</time></li>`;
-  }
+  // Pills on a cake: only its total time (rounded to whole hours), layers, ingredient count and size, in that order.
+  // The oven temperature and the exact time stay in the "At a glance" panel on the recipe page.
+  const isLayers = (s) => /layer/i.test(s);
+  const fmtHours = (m) => { const h = Math.round(m / 60); return h < 1 ? "< 1 hr" : `≈ ${h} hr`; };
+  const layerPills = (r) => r.layerInfo
+    ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
+    : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
+  const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };
-  // Recipe page: size and date side by side.
-  const pillsHTML = (r, full) => pillList([...sizePills(r), datePill(r, full)]);
-  // Cake cards: only the release date sits under the name…
-  const dateTopHTML = (r) => pillList([datePill(r)], " top");
-  // …and everything else (size, oven temp, total time, ingredient count) shares one row of pills at the bottom.
-  function bottomPillsHTML(r, withFacts = true) {
-    const out = sizePills(r);
-    if (withFacts) {
-      const a = analyze(r);
-      if (a.temp) out.push(`<li class="pill">${ICO.temp}${esc(a.temp.label)}</li>`);
-      if (a.time) out.push(`<li class="pill">${ICO.time}≈ ${esc(a.time.label)} total</li>`);
-      if (a.count) out.push(`<li class="pill">${ICO.list}${a.count} ingredients</li>`);
-    }
-    return pillList(out, " bottom");
+  function cakePills(r) {
+    const a = analyze(r);
+    return [
+      a.time ? `<li class="pill" title="About ${esc(a.time.label)} from start to serving">${ICO.time}${esc(fmtHours(a.time.total))} total</li>` : "",
+      ...layerPills(r),
+      a.count ? `<li class="pill">${ICO.list}${a.count} ingredients</li>` : "",
+      ...sizePills(r),
+    ];
   }
+  // Recipe page: the row under the title.
+  const pillsHTML = (r) => pillList(cakePills(r));
+  // Cake cards: the same row at the bottom (the featured card keeps to layers and size, as it has little room).
+  const bottomPillsHTML = (r, withFacts = true) => pillList(withFacts ? cakePills(r) : [...layerPills(r), ...sizePills(r)], " bottom");
 
   const fmtG = (g) => g >= 1000 ? `${(g / 1000).toFixed(g >= 10000 ? 0 : 1)} kg` : `${Math.round(g)} g`;
   const SLOTS = ["c1", "c2", "c3", "c4", "c5", "c6"];
@@ -2532,7 +2519,7 @@
     if (r.id !== id) history.replaceState(null, "", "#/recipe/" + encodeURIComponent(r.id));
     document.title = nameText(r) + " · Baking with Alborz";
     $("#rTitle").innerHTML = nameHTML(r);
-    $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
+    $("#rPills").outerHTML = pillsHTML(r).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     const ls = $("#rLayers");
     ls.hidden = !(r.layerInfo && r.layerInfo.stack);
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span><b>${esc(r.layerInfo.label)}:</b> ${esc(r.layerInfo.stack)}</span>`;
