@@ -36,7 +36,11 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "recipes.js"
 # Notes kept in the recipe folder that shouldn't be published (non-recipes and removed recipes);
 # always skipped. Whole title, ignoring case, punctuation/dash style and extra spaces.
-DEFAULT_EXCLUDE = ["Dessert Tricks", "Opera Cake - Louise Lindberg"]
+DEFAULT_EXCLUDE = [
+    "Dessert Tricks", "Opera Cake - Louise Lindberg",
+    # Not recipes: personal notes that live in the same Notes folder.
+    "Australia Trip", "Less shakiness on videos (up down, left, right)",
+]
 
 
 def title_key(title):
