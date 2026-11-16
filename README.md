@@ -24,8 +24,6 @@ gh api -X POST repos/{owner}/baking/pages -f build_type=workflow
 
 If the first deploy ran before Pages was turned on, re-run it from the **Actions** tab or with `gh workflow run pages.yml`. After that, every push to `main` updates the site within a minute or two.
 
-Make sure `images/baker-portrait.webp` is committed, or the banner portrait won't show online.
-
 ## Loading recipes from Apple Notes
 
 ```sh
