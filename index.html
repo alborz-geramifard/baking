@@ -488,7 +488,7 @@
   .comp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
   .comp-head h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 19px; }
   .comp-head small { color: var(--ink-soft); font-size: 12.5px; }
-  .bar { display: flex; gap: 2px; height: 28px; }
+  .bar { position: relative; display: flex; gap: 2px; height: 28px; } /* segments measure their offsets from the bar */
   .seg {
     flex: var(--w) 1 0; min-width: 0; border-radius: 4px; background: var(--c); color: var(--ci);
     font-size: 12px; font-weight: 600; line-height: 28px; padding-left: 8px; overflow: hidden; white-space: nowrap;
@@ -498,10 +498,20 @@
   .bar:hover .seg:not(:hover), .bar:focus-within .seg:not(:focus) { filter: saturate(.4) opacity(.55); }
   .seg:focus-visible { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
   @keyframes grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--ink); }
-  .legend li { display: inline-flex; align-items: center; gap: 7px; }
-  .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
-  .legend em { font-style: normal; color: var(--ink-soft); }
+  /* label inside a segment when name + % fit; otherwise a callout below, tied to the segment by a line in its colour */
+  .seg-lab { display: inline-block; padding-right: 8px; }
+  .seg-lab b { font-weight: 600; }
+  .seg-lab em { font-style: normal; opacity: .85; margin-left: 5px; }
+  .seg.out .seg-lab { visibility: hidden; }
+  .callouts { position: relative; height: 0; transition: opacity .3s; }
+  .callouts svg { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; }
+  .callouts path { fill: none; stroke: var(--c); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: opacity .2s; }
+  .callouts circle { fill: var(--c); transition: opacity .2s; }
+  .co { position: absolute; top: 0; left: 0; font-size: 12.5px; line-height: 18px; white-space: nowrap; color: var(--ink); cursor: default; transition: opacity .2s; }
+  .co b { font-weight: 600; }
+  .co em { font-style: normal; color: var(--ink-soft); margin-left: 5px; }
+  .comp[data-hot] .co:not([data-hot]), .comp[data-hot] .callouts [data-k]:not([data-hot]) { opacity: .3; }
+  .comp[data-hot] .seg:not([data-hot]) { filter: saturate(.4) opacity(.55); }
   .tip {
     position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 1.35;
     padding: 7px 10px; border-radius: 10px; box-shadow: var(--shadow-lift); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity .15s;
@@ -1177,12 +1187,15 @@
       const pct = (g) => Math.round((g / a.total) * 100);
       const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
       html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>ml counted as g, eggs ≈ 50 g</small></div>
+        <div class="callouts up" aria-hidden="true"></div>
         <div class="bar" role="list" aria-label="Ingredients by weight">${parts.map((x, i) =>
-          `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent">${x.g / a.total >= 0.07 ? pct(x.g) + "%" : ""}</div>`).join("")}</div>
-        <ul class="legend">${parts.map((x) => `<li><i style="--c:var(--${x.slot})"></i>${esc(cap(x.name))}${x.g / a.total < 0.07 ? ` <em>${pct(x.g)}%</em>` : ""}</li>`).join("")}</ul></div>`;
+          `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent" data-k="${i}"><span class="seg-lab" aria-hidden="true"><b>${esc(cap(x.name))}</b><em>${pct(x.g)}%</em></span></div>`).join("")}</div>
+        <div class="callouts down" aria-hidden="true"></div></div>`;
     }
     const g = $("#glance");
     g.innerHTML = html;
+    const comp = g.querySelector(".comp");
+    if (comp) { layoutCallouts(comp); compRO.disconnect(); compRO.observe(comp.querySelector(".bar")); }
     // animate dials once painted
     requestAnimationFrame(() => requestAnimationFrame(() => {
       g.querySelectorAll("[data-to]").forEach((el) => el.style.strokeDashoffset = el.dataset.to);
@@ -1190,11 +1203,92 @@
     }));
   }
 
+  /* Composition labels: a segment keeps "Name 12%" inside when it fits. Otherwise the label moves out of the bar as a
+     callout, joined to its segment by a line in the segment's colour.
+     - Room for all of them in one row: a row under the bar, each label as close under its segment as it can get, in
+       bar order, so the leaders never cross.
+     - Not enough room (phones): a staircase. Each label sits beside its own vertical line, hanging left of it below the
+       bar, or (near the bar's left edge, where there's no room on the left) hanging right of it above the bar. Placed
+       left-to-right below and right-to-left above, a line never runs through another label. */
+  function layoutCallouts(comp) {
+    const bar = comp.querySelector(".bar"), below = comp.querySelector(".callouts.down"), above = comp.querySelector(".callouts.up");
+    if (!bar || !below || !above) return;
+    const W = bar.clientWidth;
+    if (!W) return;
+    const outs = [];
+    bar.querySelectorAll(".seg").forEach((s) => {
+      const lab = s.querySelector(".seg-lab");
+      const fits = lab.offsetWidth + 8 <= s.offsetWidth; // 8px = the segment's left padding
+      s.classList.toggle("out", !fits);
+      if (!fits) outs.push({ k: s.dataset.k, cx: s.offsetLeft + s.offsetWidth / 2, c: s.style.getPropertyValue("--c"), html: lab.innerHTML });
+    });
+    for (const box of [below, above]) { box.innerHTML = ""; box.style.height = "0px"; }
+    if (!outs.length) return;
+    const GAP = 14, ROW = 22, TICK = 6, LH = 18;
+    const els = outs.map((o) => {
+      const el = document.createElement("div");
+      el.className = "co"; el.dataset.k = o.k; el.style.setProperty("--c", o.c); el.innerHTML = o.html;
+      below.appendChild(el); o.w = el.offsetWidth; o.el = el; return o;
+    }).sort((p, q) => p.cx - q.cx);
+    const line = (o, d, y) => `<g data-k="${o.k}" style="--c:${o.c}"><path d="${d}"/><circle cx="${o.cx}" cy="${y}" r="2.2"/></g>`;
+    const draw = (box, H, paths) => { box.style.height = H + "px"; box.insertAdjacentHTML("afterbegin", `<svg width="${W}" height="${H}">${paths}</svg>`); };
+
+    if (els.reduce((t, o) => t + o.w + GAP, -GAP) <= W) {
+      const TOP = 26;
+      els.forEach((o, i) => { o.x = Math.max(o.cx - o.w / 2, 0, i ? els[i - 1].x + els[i - 1].w + GAP : 0); });
+      for (let i = els.length - 1; i >= 0; i--) els[i].x = Math.min(els[i].x, i < els.length - 1 ? els[i + 1].x - GAP - els[i].w : W - els[i].w);
+      let paths = "";
+      els.forEach((o) => {
+        const end = Math.min(Math.max(o.cx, o.x + 6), o.x + o.w - 6);
+        paths += line(o, `M${o.cx} 2V7L${end} ${TOP - 4}`, 2);
+        o.el.style.transform = `translate(${o.x}px, ${TOP}px)`;
+      });
+      draw(below, TOP + LH + 2, paths);
+      return;
+    }
+
+    // staircase: rows counted away from the bar; a label takes the nearest row where it overlaps no label or line
+    const TOP = 12, stack = (group, box, up) => {
+      if (!group.length) return;
+      const placed = [];
+      group.forEach((o) => {
+        const l = up ? o.cx : o.cx - o.w - TICK, r = up ? o.cx + o.w + TICK : o.cx;
+        let row = 0;
+        while (placed.some((p) => (p.row === row && r + GAP > p.l && l < p.r + GAP) ||     // overlaps a label in the row
+                                  (p.row > row && p.cx > l - 4 && p.cx < r + 4))) row++;  // an earlier, longer line runs through it
+        placed.push({ ...o, row, l, r });
+      });
+      const H = TOP + (Math.max(...placed.map((p) => p.row)) + 1) * ROW;
+      let paths = "";
+      placed.forEach((p) => {
+        const mid = TOP + p.row * ROW + LH / 2, y = up ? H - mid : mid, y0 = up ? H - 2 : 2, x2 = up ? p.cx + TICK - 2 : p.cx - TICK + 2;
+        paths += line(p, `M${p.cx} ${y0}V${y}H${x2}`, y0);
+        if (p.el.parentNode !== box) box.appendChild(p.el);
+        p.el.style.transform = `translate(${up ? p.cx + TICK : p.cx - TICK - p.w}px, ${y - LH / 2}px)`;
+      });
+      draw(box, H, paths);
+    };
+    const fitsLeft = (o) => o.cx - o.w - TICK >= 0;
+    stack(els.filter(fitsLeft), below, false);                    // left-to-right
+    stack(els.filter((o) => !fitsLeft(o)).reverse(), above, true); // right-to-left
+  }
+  const compRO = new ResizeObserver((es) => es.forEach((e) => { const c = e.target.closest(".comp"); if (c) layoutCallouts(c); }));
+  document.fonts?.ready.then(() => { const c = $("#glance .comp"); if (c) layoutCallouts(c); });
+  // hovering a segment or its callout lights up both
+  $("#glance").addEventListener("pointerover", (e) => {
+    const comp = e.target.closest(".comp"); if (!comp) return;
+    const k = e.target.closest(".seg, .co")?.dataset.k;
+    comp.querySelectorAll("[data-hot]").forEach((x) => x.removeAttribute("data-hot"));
+    if (k == null) { comp.removeAttribute("data-hot"); return; }
+    comp.dataset.hot = k;
+    comp.querySelectorAll(`[data-k="${k}"]`).forEach((x) => x.dataset.hot = "");
+  });
+
   // one shared tooltip for the composition bar (pointer + keyboard)
   const tip = $("#tip");
   const showTip = (el, x, y) => { tip.innerHTML = el.dataset.tip; tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("on"); };
   $("#glance").addEventListener("pointermove", (e) => { const s = e.target.closest(".seg"); if (s) showTip(s, e.clientX, e.clientY); else tip.classList.remove("on"); });
-  $("#glance").addEventListener("pointerleave", () => tip.classList.remove("on"));
+  $("#glance").addEventListener("pointerleave", () => { tip.classList.remove("on"); $("#glance").querySelectorAll("[data-hot]").forEach((x) => x.removeAttribute("data-hot")); });
   $("#glance").addEventListener("focusin", (e) => { const s = e.target.closest(".seg"); if (!s) return; const b = s.getBoundingClientRect(); showTip(s, b.left + b.width / 2, b.top); });
   $("#glance").addEventListener("focusout", () => tip.classList.remove("on"));
 
