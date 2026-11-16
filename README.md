@@ -50,7 +50,7 @@ python3 scripts/import_notes.py --dir ~/Desktop/BakingNotes
 
 Paths with spaces are fine. `--dir "iCloud / Dessert"` is read as the Dessert folder in iCloud Drive.
 
-Each note's title becomes the recipe's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables.
+Each note's title becomes the recipe's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables. The one change: measurements are written the same way in every recipe. After a number, tablespoons become **tbsp**, teaspoons **tsp**, grams (gr, grams) **g**, plus **kg** and **ml**, always with a space ("1 Tbsp" → "1 tbsp", "75 Gr" → "75 g", "100g" → "100 g"). Words without a number, like "a teaspoon of water", are left alone. This is `standardize_units` in the script.
 
 ### Pictures
 

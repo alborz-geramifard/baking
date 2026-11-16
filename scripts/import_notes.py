@@ -118,6 +118,31 @@ def drop_title_line(body, title):
     return body
 
 
+# Notes write the same unit many ways ("1 Tbsp", "2 tablespoons", "75 Gr", "62 grams", "100g").
+# After a quantity, each is rewritten to one standard short form, with a space before it.
+_QTY = r"(\d+(?:[.,/]\d+)?|[½¼¾⅓⅔⅛])"
+UNIT_FORMS = [
+    ("tbsp", r"tablespoons?|table\s?spoons?|tbsps?|tbs|tbl"),
+    ("tsp", r"teaspoons?|tea\s?spoons?|tsps?"),
+    ("g", r"grams?|grs?|gms?|g"),
+    ("kg", r"kilograms?|kilos?|kgs?"),
+    ("ml", r"millilit(?:er|re)s?|mls?"),
+]
+UNIT_RES = [(std, re.compile(_QTY + r"(\s*(?:(?:-|–|to)\s*" + _QTY + r"\s*)?)(?:" + forms + r")(?![A-Za-z])", re.I))
+            for std, forms in UNIT_FORMS]
+
+
+def standardize_units(body):
+    """Write measurements one way in every recipe: tbsp, tsp, g, kg, ml (e.g. "1 Tbsp" -> "1 tbsp", "75 Gr" -> "75 g").
+
+    Only text between HTML tags is touched, and only a unit that follows a number, so words like "spoon" stay."""
+    def fix(text):
+        for std, rx in UNIT_RES:
+            text = rx.sub(lambda m: m.group(1) + (m.group(2).rstrip() or "") + " " + std, text)
+        return text
+    return "".join(part if part.startswith("<") else fix(part) for part in re.split(r"(<[^>]*>)", body))
+
+
 EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
 
 
@@ -306,6 +331,7 @@ def write(recipes, out):
     taken = set()
     for r in recipes:
         r["title"] = clean_title(r["title"])
+        r["body"] = standardize_units(r["body"])
     recipes.sort(key=lambda r: r["title"].lower())
     kept = existing_descriptions(out)
     data = []
