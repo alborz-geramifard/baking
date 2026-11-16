@@ -259,7 +259,11 @@
   .ck-stage.all-done > .ck-group::after { content: "✓ done"; margin-left: auto; color: var(--accent); letter-spacing: .08em; }
 
   .ck-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .ck-list.ing { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  /* ingredients: a plain flat list (no tick boxes); only the steps below are tickable */
+  .ing-list { margin: 0; padding-left: 1.3em; font-family: var(--serif); font-size: 17.5px; line-height: 1.55; }
+  .ing-list > li { padding: 3px 0; }
+  .ing-list > li::marker { color: var(--accent); }
+  .ing-list .ck-txt { display: block; }
   .ck-item { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 14px;
     background: var(--paper); cursor: pointer; font-family: var(--serif); font-size: 17.5px; line-height: 1.5; transition: border-color .2s, background .2s, opacity .2s; }
   .ck-item:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
@@ -300,7 +304,6 @@
     .ck-h svg.ic { width: 34px; height: 34px; }
     .ck-stage { padding: 14px 12px; }
     .ck-item { font-size: 16.5px; padding: 10px 12px; gap: 10px; }
-    .ck-list.ing { grid-template-columns: 1fr; }
   }
   @media print {
     .ck-reset, .ck-bar, .ck-hint, .ck-count, .as-written { display: none !important; }
@@ -1427,7 +1430,7 @@
     let html = `<section class="ck-sec">${head("bowl", "Ingredients")}`;
     if (s.ing.length) for (const g of s.ing) {
       if (g.name || g.letter) html += `<h3 class="ck-group">${g.letter ? `<span class="stage-tag">${g.letter}</span>` : ""}${esc(g.name || "")}</h3>`;
-      html += `<ul class="ck-list ing">${g.items.map((l) => item("i", g.name, l)).join("")}</ul>${raws(g)}`;
+      html += `<ul class="ing-list">${g.items.map((l) => `<li><span class="ck-txt">${l.html}${subsHTML(l)}</span></li>`).join("")}</ul>${raws(g)}`;
     } else html += `<p class="ck-empty">The amounts are given in each step below.</p>`;
     html += `</section>`;
     if (s.stages.length) {
