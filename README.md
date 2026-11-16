@@ -14,6 +14,8 @@ Each recipe page opens with an **At a glance** panel: oven temperature, an estim
 
 The banner shows an anime-style illustration of me as a baker (`images/baker-portrait.webp`), generated with ChatGPT from my profile photo. It's a full-bleed 1024×1024 square; the page crops it to a circle, so keep the face and hat inside the middle. To swap it, replace that file with another square image. If the file is missing, the portrait is simply hidden.
 
+**Movement.** The page is meant to feel alive without getting in the way. The title's letters spring in one by one (hover a letter and it hops), the banner's bottom edge runs down onto the page like icing, cards rise and settle as you scroll to them, and searching or sorting makes the cards glide to their new places. The featured cake waits while you hover it, and a thin line under it shows when the next one is due. On a recipe, ticking a step throws a few sprinkles, and finishing every step showers the page with them (in Focus mode too). All of it is switched off for anyone whose device asks for reduced motion, and none of it appears in print. It lives in the "Motion layer 2" blocks of `index.html` (one in the styles, one in the script).
+
 Use the **Share** button (top right of the book, or next to **Print** on a recipe) to pick a platform: WhatsApp, Facebook, X, Pinterest, Reddit, Telegram, Email or Text. You can also copy the link. On phones and in Safari, **More…** opens the device's own share menu. A shared recipe links straight to that recipe. Links only work for other people once the page is online. A `file://` link only opens on your own computer.
 
 ## Putting it online (GitHub Pages)
