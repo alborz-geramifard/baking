@@ -9,8 +9,9 @@
 // adds them up; without it, it estimates both from the note. Re-check it when the note changes.
 // Add "size" (e.g. "6×6 inch square") for the size pill of a cake whose title doesn't give its pan size.
 // Add "instagram" for photos from Instagram: a list of {"url" (the post), "date", "photos"} (photos =
-// files in images/instagram/). Its first photo becomes the recipe's photo, ahead of the note's own picture.
-// descriptions, sizes, layers, credits, glance and instagram are kept when the script is re-run.
+// files in images/instagram/). Its first photo becomes the recipe's photo, ahead of the note's own picture
+// (add "leadPhoto": "note" to keep the note's own picture in front).
+// descriptions, sizes, layers, credits, glance, instagram and leadPhoto are kept when the script is re-run.
 window.RECIPES = [
   {
     "id": "banana-bread",
@@ -690,6 +691,7 @@ window.RECIPES = [
     "created": "2026-07-18",
     "modified": "2026-11-15",
     "image": "images/recipes/orange-mocha-hazelnut-mousse-cake-8-inch-7-layers.jpg",
+    "leadPhoto": "note",
     "instagram": [
       {
         "url": "https://www.instagram.com/p/Ddat6DDGyaS/",

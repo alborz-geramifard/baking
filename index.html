@@ -1148,12 +1148,13 @@
     // The note's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
     r.notePhoto = src && safeImg(src) ? src : "";
-    // Photos from my Instagram: [{ url, date, photos }], written in recipes.js. The first one leads, ahead of the note's photo.
+    // Photos from my Instagram: [{ url, date, photos }], written in recipes.js. The first one leads, ahead of the note's photo,
+    // unless the recipe sets "leadPhoto": "note" (a better photo of the finished cake than the Instagram ones).
     r.insta = (Array.isArray(r.instagram) ? r.instagram : [])
       .map((p) => ({ url: /^https:\/\/(www\.)?instagram\.com\//i.test(p?.url || "") ? p.url : "", date: String(p?.date || ""),
         photos: (Array.isArray(p?.photos) ? p.photos : []).filter((x) => typeof x === "string" && safeImg(x)) }))
       .filter((p) => p.photos.length);
-    r.photo = r.insta.length ? r.insta[0].photos[0] : r.notePhoto;
+    r.photo = r.insta.length && !(r.leadPhoto === "note" && r.notePhoto) ? r.insta[0].photos[0] : r.notePhoto;
     // Credits for recipes adapted from someone else's: [{ name, url, icon, note }], written by hand in recipes.js.
     r.credits = (Array.isArray(r.credits) ? r.credits : [])
       .map((c) => ({ name: String(c?.name || "").trim(), note: String(c?.note || "").trim(),
@@ -1177,6 +1178,7 @@
   const instaHTML = (r) => {
     if (!r.insta.length) return "";
     const shots = r.insta.flatMap((p) => p.photos);
+    if (r.photo && !shots.includes(r.photo)) shots.unshift(r.photo); // the note's photo leads: keep it in the strip to come back to
     const posts = r.insta.filter((p) => p.url);
     return `<h2>${IG_ICO}From my Instagram</h2><ul class="insta-shots">${shots.map((src, i) =>
       `<li><button type="button" data-shot="${esc(src)}" aria-label="Show photo ${i + 1} of ${shots.length}"${src === r.photo ? ' aria-pressed="true"' : ""}><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></button></li>`).join("")}</ul>`
