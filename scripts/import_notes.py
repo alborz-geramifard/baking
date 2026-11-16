@@ -259,11 +259,11 @@ def from_dir(spec):
     return recipes
 
 
-KEPT_FIELDS = ("description", "layers", "credits")  # written by hand in recipes.js, not in the notes
+KEPT_FIELDS = ("description", "layers", "credits", "glance")  # written by hand in recipes.js, not in the notes
 
 
 def existing_extras(out):
-    """Hand-written fields already in recipes.js (card description, layer count, source credits), keyed by
+    """Hand-written fields already in recipes.js (card description, layer count, source credits, checked ingredient count and times), keyed by
     lower-cased title.
 
     Notes don't carry these, so re-importing keeps the ones written by hand."""
@@ -373,7 +373,10 @@ def write(recipes, out):
                    "// sponge is sliced (2-3 slices give a range) plus fillings and toppings.\n"
                    "// Add \"credits\" to a recipe adapted from someone else's: a list of\n"
                    "// {\"name\", \"url\", \"icon\", \"note\"} (icon = a file in images/sources/).\n"
-                   "// descriptions, layers and credits are kept when the script is re-run.\n"
+                   "// Add \"glance\" for a checked ingredient count and total time: {\"ingredients\": how many different\n"
+                   "// ingredients, \"hands\": minutes of manual work, \"cook\" and \"wait\": lists of [step, minutes]}. The page\n"
+                   "// adds them up; without it, it estimates both from the note. Re-check it when the note changes.\n"
+                   "// descriptions, layers, credits and glance are kept when the script is re-run.\n"
                    "window.RECIPES = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
                    encoding="utf-8")
     print(f"Wrote {len(data)} recipes to {out}")
