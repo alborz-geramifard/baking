@@ -316,6 +316,7 @@
     transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
     transition: transform .6s var(--ease-out);
   }
+  .floaters svg.ic { filter: url(#floater-shade); } /* no badge, no drop shadow — just a soft inner shade */
   .floaters span > svg { animation: bob 7s ease-in-out infinite; animation-delay: var(--delay, 0s); }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-12px) rotate(6deg); } }
   .banner-inner { z-index: 1; }
@@ -704,9 +705,10 @@
     sparkle: `<path d="M24 6c1.6 9 4 11.4 13 13-9 1.6-11.4 4-13 13-1.6-9-4-11.4-13-13 9-1.6 11.4-4 13-13Z" fill="${IC.gold}" stroke="${IC.line}" stroke-width="2.2" stroke-linejoin="round"/>
       <path d="M37 32c.8 4 1.8 5 5.5 5.8-3.7.8-4.7 1.8-5.5 5.8-.8-4-1.8-5-5.5-5.8 3.7-.8 4.7-1.8 5.5-5.8Z" fill="${IC.rose}" stroke="${IC.line}" stroke-width="1.8" stroke-linejoin="round"/><circle cx="11" cy="37" r="2.2" fill="${IC.gold2}"/>`,
   };
-  const iconSVG = (name, label = "") =>
+  // bare = no round badge behind the icon (used by the free-floating banner ingredients)
+  const iconSVG = (name, label = "", bare = false) =>
     `<svg class="ic" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" ${label ? `role="img" aria-label="${esc(label)}"` : 'aria-hidden="true"'}>` +
-    `<circle cx="24" cy="24" r="23" fill="${IC.bg}"/>${ICON_PARTS[name] || ICON_PARTS.sparkle}</svg>`;
+    `${bare ? "" : `<circle cx="24" cy="24" r="23" fill="${IC.bg}"/>`}${ICON_PARTS[name] || ICON_PARTS.sparkle}</svg>`;
 
   // Which icon fits a recipe section heading. Order matters ("Cream cheese frosting" → frosting, not cake).
   const SECTION_ICONS = [
@@ -1124,7 +1126,12 @@
   // banner: floating ingredients that drift with the pointer
   function renderFloaters() {
     const F = [["berries", 4, 8, 64, 2.2, -12], ["wheat", 47, 6, 46, 1.2, 14], ["eggs", 92, 62, 58, 1.8, -8], ["whisk", 56, 84, 50, 2.6, 10], ["sparkle", 88, 12, 40, 3, 0], ["piping", 2, 78, 52, 1.5, -16], ["jar", 42, 52, 34, 3.4, 8]];
-    $("#floaters").innerHTML = F.map(([n, x, y, s, d, r], k) => `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--delay:${-k * 1.3}s">${iconSVG(n)}</span>`).join("");
+    $("#floaters").innerHTML = F.map(([n, x, y, s, d, r], k) => `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--delay:${-k * 1.3}s">${iconSVG(n, "", true)}</span>`).join("") +
+      // soft inner shading (darker toward the lower-right edges) instead of a cast drop shadow
+      `<svg width="0" height="0" style="position:absolute"><filter id="floater-shade" x="-10%" y="-10%" width="120%" height="120%">` +
+      `<feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/><feOffset dx="-1.6" dy="-2"/>` +
+      `<feComposite in="SourceAlpha" operator="out" result="edge"/><feFlood flood-color="#3c2314" flood-opacity=".32"/>` +
+      `<feComposite in2="edge" operator="in"/><feComposite in2="SourceGraphic" operator="atop"/></filter></svg>`;
     if (calm || !finePointer) return;
     const banner = $("#banner");
     banner.addEventListener("pointermove", (e) => {
