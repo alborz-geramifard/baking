@@ -731,21 +731,22 @@
 
   /* --- chocolate drip: melted chocolate runs off the banner's bottom edge onto the page (drawn by renderDrip) --- */
   .drip {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 78px; z-index: 0; pointer-events: none;
+    position: absolute; left: 0; right: 0; bottom: 0; height: 118px; z-index: 0; pointer-events: none;
     --choc-1: #6a3d25; --choc-2: #4a2717; --choc-3: #2f170d; --choc-shine: #f3c9a2;
   }
   @media (prefers-color-scheme: dark) { .drip { --choc-1: #9a6240; --choc-2: #74432a; --choc-3: #55301d; --choc-shine: #ffe2c2; } }
   .drip svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .drip .page { fill: var(--bg); }
   .drip .choc { fill: url(#chocFill); filter: drop-shadow(0 3px 3px rgb(40 18 8 / .28)); }
+  .drip .drop { fill: var(--choc-3); }
   .drip .lip { fill: none; stroke: var(--choc-3); stroke-width: 1; opacity: .55; }
   .drip .shine { fill: none; stroke: var(--choc-shine); stroke-linecap: round; }
   .drip .shine.band { stroke-width: 2; opacity: .2; stroke-dasharray: 120 16 220 26 64 20; }
   .drip .shine.streak { stroke-width: 2.2; opacity: .3; }
   .drip .shine.dot { stroke-width: 3; opacity: .42; }
   .banner.dripping { border-bottom: 0; }
-  .banner.dripping .banner-inner { padding-bottom: 122px; }
-  .banner.dripping + main .toolbar { margin-top: 30px; }
+  .banner.dripping .banner-inner { padding-bottom: 150px; }
+  .banner.dripping + main .toolbar { margin-top: 2px; }
 
   /* --- banner depth: as it scrolls away the colour blobs lag behind and the content eases back --- */
   @supports (animation-timeline: view()) {
@@ -2097,28 +2098,33 @@
 
   // Chocolate drip along the banner's bottom edge: a band of melted chocolate that runs down onto the page in
   // teardrop drips (thin neck, heavy rounded bead, a glossy streak on each). The drips ooze out one after
-  // another on load, then breathe very slightly while the banner is on screen.
+  // another on load, then keep dripping while the banner is on screen: each drip, on its own clock, slowly swells and
+  // stretches until a droplet pinches off its tip, falls a little way and fades out, the drip springs back, and the
+  // cycle starts again.
   function renderDrip() {
     const host = $("#drip"), banner = $("#banner"); if (!host) return;
     const rnd = (i, s) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); }; // same drips every visit and at every width
-    const H = 78, Y = 15, C = 11; // Y: thickness of the chocolate band the drips hang from, C: fillet where a drip leaves it
+    const H = 118, Y = 15, C = 11; // H: height of the strip, the lower part is where droplets fall; Y: thickness of the chocolate band the drips hang from, C: fillet where a drip leaves it
     host.innerHTML = `<svg aria-hidden="true"><defs><linearGradient id="chocFill" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="var(--choc-1)"/><stop offset=".3" stop-color="var(--choc-2)"/><stop offset="1" stop-color="var(--choc-3)"/></linearGradient></defs>
-      <rect class="page" x="0" y="0" width="100%" height="${H + 2}"/><path class="choc"/><path class="lip"/>
+      <rect class="page" x="0" y="0" width="100%" height="${H + 2}"/><g class="drops"></g><path class="choc"/><path class="lip"/>
       <path class="shine band"/><path class="shine streak"/><path class="shine dot"/></svg>`;
     const choc = host.querySelector(".choc"), lip = host.querySelector(".lip"), band = host.querySelector(".band"),
-      streak = host.querySelector(".streak"), dot = host.querySelector(".dot");
+      streak = host.querySelector(".streak"), dot = host.querySelector(".dot"), dropG = host.querySelector(".drops");
     banner.classList.add("dripping");
-    let drips = [], W = 0, t0 = performance.now(), seen = true, raf = 0;
+    let drips = [], drops = [], W = 0, t0 = performance.now(), seen = true, raf = 0;
     const layout = () => {
       W = host.offsetWidth; drips = [];
       for (let x = 30 + rnd(0, 1) * 36, i = 0; x < W - 22; i++) {
         const r = 7.5 + rnd(i, 2) * 5.5, big = rnd(i, 3); // r: radius of the bead at the tip
         // a mix of short fat blobs and long runs, so it reads as poured rather than stamped
         const len = big > .5 ? 36 + rnd(i, 7) * 20 : 12 + rnd(i, 7) * 20;
-        drips.push({ x, r, len, sag: 1.5 + rnd(i, 8) * 5, ph: rnd(i, 4) * 6.28, sp: .5 + rnd(i, 5) * .7 });
+        drips.push({ x, r, len, sag: 1.5 + rnd(i, 8) * 5, ph: rnd(i, 4) * 6.28, sp: .5 + rnd(i, 5) * .7,
+          per: 7 + rnd(i, 9) * 9, off: rnd(i, 10) * 9, st: 6 + rnd(i, 11) * 6 }); // per: seconds between droplets, off: delay before the first, st: stretch before it lets go
         x += 2 * r + 2 * C + 2 + Math.pow(rnd(i, 6), 1.6) * 46;
       }
+      dropG.innerHTML = drips.map(() => `<ellipse class="drop" opacity="0"/>`).join("");
+      drops = [...dropG.children];
       draw(performance.now());
     };
     const back = (k) => { k = Math.max(0, Math.min(1, k)); return 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2); }; // ease-out with a small overshoot
@@ -2127,8 +2133,27 @@
       const t = now - t0;
       let d = `M0,${Y}`, hi = "", dots = "", px = 0;
       drips.forEach((p, i) => {
-        const g = calm ? 1 : back((t - 350 - i * 55) / 1100), l = Math.max(0, p.len * g + (calm ? 0 : Math.sin(t / 1000 * p.sp + p.ph) * 2.2 * Math.min(1, g)));
-        const r = Math.min(p.r, l * .3), c = Math.min(C, l * .4), yb = Y + l, x = p.x;
+        const g = calm ? 1 : back((t - 350 - i * 55) / 1100), breathe = (at) => Math.sin(at / 1000 * p.sp + p.ph) * 2.2;
+        // the drip cycle: ext is the extra length, swell fattens the bead while the droplet gathers
+        let ext = 0, swell = 0, drop = null;
+        const cyc = t - 1900 - i * 55 - p.off * 1000;
+        if (!calm && cyc > 0) {
+          const T = p.per * 1000, u = (cyc % T) / T, UD = .64, rd = Math.min(p.r, (p.len + p.st) * .3) * .62;
+          if (u < UD) { swell = Math.pow(u / UD, 2.4); ext = p.st * swell; }
+          else {
+            const td = (u - UD) * T / 1000, fall = 26 * td + 210 * td * td, y0 = Y + p.len + p.st - rd;
+            const k = Math.min(1, fall / Math.max(22, Math.min(60, H - 6 - y0))); // gone before it leaves the strip
+            ext = (p.st - 1.3 * rd) * Math.exp(-5 * td) * Math.cos(11 * td); // the drip springs back once the droplet lets go
+            if (k < 1) drop = { y: y0 + breathe(t - td * 1000) + fall, rx: rd * (1 - .3 * k), ry: rd * (1 + .25 * Math.sin(k * 3.14) - .3 * k), o: 1 - Math.pow(k, 1.6) };
+          }
+        }
+        const l = Math.max(0, p.len * g + ext + (calm ? 0 : breathe(t) * Math.min(1, g)));
+        const el = drops[i];
+        if (el) {
+          if (drop) { el.setAttribute("cx", f(p.x)); el.setAttribute("cy", f(drop.y)); el.setAttribute("rx", f(drop.rx)); el.setAttribute("ry", f(drop.ry)); el.setAttribute("opacity", drop.o.toFixed(2)); }
+          else if (el.getAttribute("opacity") !== "0") el.setAttribute("opacity", "0");
+        }
+        const r = Math.min(p.r * (1 + .14 * swell), l * .3), c = Math.min(C, l * .4), yb = Y + l, x = p.x;
         // the neck thins only once the drip is long enough to stretch; short ones stay plain rounded blobs
         const n = r * (1 - .42 * Math.max(0, Math.min(1, (l - (C + 2.6 * p.r)) / 14)));
         const x0 = x - n - c, x1 = x + n + c, yn = Math.max(Y + c, yb - 2.4 * r), sag = p.sag * Math.min(1, g);
