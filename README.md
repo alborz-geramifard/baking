@@ -70,6 +70,10 @@ Pictures in a note are saved as web-sized JPEGs in `images/recipes/` (for exampl
 
 This works with both `--notes-folder` (Apple Notes hands the pictures over inside the note) and `--dir`, if the export saved the notes as HTML with their pictures. The script finds pictures embedded in the HTML or saved next to the `.html` files. It can't read PDFs, so Notes' **File › Export as PDF** won't work here.
 
+### Photos from Instagram
+
+Most cakes also show real photos from my Instagram ([@xalborzx](https://www.instagram.com/xalborzx/)). They live in `images/instagram/` (the importer never touches that folder) and each recipe lists its posts in an `instagram` field in `recipes.js`, e.g. `"instagram": [{"url": "https://www.instagram.com/p/…/", "date": "2026-09-18", "photos": ["images/instagram/banana-bread-1.jpg"]}]`. The first photo becomes the cake's photo on its card and recipe page, ahead of the note's own picture (which is still used if the Instagram photo won't load). The recipe page shows all of them under **From my Instagram**: tap one to show it big, or follow the link to the post. The importer keeps this field, like descriptions. To add a new bake, save its photos (1080 px wide is plenty) into `images/instagram/` and add its post to the recipe.
+
 A few notes in the folder are always skipped (see `DEFAULT_EXCLUDE` in the script). To leave out more, add `--exclude` with part of the title, as many times as you need:
 
 ```sh
