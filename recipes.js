@@ -4,11 +4,12 @@
 //   python3 scripts/import_notes.py --notes-folder "Baking"     (straight from Apple Notes)
 //   python3 scripts/import_notes.py --dir ~/Desktop/BakingNotes (from a folder of exported notes)
 //
-// Each recipe: { id, title, body (HTML from the note, rendered as written), created, modified, sample }
+// Each recipe: { id, title, description (short card blurb about the cake, not its ingredients), body (HTML from the note, rendered as written), created, modified, sample }
 window.RECIPES = [
   {
     "id": "brown-butter-olive-oil-cake",
     "title": "Brown Butter Olive Oil Cake",
+    "description": "A tender, golden everyday cake with a bright citrus lift. Even better the day after baking.",
     "sample": true,
     "created": "2026-03-02",
     "modified": "2026-03-02",
@@ -17,6 +18,7 @@ window.RECIPES = [
   {
     "id": "lemon-ricotta-loaf",
     "title": "Lemon Ricotta Loaf",
+    "description": "A soft, sunny loaf with a sweet-tart glaze, made for an afternoon cup of tea.",
     "sample": true,
     "created": "2026-04-11",
     "modified": "2026-05-01",
@@ -25,6 +27,7 @@ window.RECIPES = [
   {
     "id": "chocolate-sour-cream-cake",
     "title": "Chocolate Sour Cream Cake",
+    "description": "Dark, fudgy layers under a cloud of whipped ganache. The birthday cake.",
     "sample": true,
     "created": "2026-01-20",
     "modified": "2026-02-14",
@@ -33,6 +36,7 @@ window.RECIPES = [
   {
     "id": "carrot-cake",
     "title": "Carrot Cake",
+    "description": "A warmly spiced, cosy sheet cake with a little crunch and a thick, tangy frosting.",
     "sample": true,
     "created": "2025-11-02",
     "modified": "2026-04-03",
@@ -41,6 +45,7 @@ window.RECIPES = [
   {
     "id": "basque-cheesecake",
     "title": "Basque Burnt Cheesecake",
+    "description": "Rustic and crustless, with a deeply caramelised top and a creamy, barely-set middle.",
     "sample": true,
     "created": "2026-06-08",
     "modified": "2026-06-08",
