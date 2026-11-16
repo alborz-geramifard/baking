@@ -680,7 +680,7 @@
   // Notes in the recipe folder that should never show on the page (non-recipes and removed recipes).
   // Titles are compared ignoring case, punctuation/dash style and extra spaces.
   const titleKey = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  const HIDDEN = new Set(["Dessert Tricks", "Opera Cake - Louise Lindberg"].map(titleKey));
+  const HIDDEN = new Set(["Dessert Tricks", "Opera Cake - Louise Lindberg", "Australia Trip", "Less shakiness on videos (up down, left, right)"].map(titleKey));
   const RECIPES = (window.RECIPES || [])
     .filter((r) => !HIDDEN.has(titleKey(r.title)))
     .map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
