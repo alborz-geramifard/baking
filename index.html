@@ -492,6 +492,7 @@
   .tile span { font-size: 12.5px; color: var(--ink-soft); }
   .tile .track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
   .tile .fill { stroke: var(--accent); transition: stroke-dashoffset 1.2s var(--ease-out); }
+  .tile .arc { transition: stroke-dashoffset 1.2s var(--ease-out); }
   .tile .needle { transition: transform 1.2s var(--ease-out); transform-origin: 26px 30px; }
 
   .comp { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
@@ -1126,6 +1127,14 @@
      Only for the visual summary; the recipe itself is still shown exactly as written. */
   const ADJ = /^(?:good|whole|melted|browned|grated|toasted|hot|warm|cold|soft(?:ened)?|room|temp|chopped|sifted|fresh|unsalted|salted|plain|full[- ]fat|of)\s+/i;
   const TINTS = { white: 1, brown: 1, caster: 1, light: 1, dark: 1, golden: 1 };
+  // "45 min", "1 hr 40 min", "14 hr", "2 days": coarser as it gets longer, since it's an estimate
+  function fmtDur(m) {
+    const r = m < 30 ? Math.max(1, Math.round(m)) : Math.round(m / 5) * 5;
+    if (r < 60) return `${r} min`;
+    if (r < 180) { const h = Math.floor(r / 60), mm = r % 60; return mm ? `${h} hr ${mm} min` : `${h} hr`; }
+    if (m < 36 * 60) return `${Math.round(m / 60)} hr`;
+    const d = Math.round(m / 720) / 2; return `${String(d).replace(".5", "½")} days`;
+  }
   function analyze(r) {
     if (r._a) return r._a;
     const t = r.text.replace(/ /g, " ");
@@ -1133,20 +1142,35 @@
     let temp = null;
     const tm = t.match(/(\d{3})\s*°\s*([CF])?/) || t.match(/\b(\d{3})\s*(?:degrees\s*)?([FC])\b/);
     if (tm) { const v = +tm[1], f = tm[2] === "F" || (!tm[2] && v > 260); temp = { label: `${v}°${f ? "F" : "C"}`, c: f ? Math.round((v - 32) * 5 / 9) : v }; }
-    // bake time: the longest duration stated in a baking clause ("Bake for 45–50 minutes", "Cook 8–14 min at 325°F",
-    // "Cook 14-16 on 325 f", "Time: 18 min"). Chill, freeze, rest and mixing times are not oven time, so a duration
-    // only counts when its own sentence, up to that number, says bake/baking or gives an oven temperature, or an
-    // oven temperature follows it directly.
+    // total time: everything the recipe asks you to wait for, plus an allowance for the hands-on work it doesn't time.
+    // Every stated duration is added up (oven, cooling, chilling, freezing, soaking, resting, mixing); ranges count at
+    // their midpoint and "at least 6 hours, preferably overnight" at its minimum. A bare "overnight" counts as 8 hours.
+    // Not added: alternatives ("or freeze for 30 min", "(or at least 8 hours)", "8 hours or over night"), checkpoints inside another step
+    // ("begin checking at 18 minutes", "after 8–9 min", "the last 10 minutes of baking"), serving advice ("best after
+    // 24 hours"), a "Time:" line restating the bake, and timings like "(4–5 hours before serving)".
+    // The oven share is the baking clauses alone, as before, so the panel can show it as part of the whole.
     let time = null;
-    const BAKE_CLAUSE = /\bbak(?:e|es|ed)\b|\bbaking\b(?!\s*(?:powder|soda|sheet|paper|pan|tray|dish|rack|cooling|mat))|\btime\s*:|\d{3}\s*°?\s*[FC]\b|\b\d{3}\s*degrees/i;
-    const TEMP_AFTER = /^\s*(?:at|on)\s*\d{3}\s*°?\s*[FC]\b/i;
-    for (const m of t.matchAll(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(?:(min(?:ute)?s?|h(?:ou)?rs?|hours?|h)\b(?:\s*(?:and\s*)?(\d+)\s*min(?:ute)?s?\b)?|(?=(?:at|on)\s*\d{3}\s*°?\s*[FC]\b))/gi)) {
-      const before = t.slice(Math.max(0, m.index - 80), m.index), clause = before.split(/[.!?;]\s|\n/).pop();
-      const tempAfter = TEMP_AFTER.test(t.slice(m.index + m[0].length, m.index + m[0].length + 20));
-      if (!(BAKE_CLAUSE.test(clause) || tempAfter) || /\blast\s*$/i.test(clause)) continue; // skip "during the last 10 minutes of baking"
-      const hr = /^h/i.test(m[3] || ""), extra = +(m[4] || 0), k = hr ? 60 : 1, hi = (+(m[2] || m[1])) * k + extra;
-      const unit = hr ? "hr" : "min", span = m[2] ? `${m[1]}–${m[2]}` : m[1];
-      if (!time || hi > time.max) time = { max: hi, label: extra ? `${span} ${unit} ${extra} min` : `${span} ${unit}` };
+    {
+      const BAKE_CLAUSE = /\bbak(?:e|es|ed)\b|\bbaking\b(?!\s*(?:powder|soda|sheet|paper|pan|tray|dish|rack|cooling|mat))|\d{3}\s*°?\s*[FC]\b|\b\d{3}\s*degrees/i;
+      const TEMP_AFTER = /^\s*(?:at|on)\s*\d{3}\s*°?\s*[FC]\b/i;
+      const SKIP_BEFORE = /\blast\s*$|\bafter\s*~?\s*$|\bat\s*$|\bcheck|\b(?:best|better|up to|store)\b|\btime\s*:\s*$|\(\s*or\b[^)]*$|preferably\s*$|\bor\s*$|^\s*or\b/i;
+      let oven = 0, wait = 0, hasOven = false;
+      const DUR = /(\d+)(?:\s*[–-]\s*(\d+))?\s*(?:(min(?:ute)?s?|h(?:ou)?rs?|hours?|h)\b(?:\s*(?:and\s*)?(\d+)\s*min(?:ute)?s?\b)?|(?=(?:at|on)\s*\d{3}\s*°?\s*[FC]\b))|\bover\s?night\b/gi;
+      for (const m of t.matchAll(DUR)) {
+        const before = t.slice(Math.max(0, m.index - 80), m.index), clause = before.split(/[.!?;]\s|\n/).pop();
+        const after = t.slice(m.index + m[0].length, m.index + m[0].length + 20);
+        const piece = clause.split(",").pop();
+        if (SKIP_BEFORE.test(clause) || SKIP_BEFORE.test(piece)) continue;
+        if (/^\s*before\b/i.test(after) && /\(\s*$/.test(clause)) continue;         // "(4–5 hours before serving)"
+        if (/^\s*over\s?night/i.test(m[0])) { wait += 480; continue; }
+        if (/overnight\s*\(\s*(?:≥|at least)?\s*$/i.test(clause)) continue;         // "overnight (≥ 6 h)" restates it
+        const hr = /^h/i.test(m[3] || ""), extra = +(m[4] || 0), k = hr ? 60 : 1;
+        if (!m[3] && !TEMP_AFTER.test(after)) continue;
+        const lo = +m[1] * k + extra, hi = +(m[2] || m[1]) * k + extra;
+        const atLeast = /at least\s*$|≥\s*$/i.test(clause), mins = atLeast ? lo : (lo + hi) / 2;
+        if (BAKE_CLAUSE.test(clause) || TEMP_AFTER.test(after)) { oven += mins; hasOven = true; } else wait += mins;
+      }
+      if (hasOven || wait) time = { oven: Math.round(oven), wait: Math.round(wait) };
     }
     // weighed ingredients (ml counted as g; an egg ≈ 50 g)
     const parts = new Map(); let prev = "";
@@ -1167,6 +1191,13 @@
     probe.innerHTML = r.isHTML ? sanitize(r.body) : esc(r.body);
     boldQuantities(probe);
     const count = probe.querySelectorAll("b.qty").length;
+    // hands-on work the recipe doesn't time (weighing, mixing, assembling): 15 min plus a minute per
+    // ingredient, at most 1½ hours
+    if (time) {
+      time.hands = Math.min(90, Math.round((15 + count) / 5) * 5);
+      time.total = time.oven + time.wait + time.hands;
+      time.label = fmtDur(time.total);
+    }
     return (r._a = { temp, time, items, total, count });
   }
 
@@ -1196,7 +1227,7 @@
   function chipsHTML(r) {
     const a = analyze(r), c = [];
     if (a.temp) c.push(`<span class="chip">${ICO.temp}${esc(a.temp.label)}</span>`);
-    if (a.time) c.push(`<span class="chip">${ICO.time}${esc(a.time.label)}</span>`);
+    if (a.time) c.push(`<span class="chip">${ICO.time}≈ ${esc(a.time.label)} total</span>`);
     if (a.count) c.push(`<span class="chip">${ICO.list}${a.count} ingredients</span>`);
     return c.length ? `<div class="chips">${c.join("")}</div>` : "";
   }
@@ -1213,13 +1244,18 @@
         <g class="needle" style="transform:rotate(-90deg)" data-rot="${-90 + 180 * f}"><path d="M26 30V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="26" cy="30" r="3.2" fill="currentColor"/></svg></div>
         <div><b>${esc(a.temp.label)}</b><span>oven</span></div>`);
     }
-    // bake time: ring filled against one hour
+    // total time: a ring split into hands-on work, oven and waiting (cooling, chilling, freezing, resting)
     if (a.time) {
-      const C = 2 * Math.PI * 20, f = Math.min(1, a.time.max / 60);
-      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="20" fill="none" stroke-width="6"/>
-        <circle class="fill" cx="26" cy="26" r="20" fill="none" stroke-width="6" stroke-linecap="round" transform="rotate(-90 26 26)" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-to="${C * (1 - f)}"/>
-        <text x="26" y="30" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="Inter, sans-serif">${a.time.max > 90 ? Math.round(a.time.max / 6) / 10 + "h" : a.time.max + "′"}</text></svg></div>
-        <div><b>${esc(a.time.label)}</b><span>in the oven</span></div>`);
+      const T = a.time, C = 2 * Math.PI * 20, short = (m) => m < 57.5 ? Math.round(m) + "′" : m < 600 ? Math.round(m / 6) / 10 + "h" : Math.round(m / 60) + "h";
+      let at = 0;
+      const arcs = [["hands", "--c3"], ["oven", "--accent"], ["wait", "--c2"]].filter(([k]) => T[k] > 0).map(([k, c]) => {
+        const len = C * T[k] / T.total, rot = -90 + 360 * at / C; at += len;
+        return `<circle cx="26" cy="26" r="20" fill="none" stroke-width="6" style="stroke:var(${c})" transform="rotate(${rot} 26 26)" stroke-dasharray="${len} ${C}" stroke-dashoffset="${len}" data-to="0" class="arc"/>`;
+      }).join("");
+      const parts = [T.oven && `${fmtDur(T.oven)} in the oven`, T.wait && `${fmtDur(T.wait)} cooling, chilling and resting`, `about ${fmtDur(T.hands)} hands-on`].filter(Boolean);
+      tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="20" fill="none" stroke-width="6"/>${arcs}
+        <text x="26" y="30" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="Inter, sans-serif">${short(T.total)}</text></svg></div>
+        <div title="${esc(parts.join(" + "))}"><b>≈ ${esc(T.label)}</b><span>total${T.oven ? `, ${esc(fmtDur(T.oven))} in oven` : ""}</span></div>`);
     }
     if (a.count) {
       const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
