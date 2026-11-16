@@ -6,6 +6,26 @@ The banner shows an anime-style cartoon of me as a baker (`images/baker-portrait
 
 Use the **Share** button (top right of the book, or next to **Print** on a recipe) to pick a platform: WhatsApp, Facebook, X, Pinterest, Reddit, Telegram, Email or Text. You can also copy the link. On phones and in Safari, **More…** opens the device's own share menu. A shared recipe links straight to that recipe. Links only work for other people once the page is online. A `file://` link only opens on your own computer.
 
+## Putting it online (GitHub Pages)
+
+The site is published to **https://YOUR-USERNAME.github.io/baking/** by the workflow in `.github/workflows/pages.yml`, which runs on every push to `main`.
+
+One-time setup:
+
+```sh
+# 1. Create a public repo named "baking" on your account and push this one to it
+gh repo create baking --public --source=. --remote=origin --push
+
+# 2. Turn on Pages, deploying with GitHub Actions
+gh api -X POST repos/{owner}/baking/pages -f build_type=workflow
+```
+
+(Or in the browser: create the repo at github.com/new, push, then **Settings › Pages › Source: GitHub Actions**.)
+
+If the first deploy ran before Pages was turned on, re-run it from the **Actions** tab or with `gh workflow run pages.yml`. After that, every push to `main` updates the site within a minute or two.
+
+Make sure `images/baker-portrait.webp` is committed, or the banner portrait won't show online.
+
 ## Loading recipes from Apple Notes
 
 ```sh
