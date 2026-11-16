@@ -858,11 +858,10 @@
   .sprinkles { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
   .sprinkles i { position: absolute; left: 0; top: 0; width: 5px; height: 13px; border-radius: 3px; will-change: transform, opacity; }
 
-  /* --- footer: the avatar bobs and waves back, the cake slice beats --- */
+  /* --- footer: the avatar bobs and waves back; the cake slice stays still --- */
   footer .sign-avatar { animation: bob 5s ease-in-out infinite; transition: rotate .5s var(--spring), scale .5s var(--spring); }
   footer .sign:hover .sign-avatar { rotate: 10deg; scale: 1.08; }
-  footer .slice { display: inline-block; width: 1.9em; height: 1.9em; vertical-align: -.6em; margin: 0 .1em; animation: beat 1.6s ease-in-out infinite; }
-  @keyframes beat { 0%, 40%, 100% { scale: 1; } 12% { scale: 1.3; } 24% { scale: 1.05; } 32% { scale: 1.2; } }
+  footer .slice { display: inline-block; width: 1.9em; height: 1.9em; vertical-align: -.6em; margin: 0 .1em; }
 
   /* phones: keep the portrait and its speech bubble clear of the Share button */
   @media (max-width: 560px) { .banner-inner { padding-top: 68px; } }
@@ -871,7 +870,7 @@
     .banner h1 .ch, .banner h1 em.split .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
     .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg, .recipe-hero .pill, .recipe-hero .layer-stack,
     .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after, .fx-done .big,
-    footer .sign-avatar, footer .slice, .card:hover .pill svg { animation: none !important; }
+    footer .sign-avatar, .card:hover .pill svg { animation: none !important; }
     .feature.rot .feature-fade::after { display: none; }
     .btn, .btn svg, .search svg { transition: border-color .2s, color .2s; }
     .btn:hover, .btn:active, .btn:hover svg, .share-opt:hover .ico { transform: none !important; }
