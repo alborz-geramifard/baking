@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=Vazirmatn:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #fbf6ef;
@@ -390,6 +390,9 @@
   .share-link .btn.copied { border-color: #5f9a5a; color: #5f9a5a; }
   @media (max-width: 420px) { .share-grid { grid-template-columns: repeat(3, 1fr); } }
 
+  /* The Farsi half of a bilingual name, e.g. "Walnut Cookies (شیرینی گردویی)". */
+  .fa { font-family: "Vazirmatn", "Noto Naskh Arabic", "Geeza Pro", Tahoma, sans-serif; font-style: normal; font-weight: inherit; letter-spacing: 0; font-size: .92em; }
+  .fa-paren { white-space: nowrap; }
   footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
   footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
   footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
@@ -428,26 +431,34 @@
   .aurora i:nth-child(2) { width: 38vw; height: 38vw; left: 5%; top: 40%; background: color-mix(in srgb, var(--accent) 45%, transparent); animation-duration: 28s; animation-delay: -8s; }
   .aurora i:nth-child(3) { width: 30vw; height: 30vw; left: 70%; top: 50%; background: color-mix(in srgb, #e9a5b3 55%, transparent); animation-duration: 34s; animation-delay: -15s; }
   @keyframes drift { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-6vw, 4vw) scale(1.12); } 100% { transform: translate(4vw, -3vw) scale(.94); } }
-  /* Floating ingredients — quiet, like dust in a sunbeam.
-     Few icons, kept to the margins; each drifts on its own slow, out-of-sync loop (a few px, a degree or two)
-     so they never move together. The pointer only nudges them a little — nearer (bigger) ones a bit more —
-     and when you look at the portrait or the featured cake they settle and fade back so the focus stays there. */
+  /* Floating ingredients. Drift: separate, smoothly eased x / y / tilt loops of different lengths (registered
+     custom properties so they blend), so each icon traces a soft, never-repeating path instead of bobbing.
+     Personality: now and then one does its own little trick (whisk whisks, wheat sways, cake jiggles…), and with
+     a mouse they scoot shyly out of the cursor's way. Click the portrait and they cheer. */
+  @property --fx { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @property --fy { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  @property --fr { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
   .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; transition: opacity 1.2s var(--ease-out); }
   .banner.hush .floaters { opacity: .35; }
   .floaters span {
-    position: absolute; left: var(--x); top: var(--y); width: var(--s, 54px); aspect-ratio: 1; opacity: .8;
+    position: absolute; left: var(--x); top: var(--y); width: var(--s, 54px); aspect-ratio: 1; opacity: .85;
     transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
-    transition: transform 2.4s cubic-bezier(.22, .61, .36, 1);
+    translate: var(--shx, 0px) var(--shy, 0px); /* shy scoot away from the cursor */
+    transition: transform 2.4s cubic-bezier(.22, .61, .36, 1), translate .9s cubic-bezier(.34, 1.5, .5, 1);
     animation: settle 1.6s var(--ease-out) both; animation-delay: var(--in, 0s);
   }
   .floaters svg.ic { filter: url(#floater-shade); } /* no badge, no drop shadow — just a soft inner shade */
-  .floaters span > svg { animation: float var(--dur, 20s) ease-in-out infinite var(--dir, normal); animation-delay: var(--delay, 0s); }
-  @keyframes float {
-    0%, 100% { translate: 0 0; rotate: 0deg; }
-    30% { translate: 3px -6px; rotate: 1.5deg; }
-    65% { translate: -3px -2px; rotate: -1.2deg; }
+  .floaters span > svg {
+    translate: var(--fx) var(--fy); rotate: var(--fr);
+    animation: fx var(--dx, 9s) ease-in-out infinite alternate, fy var(--dy, 7s) ease-in-out infinite alternate, fr var(--dr, 13s) ease-in-out infinite alternate;
+    animation-delay: var(--delay, 0s);
   }
-  @keyframes settle { from { opacity: 0; scale: .92; } }
+  @keyframes fx { from { --fx: -5px; } to { --fx: 5px; } }
+  @keyframes fy { from { --fy: 3px; } to { --fy: -8px; } }
+  @keyframes fr { from { --fr: -3deg; } to { --fr: 3deg; } }
+  @keyframes settle { from { opacity: 0; scale: .6; } }
+  /* confetti specks when a burst icon pops */
+  .burst i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; }
   .banner-inner { z-index: 1; }
   .banner h1 em {
     background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 30%, var(--accent) 55%, #b23a5a 80%, var(--accent) 100%);
@@ -774,6 +785,12 @@
   // Titles are compared ignoring case, punctuation/dash style and extra spaces.
   const titleKey = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const HIDDEN = new Set(["Dessert Tricks", "Opera Cake - Louise Lindberg", "Australia Trip", "Less shakiness on videos (up down, left, right)"].map(titleKey));
+  // Persian bakes get a plain English name with the Farsi name after it in parentheses.
+  // Keyed by the note's title (same matching as above), so the names survive re-importing from Notes.
+  const NAMES = new Map([
+    ["Walnut Persian Cookie", { en: "Walnut Cookies", fa: "شیرینی گردویی" }],
+    ["Shirini Nargili Irani (Persian Coconut Cookies)", { en: "Coconut Cookies", fa: "شیرینی نارگیلی" }],
+  ].map(([t, v]) => [titleKey(t), v]));
   const RECIPES = (window.RECIPES || [])
     .filter((r) => !HIDDEN.has(titleKey(r.title)))
     .map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
@@ -835,17 +852,23 @@
   RECIPES.forEach((r) => {
     r.body = r.body || "";
     Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
+    const alias = NAMES.get(titleKey(r.title));
+    if (alias) { r.name = alias.en; r.fa = alias.fa; }
     r.isHTML = looksLikeHTML(r.body);
     r.text = r.isHTML ? plainText(r.body) : r.body;
     // Card blurb: the recipe's own description of the cake. Recipes without one get a short line
     // about the cake rather than the first lines of the note (which are usually the ingredient list).
     r.description = String(r.description || "").trim();
     r.teaser = r.description || `A homemade ${r.name.toLowerCase()}, baked from scratch and written down just the way I make it.`;
-    r.search = (r.title + " " + r.description + " " + r.text).toLowerCase();
+    r.search = (r.title + " " + r.name + " " + (r.fa || "") + " " + r.description + " " + r.text).toLowerCase();
     // The cake's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
     r.photo = src && safeImg(src) ? src : "";
   });
+
+  /* The recipe's name as HTML: English, then the Farsi name (if any) in parentheses in a Farsi font. */
+  const nameHTML = (r) => esc(r.name) + (r.fa ? ` <span class="fa-paren">(<bdi class="fa" lang="fa" dir="rtl">${esc(r.fa)}</bdi>)</span>` : "");
+  const nameText = (r) => r.name + (r.fa ? ` (${r.fa})` : "");
 
   /* The cake art: the recipe's photo when it has one, else the drawn cake (also used if the photo fails to load). */
   function artHTML(r, eager) {
@@ -869,11 +892,14 @@
       <path d="M24 30C18 22 19 6 24 4c5 2 6 18 0 26ZM24 30V4" fill="none" stroke="${IC.line}" stroke-width="1.8"/>
       <rect x="20.5" y="29" width="7" height="16" rx="3.5" fill="${IC.rose}" stroke="${IC.line}" stroke-width="2.2"/><path d="M22.5 33v8" stroke="${IC.cream}" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></g>
       <path d="M38 34l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1Z" fill="${IC.gold2}"/><circle cx="9" cy="12" r="1.6" fill="${IC.gold2}"/>`,
-    piping: `<g transform="translate(-1 2) rotate(-24 24 22)"><path d="M13 10c4-2 18-2 22 0L27 31h-6Z" fill="${IC.cream}" stroke="${IC.line}" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M15.5 17c5 1.6 12 1.6 17 0l-3 8c-3.5 1-7.5 1-11 0Z" fill="${IC.rose}" opacity=".9"/>
-      <path d="M17 10c1-3 2.5-5 4-6 1 1.5 2 1.5 3 0 1 1.5 2 1.5 3 0 1.5 1 3 3 4 6" fill="${IC.gold}" stroke="${IC.line}" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M21 31h6l-1.2 5h-3.6Z" fill="${IC.gold2}" stroke="${IC.line}" stroke-width="2" stroke-linejoin="round"/></g>
-      <path d="M21 43c0-3 2.5-3.5 4-3.5 0-2.2 2-3 4.5-3s4.5.8 4.5 3c1.5 0 4 .5 4 3.5Z" fill="${IC.rose}" stroke="${IC.line}" stroke-width="2" stroke-linejoin="round"/><path d="M25.5 40.5c2.5.8 5.5.8 8 0" stroke="${IC.cream}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".85"/>`,
+    cupcake: `<path d="M24 6.5c.6-2 2.2-3.2 4.2-3.4" stroke="${IC.leaf}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M12.5 30h23l-3.2 13.5H15.7Z" fill="${IC.gold2}" stroke="${IC.line}" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M18.4 31.5l1 10.5M24 31.5v10.5M29.6 31.5l-1 10.5" stroke="${IC.line}" stroke-width="1.5" stroke-linecap="round" opacity=".45"/>
+      <path d="M10 29c0-3.6 2.6-6 5.8-6h16.4c3.2 0 5.8 2.4 5.8 6 0 1.1-.9 1.6-2 1.6H12c-1.1 0-2-.5-2-1.6Z" fill="${IC.rose}" stroke="${IC.line}" stroke-width="2.1" stroke-linejoin="round"/>
+      <path d="M14 23c0-3.3 2.5-5.4 5.4-5.4h9.2c2.9 0 5.4 2.1 5.4 5.4Z" fill="${IC.rose}" stroke="${IC.line}" stroke-width="2.1" stroke-linejoin="round"/>
+      <path d="M18.2 17.6c0-3.4 2.6-5.8 5.8-5.8s5.8 2.4 5.8 5.8Z" fill="${IC.rose}" stroke="${IC.line}" stroke-width="2.1" stroke-linejoin="round"/>
+      <path d="M14.5 26.6c2-.9 4-1.2 6-1.2M18 20.8c1.4-.7 2.8-.9 4.2-.9" stroke="${IC.cream}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".85"/>
+      <circle cx="24" cy="9.4" r="3.4" fill="${IC.berry}" stroke="${IC.line}" stroke-width="1.9"/><circle cx="22.9" cy="8.3" r=".9" fill="#fff" opacity=".6"/>`,
     drizzle: `<path d="M20 13 42 5" stroke="${IC.line}" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="15" cy="15" rx="9" ry="6" transform="rotate(-20 15 15)" fill="${IC.gold}" stroke="${IC.line}" stroke-width="2.2"/>
       <path d="M8 17c3 3 9 3 13-1" fill="none" stroke="${IC.gold2}" stroke-width="2.4" stroke-linecap="round"/>
       <path d="M15 21c0 4-3 6-3 9a3 3 0 0 0 6 0c0-3-3-5-3-9Z" fill="${IC.gold2}" stroke="${IC.line}" stroke-width="2" stroke-linejoin="round"/>
@@ -916,7 +942,7 @@
 
   // Which icon fits a recipe section heading. Order matters ("Cream cheese frosting" → frosting, not cake).
   const SECTION_ICONS = [
-    [/frost|icing|butter ?cream|ganache|whip|meringue|pip/i, "piping"],
+    [/frost|icing|butter ?cream|ganache|whip|meringue|pip/i, "cupcake"],
     [/glaze|drizzle|syrup|sauce|caramel|soak/i, "drizzle"],
     [/fill|jam|curd|compote|preserve/i, "jar"],
     [/topping|decorat|garnish|fruit|berr|finish/i, "berries"],
@@ -1123,7 +1149,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.name)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
       i++;
     };
     show();
@@ -1140,7 +1166,7 @@
       <a class="card tilt" href="${href(r)}">
         <div class="art" data-id="${esc(r.id)}">${artHTML(r)}</div>
         <div class="card-body">
-          <h3>${esc(r.name)}</h3>
+          <h3>${nameHTML(r)}</h3>
           ${dateTopHTML(r)}
           <p>${esc(r.teaser)}</p>
           ${bottomPillsHTML(r)}
@@ -1548,9 +1574,9 @@
     // [icon, left %, top %, size px, depth (parallax px), tilt deg, loop s] — four quiet notes in the open space
     // right of the title, away from the portrait; loops are mismatched lengths so the icons never line up.
     // The % spots are for the stacked (phone/tablet) layout; placeFloaters() re-anchors them on desktop.
-    const F = [["wheat", 70, 17, 42, 4, 14, 23], ["sparkle", 86, 30, 34, 3, 0, 19], ["eggs", 66, 41, 52, 7, -8, 29], ["whisk", 80, 50, 46, 6, 10, 26]];
+    const F = [["wheat", 70, 17, 42, 4, 8, 23], ["sparkle", 86, 30, 34, 3, 0, 19], ["cake", 66, 41, 54, 7, -4, 29], ["whisk", 80, 50, 46, 6, 10, 26]];
     $("#floaters").innerHTML = F.map(([n, x, y, s, d, r, t], k) =>
-      `<span style="--x:${x}%;--y:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dur:${t}s;--delay:${-k * 7}s;--dir:${k % 2 ? "reverse" : "normal"}">${iconSVG(n, "", true)}</span>`).join("") +
+      `<span data-n="${n}" style="--x:${x}%;--y:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dx:${(t / 2.3).toFixed(1)}s;--dy:${(t / 3.1).toFixed(1)}s;--dr:${(t / 1.7).toFixed(1)}s;--delay:${-k * 5.3}s">${iconSVG(n, "", true)}</span>`).join("") +
       // soft inner shading (darker toward the lower-right edges) instead of a cast drop shadow
       `<svg width="0" height="0" style="position:absolute"><filter id="floater-shade" x="-10%" y="-10%" width="120%" height="120%">` +
       `<feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/><feOffset dx="-1.6" dy="-2"/>` +
@@ -1560,7 +1586,9 @@
     if ("ResizeObserver" in window) { const ro = new ResizeObserver(placeFloaters); ro.observe($("#banner")); ro.observe($("#feature")); }
     document.fonts?.ready.then(placeFloaters);
     setTimeout(placeFloaters, 1400); addEventListener("load", placeFloaters); // re-measure once the title has risen in and images are in
-    if (calm || !finePointer) return;
+    if (calm) return;
+    idleTricks();
+    if (!finePointer) return;
     const banner = $("#banner");
     // pointer: a gentle nudge (±1 unit × depth px), eased slowly so the icons trail behind like they're in air
     banner.addEventListener("pointermove", (e) => {
@@ -1568,14 +1596,53 @@
       const b = banner.getBoundingClientRect();
       banner.style.setProperty("--px", ((e.clientX - b.left) / b.width - .5) * 2);
       banner.style.setProperty("--py", ((e.clientY - b.top) / b.height - .5) * 2);
+      shy(e.clientX, e.clientY);
     });
-    banner.addEventListener("pointerleave", () => { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); });
+    banner.addEventListener("pointerleave", () => { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); shy(-1e4, -1e4); });
   }
   // Two-column banner (desktop): the featured cake card fills most of the right half, so banner percentages
   // would tuck icons behind it. Instead, anchor them to the open space around the content, measured live:
-  // wheat beside the speech bubble, eggs beside "The Baking", whisk beside the stats, sparkle above the card.
+  // wheat beside the speech bubble, cake beside "The Baking", whisk beside the stats, sparkle above the card.
   // Stacked (phone/tablet) layout keeps the % spots. In both, any icon that would touch the card, the text
   // or the Share button is hidden rather than tucked behind it.
+  // Each ingredient's little trick, played on the icon's own transform (it layers over the drift).
+  const TRICKS = {
+    whisk:   { o: "50% 85%", d: 900,  k: ["rotate(0)", "rotate(-16deg)", "rotate(14deg)", "rotate(-12deg)", "rotate(9deg)", "rotate(-5deg)", "rotate(0)"] },          // whisking
+    wheat:   { o: "50% 95%", d: 1700, k: ["rotate(0)", "rotate(11deg)", "rotate(-7deg)", "rotate(4deg)", "rotate(-2deg)", "rotate(0)"] },                           // sways in a breeze
+    sparkle: { o: "50% 50%", d: 1000, k: ["rotate(0) scale(1)", "rotate(90deg) scale(1.35)", "rotate(180deg) scale(1)"] },                                          // twinkle-spin
+    cake:    { o: "50% 92%", d: 900,  k: ["scale(1, 1)", "scale(1.16, .84)", "scale(.9, 1.12)", "scale(1.06, .95)", "scale(.98, 1.02)", "scale(1, 1)"] },           // jelly jiggle
+    eggs:    { o: "50% 92%", d: 1000, k: ["rotate(0)", "rotate(-9deg)", "rotate(8deg)", "rotate(-6deg)", "rotate(4deg)", "rotate(0)"] },                            // about to hatch
+    hop:     { o: "50% 100%", d: 800, k: ["translateY(0) scale(1, 1)", "translateY(0) scale(1.12, .88)", "translateY(-14px) scale(.92, 1.1)", "translateY(0) scale(1.08, .92)", "translateY(0) scale(1, 1)"] },
+  };
+  function trick(span) {
+    const svg = span?.firstElementChild; if (!svg || !span.offsetWidth || svg.getAnimations().some((a) => a.id === "trick")) return;
+    const t = TRICKS[span.dataset.n] || TRICKS.hop;
+    svg.style.transformOrigin = t.o;
+    svg.animate(t.k.map((transform) => ({ transform })), { duration: t.d, easing: "ease-in-out" }).id = "trick";
+  }
+  // every few seconds one of them does its thing, so the banner feels alive without ever getting busy
+  function idleTricks() {
+    setTimeout(() => {
+      const vis = [...document.querySelectorAll("#floaters span")].filter((s) => s.offsetWidth);
+      if (!document.hidden && vis.length) trick(vis[Math.floor(Math.random() * vis.length)]);
+      idleTricks();
+    }, 3800 + Math.random() * 3400);
+  }
+  // shy: an icon near the cursor scoots out of the way (springy) and does its trick; it drifts back once you move on
+  function shy(mx, my) {
+    document.querySelectorAll("#floaters span").forEach((sp) => {
+      if (!sp.offsetWidth) return;
+      const b = sp.getBoundingClientRect(), dx = b.left + b.width / 2 - mx, dy = b.top + b.height / 2 - my, dist = Math.hypot(dx, dy) || 1, near = 120;
+      const push = dist < near ? (1 - dist / near) * 34 : 0;
+      sp.style.setProperty("--shx", `${(dx / dist) * push}px`); sp.style.setProperty("--shy", `${(dy / dist) * push}px`);
+      if (push > 8 && !sp.dataset.shy) { sp.dataset.shy = 1; trick(sp); }
+      if (!push) delete sp.dataset.shy;
+    });
+  }
+  function cheer() {
+    if (calm) return;
+    [...document.querySelectorAll("#floaters span")].forEach((sp, k) => setTimeout(() => trick(sp), 260 + k * 110));
+  }
   // what the floating icons must stay clear of: the card, portrait, bubble, text and Share button (viewport rects)
   function bannerBlocks() {
     const banner = $("#banner");
@@ -1596,7 +1663,7 @@
     const spots = twoCol && bubble && line1 && stats ? [
       [bubble.right + (C.left - bubble.right) * .55, bubble.top - 26],      // wheat
       [C.left + C.width * .42, (C.top - B.top) / 2 + B.top],               // sparkle (centre of the band above the card)
-      [line1.right + (C.left - line1.right) * .62, line1.top + 4],          // eggs
+      [line1.right + (C.left - line1.right) * .62, line1.top + 4],          // cake
       [statsRight + (C.left - statsRight) * .42, stats.top - 6],            // whisk
     ] : null;
     spans.forEach((sp, k) => {
@@ -1608,53 +1675,96 @@
       if (spots) { sp.style.left = `${x - B.left}px`; sp.style.top = `${y - B.top}px`; }
     });
   }
-  // Click (or Enter/Space on) the portrait: the ingredients spring out from behind it, fan across the open banner,
-  // hang for a breath, then drift up and fade. Each click picks a fresh fan so it never plays quite the same twice.
+  // A real spring (stiffness 180, damping 11) sampled into a CSS linear() easing: fast out, a lively overshoot,
+  // then settle. Falls back to an overshooting cubic-bezier where linear() isn't supported.
+  const SPRING = (() => {
+    if (!window.CSS?.supports?.("animation-timing-function", "linear(0, 1)")) return { easing: "cubic-bezier(.34, 1.56, .64, 1)", duration: 700 };
+    let x = 0, v = 0, t = 0; const dt = 1 / 120, pts = [];
+    for (let i = 0; i < 480; i++) {
+      v += (-180 * (x - 1) - 11 * v) * dt; x += v * dt; t += dt;
+      if (i % 2) pts.push(x.toFixed(3));
+      if (i > 60 && Math.abs(x - 1) < .002 && Math.abs(v) < .02) break;
+    }
+    return { easing: `linear(0, ${pts.join(", ")}, 1)`, duration: Math.round(t * 1000) };
+  })();
+  // Click (or Enter/Space on) the portrait: eight ingredients spring out from behind it in an even ring, all the
+  // way round, wobble into place, hang for a beat, then pop one by one (popcorn-style) into a puff of confetti.
+  // Near the banner's edges the ring pulls in so nothing flies off-screen. The floating icons cheer along.
   function bindPortraitBurst() {
     const frame = $(".baker-frame"); if (!frame) return;
     const layer = document.createElement("div"); layer.className = "burst"; layer.setAttribute("aria-hidden", "true");
-    frame.prepend(layer);
-    const NAMES = ["berries", "wheat", "eggs", "whisk", "sparkle", "piping", "jar"];
+    frame.prepend(layer); // first child + z-index:-1 → behind the photo, so they emerge from behind it
+    const NAMES = ["cake", "berries", "wheat", "eggs", "whisk", "sparkle", "cupcake", "jar"];
+    const SPECKS = [IC.rose, IC.gold, IC.berry, IC.leaf, IC.gold2, IC.red];
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const confetti = (x, y) => {
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2 + Math.random() * .6, d = 18 + Math.random() * 14, dot = document.createElement("i");
+        dot.style.background = SPECKS[(Math.random() * SPECKS.length) | 0];
+        layer.append(dot);
+        dot.animate([
+          { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 1 },
+          { transform: `translate(${x + Math.cos(a) * d}px, ${y + Math.sin(a) * d + 6}px) scale(.2)`, opacity: 0 },
+        ], { duration: 520 + Math.random() * 160, easing: "cubic-bezier(.15, .7, .3, 1)" }).finished.then(() => dot.remove(), () => dot.remove());
+      }
+    };
+    async function fly(n, x, y, size, delay, hold) {
+      const el = document.createElement("span"); el.style.setProperty("--s", `${size}px`); el.innerHTML = iconSVG(n, "", true);
+      layer.append(el);
+      const svg = el.firstElementChild, at = `translate(${x}px, ${y}px)`;
+      try {
+        if (calm) {
+          await el.animate([{ transform: at, opacity: 0 }, { transform: at, opacity: 1, offset: .25 }, { transform: at, opacity: 1, offset: .75 }, { transform: at, opacity: 0 }], { duration: 1600 }).finished;
+          return;
+        }
+        const spin = (Math.random() < .5 ? -1 : 1) * (40 + Math.random() * 50);
+        svg.animate([{ transform: `rotate(${spin}deg)` }, { transform: "rotate(0deg)" }], { ...SPRING, delay, fill: "backwards" });
+        await el.animate([{ transform: "translate(0px, 0px) scale(.15)", opacity: 0 }, { transform: `${at} scale(1)`, opacity: 1 }], { ...SPRING, delay, fill: "both" }).finished;
+        // hang for a beat, gently breathing
+        await svg.animate([{ transform: "scale(1)" }, { transform: "scale(1.07)" }, { transform: "scale(1)" }], { duration: hold, easing: "ease-in-out" }).finished;
+        // pop: a quick squash of anticipation, then burst bigger and vanish into confetti
+        const pop = el.animate([
+          { transform: `${at} scale(1)`, opacity: 1 },
+          { transform: `${at} scale(.8)`, opacity: 1, offset: .35 },
+          { transform: `${at} scale(1.5)`, opacity: 0 },
+        ], { duration: 240, easing: "ease-out", fill: "forwards" });
+        setTimeout(() => confetti(x, y), 90);
+        await pop.finished;
+      } catch { /* cancelled */ } finally { el.remove(); }
+    }
     const burst = () => {
       frame.classList.remove("pop"); void frame.offsetWidth; frame.classList.add("pop");
-      if (layer.childElementCount > 21) return; // a few overlapping bursts at most
-      // landing spots: sample the open banner around the portrait and keep ones that sit clear of the text, card
-      // and Share button and aren't bunched together — so the icons fill the empty space instead of the words
-      const F = frame.getBoundingClientRect(), B = $("#banner").getBoundingClientRect(), blocks = bannerBlocks();
-      const cx = F.left + F.width / 2, cy = F.top + F.height / 2, R = F.width / 2, reach = Math.min(Math.max(B.right - F.right, 160), 420);
-      const order = [...NAMES].sort(() => Math.random() - .5), spots = [];
-      for (let t = 0; t < 400 && spots.length < order.length; t++) {
-        const a = (-55 + Math.random() * 125) * Math.PI / 180, dist = R + 30 + Math.random() * reach, size = 30 + Math.round(Math.random() * 14);
-        const x = cx + Math.cos(a) * dist, y = cy + Math.sin(a) * dist, h = size / 2 + 8;
-        if (x - h < B.left + 8 || x + h > B.right - 8 || y - h - 34 < B.top + 4 || y + h > B.bottom - 8) continue;
-        if (blocks.some((b) => b.left < x + h && b.right > x - h && b.top < y + h && b.bottom > y - h - 34)) continue; // incl. the 34px drift up
-        if (spots.some((p) => Math.hypot(p.x + cx - x, p.y + cy - y) < 70)) continue;
-        spots.push({ x: x - cx, y: y - cy, size });
+      cheer();
+      if (layer.querySelectorAll("span").length > 24) return; // a few overlapping bursts at most
+      const F = frame.getBoundingClientRect(), B = $("#banner").getBoundingClientRect();
+      const cx = F.left + F.width / 2, cy = F.top + F.height / 2, R = frame.offsetWidth / 2;
+      const lo = { x: Math.max(B.left, 0) + 12 - cx, y: B.top + 12 - cy }, hi = { x: Math.min(B.right, innerWidth) - 12 - cx, y: B.bottom - 12 - cy };
+      const order = [...NAMES].sort(() => Math.random() - .5), turn = Math.random() * 360, ring = R + 62, size0 = 40;
+      const room = (deg) => { // distance from the centre to the banner edge along this direction
+        const c = Math.cos(deg * Math.PI / 180), sn = Math.sin(deg * Math.PI / 180), along = (v, l, h) => (v > 0 ? h / v : v < 0 ? l / v : Infinity);
+        return Math.min(along(c, lo.x, hi.x), along(sn, lo.y, hi.y));
+      };
+      // even ring all the way round; if the portrait is jammed against an edge (phones), spread evenly over the open arc
+      let angles = order.map((_, k) => turn + k * (360 / order.length)), jitter = 6;
+      if (angles.some((a) => room(a) < R + size0 + 4)) {
+        const open = Array.from({ length: 72 }, (_, i) => i * 5).filter((a) => room(a) >= R + size0 + 26);
+        let gap = 0; open.forEach((a, i) => { if ((open[(i + 1) % open.length] - a + 360) % 360 > 5) gap = (i + 1) % open.length; }); // start the arc after its gap
+        const arc = [...open.slice(gap), ...open.slice(0, gap)];
+        if (arc.length) { angles = order.map((_, k) => arc[Math.round(((k + .5) / order.length) * (arc.length - 1))]); jitter = 0; }
       }
-      spots.sort((p, q) => Math.atan2(p.y, p.x) - Math.atan2(q.y, q.x)); // stagger round the fan, top to bottom
-      spots.forEach(({ x, y, size }, k) => {
-        const n = order[k], rot = Math.random() * 50 - 25;
-        const el = document.createElement("span"); el.style.setProperty("--s", `${size}px`); el.innerHTML = iconSVG(n, "", true);
-        layer.append(el);
-        const anim = calm
-          ? el.animate([{ opacity: 0, transform: `translate(${x * .8}px, ${y * .8}px)` }, { opacity: 1, offset: .3 }, { opacity: 1, offset: .7 }, { opacity: 0, transform: `translate(${x * .8}px, ${y * .8}px)` }], { duration: 1800 })
-          : el.animate([
-              { transform: "translate(0, 0) scale(.3) rotate(0deg)", opacity: 0 },
-              { transform: `translate(${x * .35}px, ${y * .35 - 10}px) scale(.8) rotate(${rot * .5}deg)`, opacity: 1, offset: .12 },
-              { transform: `translate(${x}px, ${y}px) scale(1) rotate(${rot}deg)`, opacity: 1, offset: .42, easing: "ease-in-out" },
-              { transform: `translate(${x + (x > 0 ? 6 : -6)}px, ${y - 18}px) scale(1) rotate(${rot * 1.2}deg)`, opacity: .9, offset: .78 },
-              { transform: `translate(${x + (x > 0 ? 10 : -10)}px, ${y - 34}px) scale(.9) rotate(${rot * 1.3}deg)`, opacity: 0 },
-            ], { duration: 2600 + Math.random() * 500, delay: k * 45, easing: "cubic-bezier(.2, .8, .3, 1)", fill: "backwards" });
-        anim.onfinish = anim.oncancel = () => el.remove();
+      order.forEach((n, k) => {
+        const size = 34 + Math.round(Math.random() * 6), deg = angles[k] + (Math.random() - .5) * jitter, a = deg * Math.PI / 180;
+        const d = Math.max(R + size / 2 + 2, Math.min(ring, room(deg) - size * .75));
+        fly(n, Math.cos(a) * d, Math.sin(a) * d, size, k * 24, 350 + Math.random() * 900);
       });
     };
     frame.addEventListener("click", burst);
     frame.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); burst(); } });
   }
-  // looking at the portrait or the featured cake: the floaters step back (works for hover, tap and keyboard focus)
+  // looking at the featured cake: the floaters step back (hover and keyboard focus)
   function bindHush() {
     const banner = $("#banner");
-    banner.querySelectorAll(".baker, .feature").forEach((el) => {
+    banner.querySelectorAll(".feature").forEach((el) => {
       const on = () => banner.classList.add("hush"), off = () => banner.classList.remove("hush");
       el.addEventListener("pointerenter", on); el.addEventListener("pointerleave", off);
       el.addEventListener("focusin", on); el.addEventListener("focusout", off);
@@ -1962,7 +2072,7 @@
     fxSteps = collectSteps();
     if (!fxSteps.length) return;
     fxIdx = fxSteps[0].cb.checked ? nextOpen(0) : 0;
-    $("#fxTitle").textContent = $("#rTitle").textContent;
+    $("#fxTitle").innerHTML = $("#rTitle").innerHTML;
     renderFocus();
     focusDialog.showModal();
     $("#fxGo").focus();
@@ -1991,8 +2101,8 @@
     const r = RECIPES.find((x) => x.id === id) || RECIPES.find((x) => (x.aliases || []).includes(id));
     if (!r) { location.hash = ""; return; }
     if (r.id !== id) history.replaceState(null, "", "#/recipe/" + encodeURIComponent(r.id));
-    document.title = r.name + " · Bakery with Alborz";
-    $("#rTitle").textContent = r.name;
+    document.title = nameText(r) + " · Bakery with Alborz";
+    $("#rTitle").innerHTML = nameHTML(r);
     $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     $("#rArt").innerHTML = artHTML(r, true);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
