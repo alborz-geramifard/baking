@@ -166,7 +166,7 @@
   .card .art { aspect-ratio: 5/4; }
   .card-body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .card h3 { font-family: var(--serif); font-weight: 500; font-size: 22px; line-height: 1.15; margin: 0; }
-  .card p { margin: 0; color: var(--ink-soft); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .card .meta { margin-top: auto; padding-top: 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
   .empty { text-align: center; color: var(--ink-soft); padding: 60px 0 100px; font-family: var(--serif); font-size: 22px; font-style: italic; }
 
@@ -632,9 +632,11 @@
     r.body = r.body || "";
     r.isHTML = looksLikeHTML(r.body);
     r.text = r.isHTML ? plainText(r.body) : r.body;
-    const lines = r.text.split("\n").map((l) => l.trim()).filter(Boolean);
-    r.teaser = lines.slice(0, 4).join(" · ").slice(0, 160);
-    r.search = (r.title + " " + r.text).toLowerCase();
+    // Card blurb: the recipe's own description of the cake. Recipes without one get a short line
+    // about the cake rather than the first lines of the note (which are usually the ingredient list).
+    r.description = String(r.description || "").trim();
+    r.teaser = r.description || `A homemade ${r.title.toLowerCase()}, baked from scratch and written down just the way I make it.`;
+    r.search = (r.title + " " + r.description + " " + r.text).toLowerCase();
     // The cake's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
     r.photo = src && safeImg(src) ? src : "";
@@ -898,6 +900,9 @@
   }
   const href = (r) => "#/recipe/" + encodeURIComponent(r.id);
 
+  // Short line for the rotating feature: the blurb's first sentence, trimmed only if it's very long.
+  const firstSentence = (t) => { const s = (t.match(/^.*?[.!?](?=\s|$)/) || [t])[0]; return s.length > 90 ? s.slice(0, 88).replace(/\s+\S*$/, "") + "…" : s; };
+
   function renderBanner() {
     const n = RECIPES.length;
     const newest = [...RECIPES].sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))[0];
@@ -912,7 +917,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.title)}</h3><small>${esc(r.teaser.slice(0, 70))}${r.teaser.length > 70 ? "…" : ""}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.title)}</h3><small>${esc(firstSentence(r.teaser))}</small></div>`;
       i++;
     };
     show();
