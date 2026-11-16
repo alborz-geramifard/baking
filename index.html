@@ -394,7 +394,7 @@
   .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; transition: opacity 1.2s var(--ease-out); }
   .banner.hush .floaters { opacity: .35; }
   .floaters span {
-    position: absolute; width: var(--s, 54px); aspect-ratio: 1; opacity: .8;
+    position: absolute; left: var(--x); top: var(--y); width: var(--s, 54px); aspect-ratio: 1; opacity: .8;
     transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
     transition: transform 2.4s cubic-bezier(.22, .61, .36, 1);
     animation: settle 1.6s var(--ease-out) both; animation-delay: var(--in, 0s);
@@ -1217,16 +1217,21 @@
 
   // banner: floating ingredients that drift with the pointer
   function renderFloaters() {
-    // [icon, left %, top %, size px, depth (parallax px), tilt deg, loop s] — four quiet notes in the margins,
-    // away from the portrait and the title; loops are mismatched lengths so the icons never line up.
-    const F = [["wheat", 63, 7, 42, 4, 14, 23], ["sparkle", 89, 13, 34, 3, 0, 19], ["eggs", 93, 63, 52, 7, -8, 29], ["whisk", 55, 85, 46, 6, 10, 26]];
+    // [icon, left %, top %, size px, depth (parallax px), tilt deg, loop s] — four quiet notes in the open space
+    // right of the title, away from the portrait; loops are mismatched lengths so the icons never line up.
+    // The % spots are for the stacked (phone/tablet) layout; placeFloaters() re-anchors them on desktop.
+    const F = [["wheat", 70, 17, 42, 4, 14, 23], ["sparkle", 86, 30, 34, 3, 0, 19], ["eggs", 66, 41, 52, 7, -8, 29], ["whisk", 80, 50, 46, 6, 10, 26]];
     $("#floaters").innerHTML = F.map(([n, x, y, s, d, r, t], k) =>
-      `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dur:${t}s;--delay:${-k * 7}s;--dir:${k % 2 ? "reverse" : "normal"}">${iconSVG(n, "", true)}</span>`).join("") +
+      `<span style="--x:${x}%;--y:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dur:${t}s;--delay:${-k * 7}s;--dir:${k % 2 ? "reverse" : "normal"}">${iconSVG(n, "", true)}</span>`).join("") +
       // soft inner shading (darker toward the lower-right edges) instead of a cast drop shadow
       `<svg width="0" height="0" style="position:absolute"><filter id="floater-shade" x="-10%" y="-10%" width="120%" height="120%">` +
       `<feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/><feOffset dx="-1.6" dy="-2"/>` +
       `<feComposite in="SourceAlpha" operator="out" result="edge"/><feFlood flood-color="#3c2314" flood-opacity=".32"/>` +
       `<feComposite in2="edge" operator="in"/><feComposite in2="SourceGraphic" operator="atop"/></filter></svg>`;
+    placeFloaters();
+    if ("ResizeObserver" in window) { const ro = new ResizeObserver(placeFloaters); ro.observe($("#banner")); ro.observe($("#feature")); }
+    document.fonts?.ready.then(placeFloaters);
+    setTimeout(placeFloaters, 1400); addEventListener("load", placeFloaters); // re-measure once the title has risen in and images are in
     if (calm || !finePointer) return;
     const banner = $("#banner");
     // pointer: a gentle nudge (±1 unit × depth px), eased slowly so the icons trail behind like they're in air
@@ -1237,6 +1242,38 @@
       banner.style.setProperty("--py", ((e.clientY - b.top) / b.height - .5) * 2);
     });
     banner.addEventListener("pointerleave", () => { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); });
+  }
+  // Two-column banner (desktop): the featured cake card fills most of the right half, so banner percentages
+  // would tuck icons behind it. Instead, anchor them to the open space around the content, measured live:
+  // wheat beside the speech bubble, eggs beside "The Baking", whisk beside the stats, sparkle above the card.
+  // Stacked (phone/tablet) layout keeps the % spots. In both, any icon that would touch the card, the text
+  // or the Share button is hidden rather than tucked behind it.
+  function placeFloaters() {
+    const banner = $("#banner"), spans = [...banner.querySelectorAll("#floaters span")], card = $("#feature");
+    const B = banner.getBoundingClientRect(), C = card.getBoundingClientRect();
+    const r = (el) => { const b = el?.getBoundingClientRect(); return b && b.width ? b : null; };
+    const bubble = r($(".baker figcaption")) || r($(".baker")), line1 = r(banner.querySelector("h1 .ln")), stats = r($("#stats"));
+    const statsRight = Math.max(0, ...[...$("#stats").children].map((e) => e.getBoundingClientRect().right));
+    const twoCol = C.width && C.left > (r(banner.querySelector("h1")) || C).right - 1;
+    spans.forEach((sp) => { sp.style.left = sp.style.top = sp.style.display = ""; });
+    const ink = (el) => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect(); }; // the text itself, not the full-width line
+    const blocks = [card, ...banner.querySelectorAll(".baker-frame, .baker figcaption, h1 .ln, #stats > *, .share-fab")].map((e) => e.getBoundingClientRect())
+      .concat([...banner.querySelectorAll(".eyebrow")].map(ink));
+    const pad = 10; // room for the drift and pointer nudge
+    const spots = twoCol && bubble && line1 && stats ? [
+      [bubble.right + (C.left - bubble.right) * .55, bubble.top - 26],      // wheat
+      [C.left + C.width * .42, (C.top - B.top) / 2 + B.top],               // sparkle (centre of the band above the card)
+      [line1.right + (C.left - line1.right) * .62, line1.top + 4],          // eggs
+      [statsRight + (C.left - statsRight) * .42, stats.top - 6],            // whisk
+    ] : null;
+    spans.forEach((sp, k) => {
+      const size = sp.offsetWidth; if (!size) return; // hidden by the phone stylesheet
+      let x, y;
+      if (spots) { [x, y] = spots[k].map((v) => v - size / 2); } else { x = B.left + sp.offsetLeft; y = B.top + sp.offsetTop; } // layout spot, ignoring drift/nudge transforms
+      const box = { left: x - pad, top: y - pad, right: x + size + pad, bottom: y + size + pad };
+      if (y < B.top || y + size > B.bottom || blocks.some((b) => b.left < box.right && b.right > box.left && b.top < box.bottom && b.bottom > box.top)) { sp.style.display = "none"; return; }
+      if (spots) { sp.style.left = `${x - B.left}px`; sp.style.top = `${y - B.top}px`; }
+    });
   }
   // looking at the portrait or the featured cake: the floaters step back (works for hover, tap and keyboard focus)
   function bindHush() {
