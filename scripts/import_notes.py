@@ -51,6 +51,18 @@ def title_key(title):
     return " ".join(re.sub(r"[\W_]+", " ", title.lower()).split())
 
 
+# Published names for notes whose Apple Notes title is only a working name. Keyed by the note's
+# title (matched like DEFAULT_EXCLUDE); the note itself can keep its old title. The old link
+# (#/recipe/<old-slug>) keeps working through the recipe's "aliases".
+TITLE_RENAMES = {
+    "New 5 layer cake": "Chocolate Hazelnut Coconut Mousse Cake (5 Layers)",
+}
+
+
+def renamed(title):
+    return next((new for old, new in TITLE_RENAMES.items() if title_key(old) == title_key(title)), title)
+
+
 EXTRA_EXCLUDE = []  # filled from --exclude: leave out notes whose title contains any of these
 
 
@@ -338,6 +350,9 @@ def write(recipes, out):
     taken = set()
     for r in recipes:
         r["title"] = clean_title(r["title"])
+        if renamed(r["title"]) != r["title"]:
+            r["aliases"] = [slugify(r["title"], set())]
+            r["title"] = renamed(r["title"])
         r["body"] = standardize_units(r["body"])
     recipes.sort(key=lambda r: r["title"].lower())
     kept = existing_extras(out)
