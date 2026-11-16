@@ -52,7 +52,7 @@ Each note's title becomes the cake's name. The rest of the note is shown as writ
 
 Pictures in your notes come along automatically. The script saves each one as a JPEG in `images/recipes/` (at most 1400 px wide, so the page stays fast) and the first picture in a note becomes that cake's photo on the cards and the recipe page. Notes without a picture keep the drawn cake.
 
-This works with both `--notes-folder` (Apple Notes hands the pictures over inside the note) and `--dir`, as long as the export kept the pictures: Notes' **File › Export as PDF** does not, so use an exporter that saves HTML with images (it puts them next to the `.html` files, which the script picks up).
+This works with both `--notes-folder` (Apple Notes hands the pictures over inside the note) and `--dir`, if the export saved the notes as HTML with their pictures. The script finds pictures embedded in the HTML or saved next to the `.html` files. It can't read PDFs, so Notes' **File › Export as PDF** won't work here.
 
 To leave out notes in the folder that aren't recipes, add `--exclude` with part of the title, as many times as you need:
 
