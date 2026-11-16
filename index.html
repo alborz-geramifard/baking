@@ -848,10 +848,18 @@
     }
     return { name: name || String(t || ""), sizes };
   }
+  /* Cakes whose title gives no pan size are 8-inch: that's the pan these recipes are made in.
+     Bundt, square and mold cakes are left alone, since their notes call for a different pan. */
+  const PAN_SIZE = /inch|cm|×/i;
+  const DEFAULT_SIZE = "8-inch";
+  const assumesDefaultSize = (title, sizes) =>
+    /\bcake\b|cheesecake/i.test(title) && !/bundt|square|mold|mould|entreme/i.test(title) && !sizes.some((s) => PAN_SIZE.test(s));
 
   RECIPES.forEach((r) => {
     r.body = r.body || "";
     Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
+    r.sizeAssumed = assumesDefaultSize(r.title, r.sizes);
+    if (r.sizeAssumed) r.sizes.unshift(DEFAULT_SIZE);
     const alias = NAMES.get(titleKey(r.title));
     if (alias) { r.name = alias.en; r.fa = alias.fa; }
     r.isHTML = looksLikeHTML(r.body);
@@ -1379,7 +1387,7 @@
   };
   // Pills under a cake's name: its size (from the title) and when it was first written down.
   // Cards use a short month + year; the recipe page shows the full date.
-  const sizePills = (r) => r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+  const sizePills = (r) => r.sizes.map((s, i) => `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch pan"' : ""}>${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   function datePill(r, full) {
     const d = toDate(r.created);
     if (!r.created || isNaN(d)) return "";
