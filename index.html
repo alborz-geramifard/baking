@@ -119,11 +119,6 @@
     transform: rotate(1.2deg); transition: transform .35s ease;
   }
   .feature:hover { transform: rotate(0deg) translateY(-3px); }
-  .feature .tag {
-    position: absolute; top: 16px; left: 16px; z-index: 1; background: var(--accent); color: #fff;
-    font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600;
-    padding: 6px 10px; border-radius: 999px;
-  }
   .feature .art { border-radius: 16px; overflow: hidden; aspect-ratio: 4/3; }
   .feature h3 { font-family: var(--serif); font-weight: 500; font-size: 26px; margin: 16px 4px 2px; }
   .feature small { color: var(--ink-soft); margin: 0 4px; display: block; }
@@ -182,8 +177,6 @@
   .toolbar h2 { display: flex; align-items: center; gap: 14px; }
   .toolbar h2 .sec-ic { width: 52px; height: 52px; transform: rotate(-6deg); transition: transform .4s ease; }
   .toolbar h2:hover .sec-ic { transform: rotate(6deg) scale(1.06); }
-  .feature .tag { display: inline-flex; align-items: center; gap: 6px; padding-left: 4px; }
-  .feature .tag svg.ic { width: 22px; height: 22px; filter: none; }
   .recipe-card .label { display: flex; align-items: center; gap: 10px; }
   .recipe-card .label .sec-ic { width: 36px; height: 36px; }
   /* section headings inside a note (Ingredients, Method, Frosting…) */
@@ -1007,7 +1000,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><span class="tag">${iconSVG("oven")}From the oven</span><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.title)}</h3><small>${esc(firstSentence(r.teaser))}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.title)}</h3><small>${esc(firstSentence(r.teaser))}</small></div>`;
       i++;
     };
     show();
