@@ -1127,18 +1127,9 @@
       const unit = hr ? "hr" : "min", span = m[2] ? `${m[1]}–${m[2]}` : m[1];
       if (!time || hi > time.max) time = { max: hi, label: extra ? `${span} ${unit} ${extra} min` : `${span} ${unit}` };
     }
-    // weighed ingredients (ml counted as g; an egg ≈ 50 g)
-    const parts = new Map(); let prev = "";
-    const add = (name, g) => { if (!name || !g) return; parts.set(name, (parts.get(name) || 0) + g); };
-    for (const m of t.matchAll(/(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\s+([a-z][a-z ]*?)(?=\s*(?:[,+.(\n:;—–]|$| for | to | and | in |\s{2}))/gim)) {
-      let name = m[3].toLowerCase().trim().replace(/^whole milk (\w+)/, "$1");
-      while (ADJ.test(name)) name = name.replace(ADJ, "");
-      name = name.replace(/\bchoc\b/, "chocolate").split(/\s+/).slice(-2).join(" ");
-      if (TINTS[name] && prev) name = name + " " + prev.split(" ").pop(); // "100 g white" after "brown sugar"
-      const unit = m[2].toLowerCase(), v = parseFloat(m[1].replace(",", "."));
-      add(name, unit === "kg" || unit === "l" ? v * 1000 : v); prev = name;
-    }
-    for (const m of t.matchAll(/\b(\d+)\s+(?:large\s+|whole\s+)?eggs?\b/gi)) add("eggs", +m[1] * 50);
+    // weighed ingredients (ml counted as g; an egg ≈ 50 g), read from the ingredient lines only (see weighLines)
+    const parts = new Map();
+    for (const { name, g } of weighLines(recipeLines(r))) parts.set(name, (parts.get(name) || 0) + g);
     const items = [...parts].map(([name, g]) => ({ name, g })).sort((a, b) => b.g - a.g);
     const total = items.reduce((s, x) => s + x.g, 0);
     // ingredient count = amounts the page would bold
@@ -1147,6 +1138,85 @@
     boldQuantities(probe);
     const count = probe.querySelectorAll("b.qty").length;
     return (r._a = { temp, time, items, total, count });
+  }
+
+  // The lines to weigh: the checklist's ingredient lines (so amounts repeated in the steps, in a pasted-twice list or in
+  // an earlier draft of the note aren't counted again). Notes without a usable ingredient list fall back to the steps.
+  function recipeLines(r) {
+    const src = document.createElement("div");
+    if (r.isHTML) src.innerHTML = sanitize(r.body); else src.innerHTML = r.body.split("\n").map((l) => `<div>${esc(l)}</div>`).join("");
+    const s = structure(r, src), strip = (h) => normT(h.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&"));
+    const linesOf = (groups) => groups.flatMap((g) => g.items.flatMap((l) => [l.text, ...(l.subs || []).map(strip)]));
+    const ing = linesOf(s.ing);
+    if (ing.some((l) => AMT_RE.test(l) || EGG_RE.test(l))) return ing;
+    const steps = linesOf(s.stages);
+    return steps.length ? steps : r.text.split("\n");
+  }
+  const AMT_RE = /(\d+(?:[.,]\d+)?)(?:\s*[–-]\s*(\d+(?:[.,]\d+)?))?\s*(kg|g|gr|grams?|ml|l)\b/i;
+  const EGG_RE = /\b(\d+)\s+(?:large\s+|whole\s+|medium\s+)?(egg\s+yolks?|egg\s+whites?|eggs?|yolks?)\b/i;
+  const VOL_GRAMS = /(?:[\d½¼¾⅓⅔⅛][\d\/.,\s½¼¾⅓⅔⅛–-]*)?\s*(?:cups?|tbsps?|tsps?|tablespoons?|teaspoons?|oz|sticks?)\s*\(\s*(?:about|approx\.?|~|≈)?\s*(\d+(?:[.,]\d+)?\s*(?:kg|g|ml)\b)[^)]*\)/gi;
+  // "60 ml (61 g)": the same amount twice; a lone "(188 g)" next to a cup measure is the amount to use
+  const AMT_PAREN_AFTER = /(\d+(?:[.,]\d+)?\s*(?:kg|g|gr|grams?|ml|l)\b)\s*\(\s*(?:about|approx\.?|~|≈)?\s*\d+(?:[.,]\d+)?\s*(?:kg|g|gr|grams?|ml|l)\b[^)]*\)/gi;
+  const AMT_PAREN = /\(\s*(?:about|approx\.?|~|≈)?\s*(\d+(?:[.,]\d+)?\s*(?:kg|g|ml))\s*\)/gi;
+  const VOL_AMT = /[\d½¼¾⅓⅔⅛][\d\/.,½¼¾⅓⅔⅛–-]*(?:\s+[\d½¼¾⅓⅔⅛][\d\/½¼¾⅓⅔⅛]*)?\s*(?:cups?|tbsps?|tsps?|tablespoons?|teaspoons?|oz|sticks?|pinch(?:es)?)?\b/gi;
+  const EGG_G = { egg: 50, eggs: 50, yolk: 18, yolks: 18, white: 30, whites: 30 };
+  // words that name a step, a sub-preparation or a sum rather than something you buy
+  const NOT_ING = /^(?:total|ingredients?|mix|mixture|mousse|sponge|batter|dough|base|topping|filling|frosting|glaze|ganache|layer|crust|gel|syrup|cake|cream mixture|each|rest|remaining|more|it|them|both|place|bowl|pan|pot|mold|thick|smooth|pale|until.*|melt|stir|whisk|fold|add|pour|bake|cook|heat|let|beat|combine|whip|place|use)$/;
+  const grams = (m) => {
+    const a = parseFloat(m[1].replace(",", ".")), b = m[2] ? parseFloat(m[2].replace(",", ".")) : a, v = (a + b) / 2, u = m[3].toLowerCase();
+    return u === "kg" || u === "l" ? v * 1000 : v;
+  };
+  function cleanName(s) {
+    // the first named part: "Toasted hazelnuts, finely chopped" → "hazelnuts", "Finely shredded, dried coconut" → "dried coconut"
+    let n = String(s).toLowerCase().replace(/\([^)]*\)|\[[^\]]*\]/g, " ")
+      .replace(/\ball[\s-]+purpose\b/g, "all-purpose").replace(/\b(?:finely|roughly|coarsely|freshly|thinly|lightly|unsweetened|sweetened|shredded|room[\s-]temperature|softened|melted|chop(?:ped)?|grated|sifted|toasted)\b/g, " ")
+      .split(/,|\s[-–—/]\s|\b(?:for|to|in|into|until|then|at|on|with|from|if|divided|optional|total|plus|almost|just|so|that|while|when|together)\b|[.!:;]/)
+      .find((x) => /\p{L}{2}/u.test(x)) || "";
+    n = n.replace(/^\s*(?:cups?|tbsps?|tsps?|tablespoons?|teaspoons?|oz|sticks?)\b/, "").split(/\s+or\s+/).pop()
+      .replace(/[^\p{L}\s'-]/gu, " ").replace(/(^|\s)\p{L}(?=\s|$)/gu, " ").replace(/\s+/g, " ").trim();
+    // leading step words and filler ("mix milk", "and place", "pinch of salt"), trailing adverbs ("milk gently")
+    const LEAD = /^(?:about|approx(?:imately)?|of|the|a|an|and|both|pinch|large|small|medium|extra|mix|heat|add|stir|whisk|place|pour|melt|combine|fold|beat|then)\s+/;
+    const lead = () => { for (let k = 0; k < 4; k++) n = n.replace(LEAD, ""); };
+    lead();
+    n = n.replace(/(\S)\s+\p{L}+ly$/u, "$1").replace(/\s+(?:both|well|together|heat|mix|stir|whisk|and|or)$/, "");
+    while (ADJ.test(n)) n = n.replace(ADJ, "");
+    n = n.replace(/\bchoc\b/, "chocolate").replace(/^whole milk (\w+)/, "$1").split(/\s+/).slice(-2).join(" ");
+    lead(); n = n.replace(/\s+(?:and|or)$/, "");
+    return !n || n.length < 2 || NOT_ING.test(n) || /^\p{L}+ly$/u.test(n) && n !== "jelly" ? "" : n;
+  }
+  function weighLines(lines) {
+    const out = []; let prev = "";
+    const push = (name, g) => { if (!name || !(g > 0)) return; if (TINTS[name] && prev) name += " " + prev.split(" ").pop(); out.push({ name, g }); prev = name; };
+    const eggs = (name, rest) => { const w = EGG_G[name.split(" ").pop()], n = rest.match(/^\s*(\d+)/); return w && n ? +n[1] * w : 0; };
+    for (const raw of lines) {
+      const t = String(raw || "").replace(/ /g, " ").replace(/^[\s•·*\-–]+/, "").replace(/^\d+[.)]\s+(?=\D)/, "").trim();
+      if (!t) continue;
+      // "Milk: 186 g total (62 g for the cake + 124 g for the topping)": one ingredient, named by its label, at its first amount
+      const lab = t.match(/^((?:[^:\d(]|\([^)]*\)){2,60}):\s*(.+)$/);
+      if (lab) {
+        const name = cleanName(lab[1]); if (!name) continue;
+        const m = lab[2].replace(VOL_GRAMS, "$1").match(AMT_RE);
+        push(name, m ? grams(m) : eggs(name, lab[2]));
+        continue;
+      }
+      // "200 g dark chocolate + 120 ml milk", "4 tbsp (52 g) sugar", "1/4 cup milk, 62 g": one or more amount/name pairs.
+      // A breakdown in brackets ("350 g total (150 g … + 200 g …)") is the same amount again, so brackets are dropped.
+      const segs = t.replace(VOL_GRAMS, "$1").replace(AMT_PAREN_AFTER, "$1").replace(AMT_PAREN, " $1 ").replace(/\([^)]*\)/g, " ").split(/\s\+\s|;|\s&\s|,\s*(?=[~≈]?\d)|\s+and\s+(?=\d)/);
+      let pending = "";
+      for (const seg of segs) {
+        const m = seg.match(AMT_RE);
+        if (!m) {
+          const e = seg.match(EGG_RE);
+          if (e) push(e[2].includes("yolk") ? "egg yolks" : e[2].includes("white") ? "egg whites" : "eggs", +e[1] * EGG_G[e[2].split(/\s+/).pop()]);
+          pending = e ? "" : cleanName(seg.replace(VOL_AMT, " "));
+          continue;
+        }
+        const after = seg.slice(m.index + m[0].length), before = seg.slice(0, m.index);
+        const name = cleanName(after.replace(/^\s*of\s+/i, "")) || (VERB_RE.test(before.trim()) ? "" : cleanName(before.replace(VOL_AMT, " "))) || pending;
+        push(name, grams(m)); pending = "";
+      }
+    }
+    return out;
   }
 
   const ICO = {
