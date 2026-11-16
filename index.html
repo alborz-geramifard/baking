@@ -1116,7 +1116,7 @@
     // total time: everything the recipe asks you to wait for, plus an allowance for the hands-on work it doesn't time.
     // Every stated duration is added up (oven, cooling, chilling, freezing, soaking, resting, mixing); ranges count at
     // their midpoint and "at least 6 hours, preferably overnight" at its minimum. A bare "overnight" counts as 8 hours.
-    // Not added: alternatives ("or freeze for 30 min", "(or at least 8 hours)"), checkpoints inside another step
+    // Not added: alternatives ("or freeze for 30 min", "(or at least 8 hours)", "8 hours or over night"), checkpoints inside another step
     // ("begin checking at 18 minutes", "after 8–9 min", "the last 10 minutes of baking"), serving advice ("best after
     // 24 hours"), a "Time:" line restating the bake, and timings like "(4–5 hours before serving)".
     // The oven share is the baking clauses alone, as before, so the panel can show it as part of the whole.
@@ -1124,7 +1124,7 @@
     {
       const BAKE_CLAUSE = /\bbak(?:e|es|ed)\b|\bbaking\b(?!\s*(?:powder|soda|sheet|paper|pan|tray|dish|rack|cooling|mat))|\d{3}\s*°?\s*[FC]\b|\b\d{3}\s*degrees/i;
       const TEMP_AFTER = /^\s*(?:at|on)\s*\d{3}\s*°?\s*[FC]\b/i;
-      const SKIP_BEFORE = /\blast\s*$|\bafter\s*~?\s*$|\bat\s*$|\bcheck|\b(?:best|better|up to|store)\b|\btime\s*:\s*$|\(\s*or\b[^)]*$|preferably\s*$|^\s*or\b/i;
+      const SKIP_BEFORE = /\blast\s*$|\bafter\s*~?\s*$|\bat\s*$|\bcheck|\b(?:best|better|up to|store)\b|\btime\s*:\s*$|\(\s*or\b[^)]*$|preferably\s*$|\bor\s*$|^\s*or\b/i;
       let oven = 0, wait = 0, hasOven = false;
       const DUR = /(\d+)(?:\s*[–-]\s*(\d+))?\s*(?:(min(?:ute)?s?|h(?:ou)?rs?|hours?|h)\b(?:\s*(?:and\s*)?(\d+)\s*min(?:ute)?s?\b)?|(?=(?:at|on)\s*\d{3}\s*°?\s*[FC]\b))|\bover\s?night\b/gi;
       for (const m of t.matchAll(DUR)) {
