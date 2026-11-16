@@ -308,6 +308,51 @@
     .ck-item { break-inside: avoid; opacity: 1 !important; }
   }
 
+  /* ---------- Focus mode: one step at a time, full screen. Tapping "Done" ticks it and moves on. ---------- */
+  .ck-focus { padding: 7px 13px; font-size: 13px; background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ck-focus:hover { color: #fff; filter: brightness(1.06); }
+  .focus-dialog { border: 0; padding: 0; margin: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; background: var(--bg); color: var(--ink); }
+  .focus-dialog::backdrop { background: var(--bg); }
+  .focus-dialog[open] { display: flex; animation: fade .25s ease; }
+  .fx { display: flex; flex-direction: column; width: 100%; max-width: 760px; margin: 0 auto; padding: 18px 22px max(22px, env(safe-area-inset-bottom)); gap: 18px; }
+  .fx-head { display: flex; align-items: center; gap: 14px; }
+  .fx-title { flex: 1; min-width: 0; font-family: var(--serif); font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fx-count { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fx .ck-bar { height: 6px; }
+  .fx-stage { flex: 1; display: grid; align-content: center; min-height: 0; overflow: hidden; padding: 6px 4px 30px; margin: 0 -4px; }
+  .fx-card { position: relative; display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: clamp(22px, 5vw, 40px); max-height: 100%; overflow: auto; transition: border-color .2s, transform .15s; }
+  .fx-card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+  .fx-card:active { transform: scale(.99); }
+  .fx-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .fx-where { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
+  .fx-txt { font-family: var(--serif); font-size: clamp(22px, 3.6vw, 32px); line-height: 1.4; overflow-wrap: anywhere; }
+  .fx-txt b, .fx-txt strong { font-weight: 650; color: var(--accent); }
+  .fx-txt ul { margin: 10px 0 0; padding-left: 1.2em; font-size: .8em; }
+  .fx-txt ul li::marker { color: var(--accent); }
+  .fx-card.done .fx-txt { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); opacity: .6; }
+  .fx-badge { display: none; margin-left: auto; color: var(--accent); letter-spacing: .08em; }
+  .fx-card.done .fx-badge { display: inline; }
+  .fx-tap { margin: 22px 0 0; font-size: 13px; color: var(--ink-soft); }
+  .fx-next { margin: 0; font-size: 14px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fx-next b { font-weight: 600; color: var(--ink); }
+  .fx-foot { display: flex; gap: 12px; }
+  .fx-foot .btn { padding: 14px 20px; font-size: 16px; justify-content: center; }
+  .fx-go { flex: 1; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .fx-go:hover { color: #fff; filter: brightness(1.06); }
+  .btn:disabled { opacity: .45; cursor: default; pointer-events: none; }
+  .fx-in-next { animation: fxInNext .38s var(--ease-out) both; }
+  .fx-in-prev { animation: fxInPrev .38s var(--ease-out) both; }
+  @keyframes fxInNext { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+  @keyframes fxInPrev { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+  .fx-done { text-align: center; cursor: default; }
+  .fx-done .big { font-size: 64px; line-height: 1; margin-bottom: 12px; }
+  .fx-done h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 5vw, 40px); margin: 0 0 8px; }
+  .fx-done p { margin: 0; color: var(--ink-soft); }
+  @media (prefers-reduced-motion: reduce) { .fx-in-next, .fx-in-prev { animation: none; } }
+  @media print { .ck-focus { display: none !important; } }
+
   .pager { display: flex; justify-content: space-between; gap: 12px; max-width: 760px; margin: 0 auto 80px; padding: 0 4px; }
   .pager a { text-decoration: none; max-width: 48%; }
   .pager small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
@@ -654,13 +699,17 @@
       <div class="label"><i class="sec-ic" id="labelIcon"></i>Bake along</div>
       <div class="ck-meta">
         <span class="ck-count" id="ckCount" aria-live="polite"></span>
+        <button class="btn ck-focus" id="ckFocus" type="button" title="Show one step at a time, full screen">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/><circle cx="12" cy="12" r="3"/></svg>
+          Focus mode
+        </button>
         <button class="btn ck-reset" id="ckReset" type="button" title="Untick every box on this recipe (only on this device)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
           Reset
         </button>
       </div>
       <div class="ck-bar" aria-hidden="true"><i id="ckBar"></i></div>
-      <p class="ck-hint">Tick things off as you go. Your ticks are saved only in this browser and nobody else sees them.</p>
+      <p class="ck-hint">Tick things off as you go, or use <b>Focus mode</b> to see one step at a time. Your ticks are saved only in this browser and nobody else sees them.</p>
     </div>
     <div class="checklist" id="rChecklist"></div>
     <details class="as-written" id="asWritten">
@@ -686,6 +735,29 @@
     <div class="share-link">
       <input id="shareUrl" type="text" readonly aria-label="Link to this page">
       <button class="btn" type="button" id="shareCopy">Copy link</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- ============ FOCUS MODE ============ -->
+<dialog class="focus-dialog" id="focusDialog" aria-labelledby="fxTitle">
+  <div class="fx">
+    <div class="fx-head">
+      <div class="fx-title" id="fxTitle"></div>
+      <span class="fx-count" id="fxCount" aria-live="polite"></span>
+      <button class="share-close" type="button" id="fxClose" aria-label="Leave focus mode">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="ck-bar" aria-hidden="true"><i id="fxBar"></i></div>
+    <div class="fx-stage" id="fxStage"></div>
+    <p class="fx-next" id="fxNext"></p>
+    <div class="fx-foot">
+      <button class="btn" type="button" id="fxBack" aria-label="Previous step">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+      </button>
+      <button class="btn fx-go" type="button" id="fxGo"></button>
     </div>
   </div>
 </dialog>
@@ -1607,6 +1679,7 @@
     $("#ckCount").textContent = boxes.length ? `${done} of ${boxes.length} done` : "";
     $("#ckBar").style.width = boxes.length ? `${(done / boxes.length) * 100}%` : "0";
     $("#ckReset").disabled = !done;
+    $("#ckFocus").style.display = boxes.length ? "" : "none";
     host.querySelectorAll(".ck-stage").forEach((st) => { const b = st.querySelectorAll("input[data-k]"); st.classList.toggle("all-done", b.length > 0 && [...b].every((x) => x.checked)); });
   }
   $("#rChecklist").addEventListener("change", (e) => {
@@ -1628,6 +1701,83 @@
     const o = loadChecks(host.dataset.rid);
     host.querySelectorAll("input[data-k]").forEach((cb) => { cb.checked = !!o[cb.dataset.k]; });
     updateCount();
+    if (focusDialog.open) renderFocus();
+  });
+
+  /* ---------- Focus mode ----------
+     Shows one step at a time, full screen. Tapping the step (or "Done") ticks that step's box in the
+     checklist (so it's saved like any other tick) and slides straight on to the next unticked step. */
+  const focusDialog = $("#focusDialog");
+  let fxSteps = [], fxIdx = 0, wakeLock = null;
+  const fxStrip = (html) => { const d = document.createElement("div"); d.innerHTML = html; d.querySelectorAll("ul").forEach((u) => u.remove()); return d.textContent.trim(); };
+  function collectSteps() {
+    return [...$("#rChecklist").querySelectorAll("input[data-k]")].map((cb) => {
+      const item = cb.closest(".ck-item"), stage = cb.closest(".ck-stage"), group = stage && stage.querySelector(":scope > .ck-group");
+      return { cb, html: item.querySelector(".ck-txt").innerHTML, num: item.querySelector(".ck-num")?.textContent || "",
+        of: stage ? stage.querySelectorAll("input[data-k]").length : 0, where: group ? group.innerHTML : "" };
+    });
+  }
+  // the first unticked step after `from` (wrapping round), or fxSteps.length when everything is ticked
+  function nextOpen(from) {
+    for (let k = 1; k <= fxSteps.length; k++) { const j = (from + k) % fxSteps.length; if (!fxSteps[j].cb.checked) return j; }
+    return fxSteps.length;
+  }
+  function renderFocus(dir) {
+    const n = fxSteps.length, done = fxSteps.filter((s) => s.cb.checked).length, stage = $("#fxStage");
+    $("#fxCount").textContent = `${done} of ${n} done`;
+    $("#fxBar").style.width = `${n ? (done / n) * 100 : 0}%`;
+    const anim = dir ? ` fx-in-${dir}` : "";
+    if (fxIdx >= n) {
+      stage.innerHTML = `<div class="fx-card fx-done${anim}"><div class="big" aria-hidden="true">🎉</div><h2>All steps done!</h2><p>Enjoy your bake. Your ticks are saved on the recipe page.</p></div>`;
+      $("#fxNext").textContent = "";
+      $("#fxGo").textContent = "Back to the recipe";
+      $("#fxBack").disabled = n === 0;
+      return;
+    }
+    const s = fxSteps[fxIdx], last = nextOpen(fxIdx) === n;
+    stage.innerHTML = `<button type="button" class="fx-card${s.cb.checked ? " done" : ""}${anim}" id="fxCard">
+      <p class="fx-where">${s.where}${s.num ? `<span>${s.where ? "· " : ""}Step ${s.num}${s.of > 1 ? ` of ${s.of}` : ""}</span>` : ""}<span class="fx-badge">✓ done</span></p>
+      <div class="fx-txt">${s.html}</div>
+      <p class="fx-tap">${s.cb.checked ? "Already ticked. Tap to move on." : "Tap here when this step is done."}</p></button>`;
+    stage.querySelectorAll("a").forEach((a) => a.addEventListener("click", (e) => e.stopPropagation()));
+    const up = fxSteps.findIndex((t, j) => j > fxIdx && !t.cb.checked);
+    $("#fxNext").innerHTML = up >= 0 ? `<b>Up next:</b> ${esc(fxStrip(fxSteps[up].html))}` : "";
+    $("#fxGo").textContent = s.cb.checked ? "Next step →" : last ? "Done, finish ✓" : "Done, next step →";
+    $("#fxBack").disabled = fxIdx === 0;
+  }
+  function fxAdvance() {
+    if (fxIdx >= fxSteps.length) { focusDialog.close(); return; }
+    const s = fxSteps[fxIdx];
+    if (!s.cb.checked) { s.cb.checked = true; s.cb.dispatchEvent(new Event("change", { bubbles: true })); }
+    fxIdx = nextOpen(fxIdx);
+    renderFocus("next");
+  }
+  function fxBack() { if (fxIdx > 0) { fxIdx = Math.min(fxIdx, fxSteps.length) - 1; renderFocus("prev"); } }
+  async function openFocus() {
+    fxSteps = collectSteps();
+    if (!fxSteps.length) return;
+    fxIdx = fxSteps[0].cb.checked ? nextOpen(0) : 0;
+    $("#fxTitle").textContent = $("#rTitle").textContent;
+    renderFocus();
+    focusDialog.showModal();
+    $("#fxGo").focus();
+    // keep the screen awake while baking, where the browser allows it
+    try { wakeLock = await navigator.wakeLock?.request("screen"); } catch { wakeLock = null; }
+  }
+  $("#ckFocus").addEventListener("click", openFocus);
+  $("#fxGo").addEventListener("click", fxAdvance);
+  $("#fxBack").addEventListener("click", fxBack);
+  $("#fxClose").addEventListener("click", () => focusDialog.close());
+  $("#fxStage").addEventListener("click", (e) => { if (e.target.closest("#fxCard")) fxAdvance(); });
+  focusDialog.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); fxAdvance(); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); fxBack(); }
+  });
+  focusDialog.addEventListener("close", () => {
+    wakeLock?.release().catch(() => {}); wakeLock = null;
+    // land on the step you stopped at in the normal list
+    const s = fxSteps[Math.min(fxIdx, fxSteps.length - 1)];
+    if (s && document.body.classList.contains("viewing")) s.cb.closest(".ck-item").scrollIntoView({ block: "center" });
   });
 
   /* ---------- Recipe ---------- */
@@ -1666,6 +1816,7 @@
 
   let indexScroll = 0;
   function route() {
+    if (focusDialog.open) focusDialog.close();
     const m = location.hash.match(/^#\/recipe\/(.+)$/);
     if (m) {
       if (!document.body.classList.contains("viewing")) indexScroll = window.scrollY;
@@ -1678,7 +1829,7 @@
   }
 
   document.addEventListener("keydown", (e) => {
-    if (!document.body.classList.contains("viewing") || shareDialog.open) return;
+    if (!document.body.classList.contains("viewing") || shareDialog.open || focusDialog.open) return;
     if (e.key === "Escape") location.hash = "";
     if (e.key === "ArrowLeft") $("#pager .prev")?.click();
     if (e.key === "ArrowRight") $("#pager .next")?.click();
