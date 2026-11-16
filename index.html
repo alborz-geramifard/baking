@@ -106,11 +106,11 @@
     transform: translateY(-50%) rotate(45deg);
   }
   .baker .spark {
-    position: absolute; font-size: 22px; color: var(--accent-2); animation: twinkle 2.6s ease-in-out infinite;
+    position: absolute; font-size: 22px; color: var(--accent-2); animation: twinkle 4.8s ease-in-out infinite;
   }
   .baker .spark.s1 { top: -4px; right: -2px; }
-  .baker .spark.s2 { bottom: 8px; left: -10px; animation-delay: 1.3s; font-size: 15px; }
-  @keyframes twinkle { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+  .baker .spark.s2 { bottom: 8px; left: -10px; animation-delay: -2.4s; font-size: 15px; }
+  @keyframes twinkle { 0%, 100% { opacity: .3; transform: scale(.9); } 50% { opacity: .9; transform: scale(1); } }
   @media (prefers-reduced-motion: reduce) { .baker .spark { animation: none; } }
 
   .feature {
@@ -387,15 +387,26 @@
   .aurora i:nth-child(2) { width: 38vw; height: 38vw; left: 5%; top: 40%; background: color-mix(in srgb, var(--accent) 45%, transparent); animation-duration: 28s; animation-delay: -8s; }
   .aurora i:nth-child(3) { width: 30vw; height: 30vw; left: 70%; top: 50%; background: color-mix(in srgb, #e9a5b3 55%, transparent); animation-duration: 34s; animation-delay: -15s; }
   @keyframes drift { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-6vw, 4vw) scale(1.12); } 100% { transform: translate(4vw, -3vw) scale(.94); } }
-  .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  /* Floating ingredients — quiet, like dust in a sunbeam.
+     Few icons, kept to the margins; each drifts on its own slow, out-of-sync loop (a few px, a degree or two)
+     so they never move together. The pointer only nudges them a little — nearer (bigger) ones a bit more —
+     and when you look at the portrait or the featured cake they settle and fade back so the focus stays there. */
+  .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; transition: opacity 1.2s var(--ease-out); }
+  .banner.hush .floaters { opacity: .35; }
   .floaters span {
-    position: absolute; width: var(--s, 54px); aspect-ratio: 1; opacity: .9;
+    position: absolute; width: var(--s, 54px); aspect-ratio: 1; opacity: .8;
     transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
-    transition: transform .6s var(--ease-out);
+    transition: transform 2.4s cubic-bezier(.22, .61, .36, 1);
+    animation: settle 1.6s var(--ease-out) both; animation-delay: var(--in, 0s);
   }
   .floaters svg.ic { filter: url(#floater-shade); } /* no badge, no drop shadow — just a soft inner shade */
-  .floaters span > svg { animation: bob 7s ease-in-out infinite; animation-delay: var(--delay, 0s); }
-  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-12px) rotate(6deg); } }
+  .floaters span > svg { animation: float var(--dur, 20s) ease-in-out infinite var(--dir, normal); animation-delay: var(--delay, 0s); }
+  @keyframes float {
+    0%, 100% { translate: 0 0; rotate: 0deg; }
+    30% { translate: 3px -6px; rotate: 1.5deg; }
+    65% { translate: -3px -2px; rotate: -1.2deg; }
+  }
+  @keyframes settle { from { opacity: 0; scale: .92; } }
   .banner-inner { z-index: 1; }
   .banner h1 em {
     background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 30%, var(--accent) 55%, #b23a5a 80%, var(--accent) 100%);
@@ -505,7 +516,7 @@
   ::view-transition-group(cake-art) { animation-duration: .55s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
 
   @media (prefers-reduced-motion: reduce) {
-    .aurora i, .floaters span > svg, .banner h1 em, .art svg .steam path { animation: none !important; }
+    .aurora i, .floaters span, .floaters span > svg, .banner h1 em, .art svg .steam path { animation: none !important; }
     .reveal { opacity: 1; translate: none; transition: none; }
     .seg, .tile, .banner h1 .ln, .recipe-hero h1 { animation: none; }
     .tilt { --rx: 0deg !important; --ry: 0deg !important; }
@@ -1206,8 +1217,11 @@
 
   // banner: floating ingredients that drift with the pointer
   function renderFloaters() {
-    const F = [["berries", 4, 8, 64, 2.2, -12], ["wheat", 47, 6, 46, 1.2, 14], ["eggs", 92, 62, 58, 1.8, -8], ["whisk", 56, 84, 50, 2.6, 10], ["sparkle", 88, 12, 40, 3, 0], ["piping", 2, 78, 52, 1.5, -16], ["jar", 42, 52, 34, 3.4, 8]];
-    $("#floaters").innerHTML = F.map(([n, x, y, s, d, r], k) => `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--delay:${-k * 1.3}s">${iconSVG(n, "", true)}</span>`).join("") +
+    // [icon, left %, top %, size px, depth (parallax px), tilt deg, loop s] — four quiet notes in the margins,
+    // away from the portrait and the title; loops are mismatched lengths so the icons never line up.
+    const F = [["wheat", 63, 7, 42, 4, 14, 23], ["sparkle", 89, 13, 34, 3, 0, 19], ["eggs", 93, 63, 52, 7, -8, 29], ["whisk", 55, 85, 46, 6, 10, 26]];
+    $("#floaters").innerHTML = F.map(([n, x, y, s, d, r, t], k) =>
+      `<span style="left:${x}%;top:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dur:${t}s;--delay:${-k * 7}s;--dir:${k % 2 ? "reverse" : "normal"}">${iconSVG(n, "", true)}</span>`).join("") +
       // soft inner shading (darker toward the lower-right edges) instead of a cast drop shadow
       `<svg width="0" height="0" style="position:absolute"><filter id="floater-shade" x="-10%" y="-10%" width="120%" height="120%">` +
       `<feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/><feOffset dx="-1.6" dy="-2"/>` +
@@ -1215,12 +1229,23 @@
       `<feComposite in2="edge" operator="in"/><feComposite in2="SourceGraphic" operator="atop"/></filter></svg>`;
     if (calm || !finePointer) return;
     const banner = $("#banner");
+    // pointer: a gentle nudge (±1 unit × depth px), eased slowly so the icons trail behind like they're in air
     banner.addEventListener("pointermove", (e) => {
+      if (banner.classList.contains("hush")) { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); return; } // hold still while the portrait / cake has focus
       const b = banner.getBoundingClientRect();
-      banner.style.setProperty("--px", ((e.clientX - b.left) / b.width - .5) * 24);
-      banner.style.setProperty("--py", ((e.clientY - b.top) / b.height - .5) * 24);
+      banner.style.setProperty("--px", ((e.clientX - b.left) / b.width - .5) * 2);
+      banner.style.setProperty("--py", ((e.clientY - b.top) / b.height - .5) * 2);
     });
     banner.addEventListener("pointerleave", () => { banner.style.setProperty("--px", 0); banner.style.setProperty("--py", 0); });
+  }
+  // looking at the portrait or the featured cake: the floaters step back (works for hover, tap and keyboard focus)
+  function bindHush() {
+    const banner = $("#banner");
+    banner.querySelectorAll(".baker, .feature").forEach((el) => {
+      const on = () => banner.classList.add("hush"), off = () => banner.classList.remove("hush");
+      el.addEventListener("pointerenter", on); el.addEventListener("pointerleave", off);
+      el.addEventListener("focusin", on); el.addEventListener("focusout", off);
+    });
   }
   // count stat numbers up from zero
   function countUp(el) {
@@ -1613,7 +1638,7 @@
     vt.finished.finally(() => { if (b) b.style.viewTransitionName = ""; });
     lastId = id;
   });
-  renderFloaters(); bindTilt(document.querySelector(".index-view"));
+  renderFloaters(); bindHush(); bindTilt(document.querySelector(".index-view"));
   renderBanner(); renderGrid(); route();
   lastId = (location.hash.match(/^#\/recipe\/(.+)$/) || [])[1] ? decodeURIComponent(location.hash.slice(9)) : null;
 })();
