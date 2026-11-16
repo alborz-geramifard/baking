@@ -6,6 +6,9 @@ Two sources are supported:
   1. Straight from the Apple Notes app (macOS):
        python3 scripts/import_notes.py --list-folders
        python3 scripts/import_notes.py --notes-folder "Baking"
+       python3 scripts/import_notes.py --notes-folder "iCloud / Dessert"
+     A folder can be given by name alone or as "Account / Folder", exactly as
+     --list-folders prints it. Spaces are fine, quoted or not.
      The first run asks macOS for permission to let Terminal control Notes; click OK.
 
   2. A directory of exported notes (.html, .htm, .txt or .md files), e.g. from
@@ -40,11 +43,14 @@ function run() {
 
 JXA_EXPORT = r"""
 function run(argv) {
-  const wanted = argv[0];
+  const norm = s => String(s).replace(/\s+/g, ' ').trim().toLowerCase();
+  const wantAcc = norm(argv[0] || '');
+  const wantFolder = norm(argv[1] || '');
   const Notes = Application('Notes');
   const out = [];
   Notes.accounts().forEach(acc => acc.folders().forEach(f => {
-    if (f.name() !== wanted) return;
+    if (norm(f.name()) !== wantFolder) return;
+    if (wantAcc && norm(acc.name()) !== wantAcc) return;
     f.notes().forEach(n => {
       out.push({
         title: n.name(),
@@ -90,18 +96,58 @@ def slugify(s, taken):
     return slug
 
 
-def from_notes(folder):
-    raw = json.loads(osascript(JXA_EXPORT, folder) or "[]")
+def parse_folder(spec):
+    """Turn what the user typed into (account, folder).
+
+    Accepts "Dessert", "iCloud / Dessert" or "iCloud/Dessert", and also a line
+    pasted straight from --list-folders, e.g. "iCloud / Dessert  (12 notes)".
+    Returns account "" when no account was given (match the folder in any account).
+    """
+    spec = re.sub(r"\s*\(\d+ notes?\)\s*$", "", spec)
+    spec = re.sub(r"\s+", " ", spec).strip()
+    if "/" in spec:
+        acc, folder = spec.split("/", 1)
+        return acc.strip(), folder.strip()
+    return "", spec
+
+
+def from_notes(spec):
+    account, folder = parse_folder(spec)
+    raw = json.loads(osascript(JXA_EXPORT, account, folder) or "[]")
+    if not raw and account:
+        # Maybe the folder's own name contains a "/": try the whole thing as a folder name.
+        raw = json.loads(osascript(JXA_EXPORT, "", re.sub(r"\s+", " ", spec).strip()) or "[]")
     if not raw:
-        sys.exit(f'No notes found in a folder named "{folder}". Run with --list-folders to see folder names.')
+        where = f'"{folder}" in account "{account}"' if account else f'"{folder}"'
+        sys.exit(f"No notes found in a folder named {where}. Folders available:\n" + osascript(JXA_LIST))
     return [{"title": n["title"].strip(), "body": drop_title_line(n["body"], n["title"]),
              "created": n["created"][:10], "modified": n["modified"][:10]} for n in raw]
 
 
-def from_dir(path):
-    path = Path(path).expanduser()
-    if not path.is_dir():
-        sys.exit(f"Not a directory: {path}")
+ICLOUD_DRIVE = Path("~/Library/Mobile Documents/com~apple~CloudDocs").expanduser()
+
+
+def resolve_dir(spec):
+    """Find the export folder, allowing spaces and a few shorthands.
+
+    "iCloud / Dessert" or "iCloud Drive/Dessert" is taken to mean the Dessert
+    folder in iCloud Drive (~/Library/Mobile Documents/com~apple~CloudDocs).
+    """
+    path = Path(spec.strip()).expanduser()
+    if path.is_dir():
+        return path
+    m = re.match(r"\s*iCloud(?:\s+Drive)?\s*/\s*(.*)$", spec, re.I)
+    if m:
+        rest = "/".join(part.strip() for part in m.group(1).split("/"))
+        cand = ICLOUD_DRIVE / rest
+        if cand.is_dir():
+            return cand
+    sys.exit(f"Not a directory: {path}\n(If the path has spaces, put it in quotes, "
+             f'e.g. --dir "~/Library/Mobile Documents/com~apple~CloudDocs/Dessert".)')
+
+
+def from_dir(spec):
+    path = resolve_dir(spec)
     recipes = []
     for f in sorted(path.rglob("*")):
         ext = f.suffix.lower()
@@ -149,15 +195,22 @@ def write(recipes, out):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     src = ap.add_mutually_exclusive_group(required=True)
-    src.add_argument("--notes-folder", help="name of the Apple Notes folder holding your recipes")
-    src.add_argument("--dir", help="directory of exported notes (.html/.txt/.md)")
+    # nargs="+" so an unquoted name with spaces (e.g. iCloud / Dessert) still arrives as one value.
+    src.add_argument("--notes-folder", nargs="+", metavar="FOLDER",
+                     help='Apple Notes folder holding your recipes, e.g. "Baking" or "iCloud / Dessert"')
+    src.add_argument("--dir", nargs="+", metavar="PATH",
+                     help="directory of exported notes (.html/.txt/.md); spaces are fine")
     src.add_argument("--list-folders", action="store_true", help="list Apple Notes folders and exit")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT, help=f"output file (default: {DEFAULT_OUT.name})")
     a = ap.parse_args()
     if a.list_folders:
         print(osascript(JXA_LIST))
         return
-    write(from_notes(a.notes_folder) if a.notes_folder else from_dir(a.dir), a.out)
+    if a.notes_folder:
+        recipes = from_notes(" ".join(a.notes_folder))
+    else:
+        recipes = from_dir(" ".join(a.dir))
+    write(recipes, a.out)
 
 
 if __name__ == "__main__":

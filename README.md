@@ -34,6 +34,8 @@ python3 scripts/import_notes.py --list-folders
 python3 scripts/import_notes.py --notes-folder "Baking"
 ```
 
+You can give the folder exactly as `--list-folders` prints it, account included, e.g. `--notes-folder "iCloud / Dessert"`. Names with spaces work with or without quotes.
+
 The first run asks macOS to let your terminal control Notes. Click **OK**.
 
 If you'd rather export the notes yourself (File › Export, or an exporter app), point the script at that folder instead. It reads `.html`, `.htm`, `.txt` and `.md` files:
@@ -41,5 +43,7 @@ If you'd rather export the notes yourself (File › Export, or an exporter app),
 ```sh
 python3 scripts/import_notes.py --dir ~/Desktop/BakingNotes
 ```
+
+Paths with spaces are fine. `--dir "iCloud / Dessert"` is read as the Dessert folder in iCloud Drive.
 
 Each note's title becomes the cake's name. The rest of the note is shown as written, keeping its line breaks, bold and italic text, lists and tables.
