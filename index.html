@@ -170,7 +170,6 @@
   .card-body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .card h3 { font-family: var(--serif); font-weight: 500; font-size: 22px; line-height: 1.15; margin: 0; }
   .card p { margin: 0; color: var(--ink-soft); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .card .meta { margin-top: auto; padding-top: 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
   .empty { text-align: center; color: var(--ink-soft); padding: 60px 0 100px; font-family: var(--serif); font-size: 22px; font-style: italic; }
 
   .art svg, .art .photo { width: 100%; height: 100%; display: block; }
@@ -205,7 +204,9 @@
   .btn:hover { border-color: var(--accent); color: var(--accent); }
   .recipe-hero { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: center; padding: 20px 24px 48px; }
   .recipe-hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 6vw, 68px); line-height: 1; letter-spacing: -.02em; margin: 0 0 14px; }
-  .recipe-hero .dates { color: var(--ink-soft); font-size: 14px; }
+  .recipe-hero .pills { margin-top: 18px; }
+  .recipe-hero .pill { font-size: 13.5px; padding: 6px 13px 6px 10px; }
+  .recipe-hero .pill svg { width: 15px; height: 15px; }
   .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
 
   .recipe-card {
@@ -286,15 +287,8 @@
   .ck-tips li { margin: .2em 0; overflow-wrap: anywhere; }
   .ck-tips li::marker { color: var(--accent-2); }
 
-  .as-written { margin-top: 40px; border-top: 1px dashed var(--line); padding-top: 18px; }
-  .as-written > summary { cursor: pointer; font-size: 14px; font-weight: 500; color: var(--ink-soft); list-style: none; display: inline-flex; align-items: center; gap: 8px; }
-  .as-written > summary::-webkit-details-marker { display: none; }
-  .as-written > summary::before { content: "▸"; color: var(--accent); transition: transform .2s; }
-  .as-written[open] > summary::before { transform: rotate(90deg); }
-  .as-written > summary:hover { color: var(--accent); }
-  .as-written .note { margin-top: 18px; }
-  .as-written.only { margin-top: 0; border: 0; padding: 0; }
-  .as-written.only > summary { display: none; }
+  /* the note itself is shown only when it can't be read into the checklist above */
+  .as-written[hidden] { display: none; }
   @media (max-width: 560px) {
     .ck-top { grid-template-columns: 1fr; }
     .ck-meta { justify-content: space-between; }
@@ -304,15 +298,11 @@
     .ck-item { font-size: 16.5px; padding: 10px 12px; gap: 10px; }
   }
   @media print {
-    .ck-reset, .ck-bar, .ck-hint, .ck-count, .as-written { display: none !important; }
+    .ck-reset, .ck-bar, .ck-hint, .ck-count { display: none !important; }
     .ck-item { break-inside: avoid; opacity: 1 !important; }
   }
 
-  .pager { display: flex; justify-content: space-between; gap: 12px; max-width: 760px; margin: 0 auto 80px; padding: 0 4px; }
-  .pager a { text-decoration: none; max-width: 48%; }
-  .pager small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
-  .pager span { font-family: var(--serif); font-size: 20px; }
-  .pager .next { text-align: right; margin-left: auto; }
+  .recipe-view > footer { padding-top: 24px; }
 
   /* ---------- Share ---------- */
   .share-fab { position: absolute; top: 18px; right: 24px; z-index: 2; }
@@ -446,9 +436,21 @@
     background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px 3px 7px;
   }
   .chip svg { width: 13px; height: 13px; color: var(--accent); }
-  .card .meta { display: flex; align-items: center; gap: 6px; }
-  .card .meta .arr { transition: transform .3s var(--ease-out); }
-  .card:hover .meta .arr { transform: translateX(5px); }
+  .card .chips { margin-top: auto; padding-top: 8px; }
+
+  /* size + release-date pills, shown under each cake's name */
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; line-height: 1.3; white-space: nowrap;
+    color: color-mix(in srgb, var(--accent) 88%, var(--ink)); background: color-mix(in srgb, var(--accent) 11%, var(--paper));
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent); border-radius: 999px; padding: 4px 11px 4px 8px;
+  }
+  .pill svg { width: 13px; height: 13px; flex: none; }
+  .pill.date { color: var(--ink-soft); background: var(--bg-2); border-color: var(--line); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .pill.date svg { color: var(--accent); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .card .pills { margin: 2px 0 4px; }
+  .feature .pills { margin: 8px 4px 2px; }
 
   /* scroll reveal */
   .reveal { opacity: 0; translate: 0 26px; transition: opacity .8s var(--ease-out), translate .8s var(--ease-out); transition-delay: var(--rd, 0ms); }
@@ -561,7 +563,7 @@
     .toolbar h2 { font-size: 32px; }
   }
   @media print {
-    .banner, .index-view, .recipe-nav, .share-dialog, .pager, .recipe-hero .art { display: none !important; }
+    .banner, .index-view, .recipe-nav, .share-dialog, .recipe-hero .art { display: none !important; }
     .recipe-view footer { padding-top: 32px; color: #555; }
     .recipe-view footer .sign { color: #000; }
     .recipe-view footer .sign-avatar { box-shadow: 0 0 0 2px #000; }
@@ -602,13 +604,13 @@
   <main class="wrap">
     <div id="sampleNote"></div>
     <div class="toolbar">
-      <h2><i class="sec-ic" id="h2Icon"></i>All the recipes <span id="count"></span></h2>
+      <h2><i class="sec-ic" id="h2Icon"></i>All bakes <span id="count"></span></h2>
       <div class="controls">
         <label class="search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input id="q" type="search" placeholder="Search recipes or ingredients…" aria-label="Search recipes">
+          <input id="q" type="search" placeholder="Search cakes, ingredients…" aria-label="Search">
         </label>
-        <select id="sort" aria-label="Sort recipes">
+        <select id="sort" aria-label="Sort">
           <option value="az">A → Z</option>
           <option value="new">Recent</option>
         </select>
@@ -626,7 +628,7 @@
     <div class="wrap recipe-nav">
       <a class="btn" href="#">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        All recipes
+        All bakes
       </a>
       <div style="display:flex;gap:10px">
         <button class="btn" type="button" data-share aria-haspopup="dialog">
@@ -641,9 +643,8 @@
     </div>
     <div class="wrap recipe-hero">
       <div>
-        <p class="eyebrow">Recipe</p>
         <h1 id="rTitle"></h1>
-        <div class="dates" id="rDates"></div>
+        <ul class="pills" id="rPills"></ul>
       </div>
       <div class="art" id="rArt"></div>
     </div>
@@ -654,21 +655,17 @@
       <div class="label"><i class="sec-ic" id="labelIcon"></i>Bake along</div>
       <div class="ck-meta">
         <span class="ck-count" id="ckCount" aria-live="polite"></span>
-        <button class="btn ck-reset" id="ckReset" type="button" title="Untick every box on this recipe (only on this device)">
+        <button class="btn ck-reset" id="ckReset" type="button" title="Untick every step">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
           Reset
         </button>
       </div>
       <div class="ck-bar" aria-hidden="true"><i id="ckBar"></i></div>
-      <p class="ck-hint">Tick things off as you go. Your ticks are saved only in this browser and nobody else sees them.</p>
+      <p class="ck-hint">Tick steps off as you go. Saved on this device only.</p>
     </div>
     <div class="checklist" id="rChecklist"></div>
-    <details class="as-written" id="asWritten">
-      <summary>Show the note as written</summary>
-      <div class="note" id="rBody"></div>
-    </details>
+    <div class="note as-written" id="rBody" hidden></div>
   </div>
-  <nav class="pager" id="pager"></nav>
   <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" loading="lazy" onerror="this.replaceWith(this.alt)"></span>Baked with love · <time id="recipeDate"></time></footer>
 </article>
 
@@ -734,14 +731,38 @@
   const looksLikeHTML = (s) => /<\/?(div|p|br|ul|ol|li|b|i|h\d|span|table)\b/i.test(s);
   const plainText = (html) => { const d = document.createElement("div"); d.innerHTML = html.replace(/<(br|\/div|\/p|\/li|\/h\d)>/gi, "$&\n"); return d.textContent; };
 
+  /* A title like "Chocolate Banana - 8 Inch Round" or "Mousse Cake (8-inch, 7 Layers)" carries the pan size in it.
+     Split that off: the page shows the plain name, and the size parts become pills under the cake. */
+  const SIZE_PART = /\d\s*(?:-\s*)?(?:inch(?:es)?|in\b|cm\b|layers?\b|["″])|^\d+\s*[x×]$/i;
+  const fmtSize = (p) => {
+    p = p.trim().toLowerCase().replace(/(\d)\s*[x×]\s*(\d)/g, "$1×$2").replace(/(\d)\s*-?\s*(?:inch(?:es)?|in\b|["″])/g, "$1-inch").replace(/\s+/g, " ");
+    const m = p.match(/^(\d+)\s*[x×]$/);
+    if (m) return "Makes " + m[1];
+    return p.charAt(0).toUpperCase() + p.slice(1);
+  };
+  function splitTitle(t) {
+    let name = String(t || "").trim();
+    const sizes = [];
+    for (;;) {
+      const m = name.match(/\s*\(([^()]+)\)\s*$/) || name.match(/\s+[-–—]\s+([^-–—()]+)$/);
+      if (!m) break;
+      const parts = m[1].split(",").map((x) => x.trim()).filter(Boolean);
+      if (!parts.length || !parts.every((x) => SIZE_PART.test(x))) break;
+      sizes.unshift(...parts.map(fmtSize));
+      name = name.slice(0, m.index).trim();
+    }
+    return { name: name || String(t || ""), sizes };
+  }
+
   RECIPES.forEach((r) => {
     r.body = r.body || "";
+    Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
     r.isHTML = looksLikeHTML(r.body);
     r.text = r.isHTML ? plainText(r.body) : r.body;
     // Card blurb: the recipe's own description of the cake. Recipes without one get a short line
     // about the cake rather than the first lines of the note (which are usually the ingredient list).
     r.description = String(r.description || "").trim();
-    r.teaser = r.description || `A homemade ${r.title.toLowerCase()}, baked from scratch and written down just the way I make it.`;
+    r.teaser = r.description || `A homemade ${r.name.toLowerCase()}, baked from scratch and written down just the way I make it.`;
     r.search = (r.title + " " + r.description + " " + r.text).toLowerCase();
     // The cake's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
@@ -1014,7 +1035,7 @@
     const n = RECIPES.length;
     const newest = [...RECIPES].sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))[0];
     $("#stats").innerHTML =
-      `<div class="stat"><b data-count>${n}</b><span>recipe${n === 1 ? "" : "s"}</span></div>` +
+      `<div class="stat"><b data-count>${n}</b><span>bake${n === 1 ? "" : "s"}</span></div>` +
       (newest && newest.modified ? `<div class="stat"><b>${esc(fmtDate(newest.modified).split(",")[0])}</b><span>last updated</span></div>` : "");
 
     document.querySelectorAll("[data-count]").forEach(countUp);
@@ -1024,7 +1045,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.title)}</h3><small>${esc(firstSentence(r.teaser))}</small></div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.name)}</h3>${pillsHTML(r)}<small>${esc(firstSentence(r.teaser))}</small></div>`;
       i++;
     };
     show();
@@ -1035,16 +1056,16 @@
     const q = $("#q").value.trim().toLowerCase();
     const sort = $("#sort").value;
     let list = RECIPES.filter((r) => !q || q.split(/\s+/).every((w) => r.search.includes(w)));
-    list.sort(sort === "new" ? (a, b) => String(b.modified || "").localeCompare(String(a.modified || "")) : (a, b) => a.title.localeCompare(b.title));
+    list.sort(sort === "new" ? (a, b) => String(b.modified || "").localeCompare(String(a.modified || "")) : (a, b) => a.name.localeCompare(b.name));
     $("#count").textContent = q ? `${list.length} of ${RECIPES.length}` : `${RECIPES.length}`;
     $("#grid").innerHTML = list.length ? list.map((r, k) => `
       <a class="card tilt" href="${href(r)}">
         <div class="art" data-id="${esc(r.id)}">${artHTML(r)}</div>
         <div class="card-body">
-          <h3>${esc(r.title)}</h3>
+          <h3>${esc(r.name)}</h3>
+          ${pillsHTML(r)}
           <p>${esc(r.teaser)}</p>
           ${chipsHTML(r)}
-          <div class="meta">View recipe <span class="arr">→</span></div>
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
     reveal([...$("#grid").querySelectorAll(".card")]);
@@ -1146,6 +1167,24 @@
     time: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
   };
+  const PILL_ICO = {
+    size: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>',
+    layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
+    pieces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
+    date: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  };
+  // Pills under a cake's name: its size (from the title) and when it was first written down.
+  // Cards use a short month + year; the recipe page shows the full date.
+  function pillsHTML(r, full) {
+    const out = r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+    const d = toDate(r.created);
+    if (r.created && !isNaN(d)) {
+      const label = d.toLocaleDateString(undefined, full ? { year: "numeric", month: "long", day: "numeric" } : { year: "numeric", month: "short" });
+      out.push(`<li class="pill date" title="Released ${esc(fmtDate(r.created))}"><span class="sr">Released </span>${PILL_ICO.date}<time datetime="${esc(String(r.created).slice(0, 10))}">${esc(label)}</time></li>`);
+    }
+    return out.length ? `<ul class="pills">${out.join("")}</ul>` : "";
+  }
+
   function chipsHTML(r) {
     const a = analyze(r), c = [];
     if (a.temp) c.push(`<span class="chip">${ICO.temp}${esc(a.temp.label)}</span>`);
@@ -1566,10 +1605,11 @@
   const TICK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function renderChecklist(r, root) {
-    const host = $("#rChecklist"), top = $("#ckTop"), aw = $("#asWritten");
+    const host = $("#rChecklist"), top = $("#ckTop"), note = $("#rBody");
     const s = structure(r, root);
-    if (s.count < 2) { host.innerHTML = ""; top.classList.add("hidden"); aw.classList.add("only"); aw.open = true; return; }
-    top.classList.remove("hidden"); aw.classList.remove("only"); aw.open = false;
+    // A note that can't be read into steps is shown as it is instead.
+    if (s.count < 2) { host.innerHTML = ""; top.classList.add("hidden"); note.hidden = false; return; }
+    top.classList.remove("hidden"); note.hidden = true;
     const used = new Map();
     const keyFor = (kind, stage, text) => { const base = `${kind}|${stage || ""}|${text}`; const k = used.get(base) || 0; used.set(base, k + 1); return hash(base + "#" + k).toString(36); };
     const item = (kind, stage, l, num) => {
@@ -1632,14 +1672,11 @@
 
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
-    const sorted = [...RECIPES].sort((a, b) => a.title.localeCompare(b.title));
-    const idx = sorted.findIndex((r) => r.id === id);
-    if (idx < 0) { location.hash = ""; return; }
-    const r = sorted[idx];
-    document.title = r.title + " · Bakery with Alborz";
-    $("#rTitle").textContent = r.title;
-    const c = fmtDate(r.created), m = fmtDate(r.modified);
-    $("#rDates").textContent = c ? (m && m !== c ? `Written ${c} · updated ${m}` : `Written ${c}`) : "";
+    const r = RECIPES.find((x) => x.id === id);
+    if (!r) { location.hash = ""; return; }
+    document.title = r.name + " · Bakery with Alborz";
+    $("#rTitle").textContent = r.name;
+    $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     $("#rArt").innerHTML = artHTML(r, true);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
     renderGlance(r);
@@ -1656,10 +1693,6 @@
     else src.innerHTML = r.body.split("\n").map((l) => `<div>${esc(l)}</div>`).join("");
     renderChecklist(r, src);
     boldQuantities(body);
-    const prev = sorted[(idx - 1 + sorted.length) % sorted.length], next = sorted[(idx + 1) % sorted.length];
-    $("#pager").innerHTML = sorted.length > 1
-      ? `<a class="prev" href="${href(prev)}"><small>← Previous</small><span>${esc(prev.title)}</span></a><a class="next" href="${href(next)}"><small>Next →</small><span>${esc(next.title)}</span></a>`
-      : "";
     document.body.classList.add("viewing");
     window.scrollTo(0, 0);
   }
@@ -1680,8 +1713,6 @@
   document.addEventListener("keydown", (e) => {
     if (!document.body.classList.contains("viewing") || shareDialog.open) return;
     if (e.key === "Escape") location.hash = "";
-    if (e.key === "ArrowLeft") $("#pager .prev")?.click();
-    if (e.key === "ArrowRight") $("#pager .next")?.click();
   });
 
   /* ---------- Share ----------
@@ -1710,7 +1741,7 @@
   function currentShare() {
     const viewing = document.body.classList.contains("viewing");
     const title = viewing ? `${$("#rTitle").textContent} · Bakery with Alborz` : "Bakery with Alborz";
-    return { url: location.href, title, heading: viewing ? "Share this recipe" : "Share Bakery with Alborz" };
+    return { url: location.href, title, heading: viewing ? `Share ${$("#rTitle").textContent}` : "Share Bakery with Alborz" };
   }
 
   function openShare() {
