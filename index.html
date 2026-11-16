@@ -749,7 +749,7 @@
   .feature.rot .feature-fade::after {
     content: ""; position: absolute; left: 22px; right: 22px; bottom: 9px; height: 3px; border-radius: 3px;
     background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: .55;
-    transform-origin: 0 50%; animation: featTimer 6s linear both; transition: opacity .3s;
+    transform-origin: 0 50%; animation: featTimer 9s linear both; transition: opacity .3s;
   }
   .feature.rot:hover .feature-fade::after, .feature.rot:focus-visible .feature-fade::after { opacity: 0; } /* it waits while you look */
   @keyframes featTimer { from { transform: scaleX(0); } }
@@ -1499,7 +1499,7 @@
     if (n > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
       $("#feature").classList.add("rot"); // shows the thin timer along the card's bottom edge
       // it waits while you are looking at it (hover or keyboard focus), so the cake never changes under your click
-      setInterval(() => { if (!document.body.classList.contains("viewing") && !$("#feature").matches(":hover, :focus-visible")) show(); }, 6000);
+      setInterval(() => { if (!document.body.classList.contains("viewing") && !$("#feature").matches(":hover, :focus-visible")) show(); }, 9000);
     }
   }
 
