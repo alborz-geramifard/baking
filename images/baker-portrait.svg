@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="102 64 820 820" width="1024" height="1024">
+  <!-- Anime-style baker portrait (source for baker-portrait.webp). No glasses. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#fff3e0"/>
+      <stop offset=".55" stop-color="#ffd9ad"/>
+      <stop offset="1" stop-color="#f0a877"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7d2b0"/>
+      <stop offset="1" stop-color="#eebc93"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="50%" cy="65%" r="60%">
+      <stop offset="0" stop-color="#b8743f"/>
+      <stop offset=".6" stop-color="#7a4321"/>
+      <stop offset="1" stop-color="#3e1f0e"/>
+    </radialGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a8ad6"/>
+      <stop offset="1" stop-color="#3a66b0"/>
+    </linearGradient>
+    <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eee8f2"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3330"/>
+      <stop offset="1" stop-color="#231e1c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g fill="#fff" opacity=".85">
+    <path d="M150 230 l10 28 28 10 -28 10 -10 28 -10 -28 -28 -10 28 -10z"/>
+    <path d="M860 300 l7 20 20 7 -20 7 -7 20 -7 -20 -20 -7 20 -7z"/>
+    <path d="M820 640 l9 24 24 9 -24 9 -9 24 -9 -24 -24 -9 24 -9z"/>
+    <path d="M200 620 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z"/>
+  </g>
+  <g fill="#fff" opacity=".5">
+    <circle cx="240" cy="160" r="6"/><circle cx="790" cy="190" r="5"/>
+    <circle cx="120" cy="460" r="4"/><circle cx="900" cy="500" r="6"/>
+  </g>
+
+  <!-- shirt / shoulders -->
+  <path d="M150 1024 C170 905 280 850 430 822 L594 822 C744 850 854 905 874 1024 Z" fill="url(#shirt)" stroke="#2a3f6b" stroke-width="6" stroke-linejoin="round"/>
+  <!-- apron straps + bib -->
+  <path d="M432 824 L392 1024 L440 1024 L470 830 Z" fill="#fbf1e1" stroke="#7b5a3c" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M592 824 L632 1024 L584 1024 L554 830 Z" fill="#fbf1e1" stroke="#7b5a3c" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M370 960 L654 960 L664 1024 L360 1024 Z" fill="#fbf1e1" stroke="#7b5a3c" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M512 1006 C490 990 476 978 484 966 C492 956 506 960 512 970 C518 960 532 956 540 966 C548 978 534 990 512 1006 Z" fill="#c0573f"/>
+
+  <!-- neck -->
+  <path d="M458 690 L458 810 Q512 850 566 810 L566 690 Z" fill="#e8b089" stroke="#5a3424" stroke-width="5"/>
+  <path d="M458 730 Q512 790 566 730 L566 700 L458 700 Z" fill="#cf9470" opacity=".7"/>
+  <!-- collar -->
+  <path d="M430 822 Q512 880 594 822" fill="none" stroke="#2a4f94" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- back/side hair (grey temples) -->
+  <path d="M332 300 C312 340 318 380 326 410 C314 430 322 470 344 500 L680 500 C702 470 710 430 698 410 C706 380 712 340 692 300 Z" fill="#8f8984" stroke="#120d0b" stroke-width="6" stroke-linejoin="round"/>
+  <g fill="none" stroke="#5f5955" stroke-width="4" stroke-linecap="round">
+    <path d="M336 340 q10 30 6 60"/><path d="M688 340 q-10 30 -6 60"/>
+    <path d="M334 430 q12 24 22 40"/><path d="M690 430 q-12 24 -22 40"/>
+  </g>
+  <!-- ears -->
+  <g stroke="#5a3424" stroke-width="5" fill="#f2c39d">
+    <path d="M362 470 C330 460 322 500 330 532 C338 566 356 585 376 580 Z"/>
+    <path d="M662 470 C694 460 702 500 694 532 C686 566 668 585 648 580 Z"/>
+  </g>
+  <path d="M352 500 q-8 22 6 50" fill="none" stroke="#c98a66" stroke-width="5" stroke-linecap="round"/>
+  <path d="M672 500 q8 22 -6 50" fill="none" stroke="#c98a66" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- face -->
+  <path id="face" d="M362 400 C356 540 382 640 446 712 Q486 756 512 760 Q538 756 578 712 C642 640 668 540 662 400 C660 300 364 300 362 400 Z" fill="url(#skin)" stroke="#5a3424" stroke-width="6" stroke-linejoin="round"/>
+  <!-- cheek shading -->
+  <path d="M372 560 C385 640 420 690 462 724 C420 700 384 650 372 560 Z" fill="#e2a37f" opacity=".6"/>
+  <path d="M652 560 C639 640 604 690 562 724 C604 700 640 650 652 560 Z" fill="#e2a37f" opacity=".6"/>
+  <!-- light stubble along jaw -->
+  <path d="M392 600 C410 670 450 715 512 742 C574 715 614 670 632 600 C620 660 580 700 512 724 C444 700 404 660 392 600 Z" fill="#9a8f88" opacity=".22"/>
+
+  <!-- blush -->
+  <ellipse cx="420" cy="590" rx="34" ry="14" fill="#f08f86" opacity=".38"/>
+  <ellipse cx="604" cy="590" rx="34" ry="14" fill="#f08f86" opacity=".38"/>
+
+  <!-- goatee & mustache (salt-and-pepper: darker on top, white on the chin) -->
+  <linearGradient id="beard" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5e5752"/>
+    <stop offset=".35" stop-color="#7f7873"/>
+    <stop offset=".6" stop-color="#bdb8b3"/>
+    <stop offset="1" stop-color="#e2ded9"/>
+  </linearGradient>
+  <path d="M450 646 C464 620 496 618 512 628 C528 618 560 620 574 646 C576 680 566 712 548 736 C536 750 524 757 512 757 C500 757 488 750 476 736 C458 712 448 680 450 646 Z" fill="url(#beard)" stroke="#6b6460" stroke-width="3" stroke-linejoin="round"/>
+  <!-- skin showing between mustache and chin -->
+  <path d="M468 654 C490 644 534 644 556 654 C554 690 536 706 512 706 C488 706 470 690 468 654 Z" fill="#efbf98"/>
+  <g stroke="#8d8781" stroke-width="3" stroke-linecap="round" fill="none" opacity=".85">
+    <path d="M494 722 l4 18"/><path d="M512 718 l0 24"/><path d="M530 722 l-4 18"/>
+    <path d="M462 640 l10 4"/><path d="M562 640 l-10 4"/><path d="M490 630 l6 6"/><path d="M534 630 l-6 6"/>
+  </g>
+  <!-- mouth: warm smile -->
+  <path d="M474 664 Q512 694 550 664" fill="none" stroke="#5a2a1e" stroke-width="6" stroke-linecap="round"/>
+  <path d="M492 674 Q512 686 532 674 Q512 680 492 674 Z" fill="#b5504a" opacity=".6"/>
+
+  <!-- nose -->
+  <path d="M520 560 Q530 594 512 606" fill="none" stroke="#b97355" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="506" cy="574" rx="6" ry="14" fill="#fff" opacity=".45"/>
+
+  <!-- eyes -->
+  <g id="eyeL">
+    <path d="M394 518 Q440 488 488 512 Q484 548 444 554 Q404 552 394 518 Z" fill="#fff"/>
+    <clipPath id="clipL"><path d="M394 518 Q440 488 488 512 Q484 548 444 554 Q404 552 394 518 Z"/></clipPath>
+    <g clip-path="url(#clipL)">
+      <circle cx="444" cy="526" r="30" fill="url(#iris)"/>
+      <circle cx="444" cy="528" r="13" fill="#1f0f07"/>
+      <path d="M394 500 L494 500 L494 518 Q440 504 394 524 Z" fill="#000" opacity=".18"/>
+    </g>
+    <circle cx="434" cy="516" r="8" fill="#fff"/>
+    <circle cx="455" cy="538" r="4" fill="#fff" opacity=".9"/>
+    <path d="M386 522 Q436 480 494 508" fill="none" stroke="#1d1411" stroke-width="10" stroke-linecap="round"/>
+    <path d="M392 520 l-14 -12" stroke="#1d1411" stroke-width="7" stroke-linecap="round"/>
+    <path d="M410 552 Q444 562 478 546" fill="none" stroke="#6b3a28" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g id="eyeR">
+    <path d="M630 518 Q584 488 536 512 Q540 548 580 554 Q620 552 630 518 Z" fill="#fff"/>
+    <clipPath id="clipR"><path d="M630 518 Q584 488 536 512 Q540 548 580 554 Q620 552 630 518 Z"/></clipPath>
+    <g clip-path="url(#clipR)">
+      <circle cx="580" cy="526" r="30" fill="url(#iris)"/>
+      <circle cx="580" cy="528" r="13" fill="#1f0f07"/>
+      <path d="M630 500 L530 500 L530 518 Q584 504 630 524 Z" fill="#000" opacity=".18"/>
+    </g>
+    <circle cx="570" cy="516" r="8" fill="#fff"/>
+    <circle cx="591" cy="538" r="4" fill="#fff" opacity=".9"/>
+    <path d="M638 522 Q588 480 530 508" fill="none" stroke="#1d1411" stroke-width="10" stroke-linecap="round"/>
+    <path d="M632 520 l14 -12" stroke="#1d1411" stroke-width="7" stroke-linecap="round"/>
+    <path d="M614 552 Q580 562 546 546" fill="none" stroke="#6b3a28" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- eyebrows: thick, friendly -->
+  <path d="M392 476 Q430 448 484 462 L482 476 Q432 466 396 488 Z" fill="#2a2320" stroke="#1d1411" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M632 476 Q594 448 540 462 L542 476 Q592 466 628 488 Z" fill="#2a2320" stroke="#1d1411" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- hair: wavy anime bangs, dark on top with grey at the sides -->
+  <path d="M342 300 C336 360 346 420 366 474 Q374 436 390 412 Q398 442 420 456 Q428 414 450 392 Q466 432 494 444 Q498 404 516 384 Q534 424 562 434 Q566 398 584 388 Q604 424 628 442 Q636 414 640 402 Q652 432 658 474 C678 420 688 360 682 300 Z" fill="url(#hair)" stroke="#120d0b" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M342 300 C336 360 346 420 366 474 Q372 446 382 424 C366 390 360 340 364 300 Z" fill="#8f8984" stroke="#120d0b" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M682 300 C688 360 678 420 658 474 Q652 446 642 424 C658 390 664 340 660 300 Z" fill="#8f8984" stroke="#120d0b" stroke-width="4" stroke-linejoin="round"/>
+  <!-- hair shine & grey strands -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M430 330 q30 -14 60 -6" stroke="#6d6460" stroke-width="7"/>
+    <path d="M540 326 q30 -8 56 6" stroke="#6d6460" stroke-width="7"/>
+    <path d="M450 392 q-6 -30 -2 -56" stroke="#8c8580" stroke-width="4"/>
+    <path d="M584 388 q6 -30 2 -54" stroke="#8c8580" stroke-width="4"/>
+    <path d="M420 452 q-12 -40 -8 -80" stroke="#8c8580" stroke-width="3"/>
+    <path d="M626 438 q10 -40 6 -76" stroke="#8c8580" stroke-width="3"/>
+    <path d="M516 384 q-4 -24 0 -46" stroke="#5b524e" stroke-width="4"/>
+  </g>
+
+  <!-- chef hat -->
+  <path d="M368 318 L368 250 C300 236 280 150 336 110 C372 84 420 92 440 116 C456 64 568 64 584 116 C604 92 652 84 688 110 C744 150 724 236 656 250 L656 318 Z" fill="url(#hat)" stroke="#5c4a5e" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M440 116 C446 150 444 190 432 234" fill="none" stroke="#d8cfe0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M584 116 C578 150 580 190 592 234" fill="none" stroke="#d8cfe0" stroke-width="6" stroke-linecap="round"/>
+  <path d="M512 92 L512 230" fill="none" stroke="#e4ddea" stroke-width="5" stroke-linecap="round"/>
+  <path d="M356 262 Q512 236 668 262 L672 322 Q512 298 352 322 Z" fill="#ffffff" stroke="#5c4a5e" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M380 296 Q512 278 644 296" fill="none" stroke="#e8e1ee" stroke-width="5" stroke-linecap="round"/>
+</svg>
