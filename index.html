@@ -219,6 +219,27 @@
   .layer-stack[hidden] { display: none; }
   .layer-stack svg { width: 15px; height: 15px; flex: none; margin-top: 3px; color: var(--accent); }
   .layer-stack b { font-weight: 600; }
+  /* Credits: recipes I adapted from someone else's, with the source's own icon */
+  .credits { margin-top: 22px; }
+  .credits:empty { display: none; }
+  .credits h2 { font-family: var(--sans); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 10px; }
+  .credit-why { margin: 0 0 12px; color: var(--ink-soft); font-size: 14.5px; }
+  .credits ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 520px; }
+  .credit {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border-radius: 16px;
+    background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+    transition: border-color .2s, transform .2s;
+  }
+  a.credit:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .credit-ico { width: 40px; height: 40px; border-radius: 50%; flex: none; object-fit: cover; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+  .credit-ico.none { display: grid; place-items: center; font-family: var(--serif); font-size: 19px; color: var(--accent); background: var(--bg-2); }
+  .credit b { display: block; font-weight: 600; font-size: 15px; }
+  .credit small { display: block; color: var(--ink-soft); font-size: 13px; line-height: 1.35; margin-top: 1px; }
+  .credit .go { margin-left: auto; color: var(--ink-soft); flex: none; }
+  .credit-line { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); }
+  .credit-line img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+  .credit-line img + img { margin-left: -12px; }
+  @media print { .credits .go { display: none; } .credit small::after { content: " · " attr(data-url); } }
   .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
 
   .recipe-card {
@@ -712,6 +733,7 @@
         <h1 id="rTitle"></h1>
         <ul class="pills" id="rPills"></ul>
         <p class="layer-stack" id="rLayers" hidden></p>
+        <section class="credits" id="rCredits" aria-label="Credits"></section>
       </div>
       <div class="art" id="rArt"></div>
     </div>
@@ -882,7 +904,25 @@
     // The cake's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
     r.photo = src && safeImg(src) ? src : "";
+    // Credits for recipes adapted from someone else's: [{ name, url, icon, note }], written by hand in recipes.js.
+    r.credits = (Array.isArray(r.credits) ? r.credits : [])
+      .map((c) => ({ name: String(c?.name || "").trim(), note: String(c?.note || "").trim(),
+        url: /^https?:\/\//i.test(c?.url || "") ? c.url : "", icon: c?.icon && safeImg(c.icon) ? c.icon : "" }))
+      .filter((c) => c.name);
+    r.search += r.credits.map((c) => " " + c.name.toLowerCase()).join("");
   });
+
+  /* Credits: a short "After Flour Bakery + Café" line on the card, and the full list on the recipe page. */
+  const creditIcon = (c, cls) => c.icon
+    ? `<img class="${cls}" src="${esc(c.icon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
+    : (cls === "credit-ico" ? `<span class="credit-ico none" aria-hidden="true">${esc(c.name[0])}</span>` : "");
+  const creditLineHTML = (r) => r.credits.length
+    ? `<span class="credit-line">${r.credits.map((c) => creditIcon(c, "")).join("")}<span>Adapted from ${esc(r.credits[0].name)}</span></span>` : "";
+  const GO_ICO = '<svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>';
+  const creditsHTML = (r) => r.credits.length ? `<h2>With credit to</h2><p class="credit-why">This is my own interpretation. The original recipe is theirs.</p><ul>${r.credits.map((c) => {
+    const inner = `${creditIcon(c, "credit-ico")}<span><b>${esc(c.name)}</b>${c.note ? `<small data-url="${esc(c.url)}">${esc(c.note)}</small>` : ""}</span>`;
+    return `<li>${c.url ? `<a class="credit" href="${esc(c.url)}" target="_blank" rel="noopener">${inner}${GO_ICO}</a>` : `<div class="credit">${inner}</div>`}</li>`;
+  }).join("")}</ul>` : "";
 
   /* The recipe's name as HTML: English, then the Farsi name (if any) in parentheses in a Farsi font. */
   const nameHTML = (r) => esc(r.name) + (r.fa ? ` <span class="fa-paren">(<bdi class="fa" lang="fa" dir="rtl">${esc(r.fa)}</bdi>)</span>` : "");
@@ -1187,6 +1227,7 @@
           <h3>${nameHTML(r)}</h3>
           ${dateTopHTML(r)}
           <p>${esc(r.teaser)}</p>
+          ${creditLineHTML(r)}
           ${bottomPillsHTML(r)}
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1">No recipes match “${esc(q)}”.</div>`;
@@ -2127,6 +2168,7 @@
     ls.hidden = !(r.layerInfo && r.layerInfo.stack);
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span><b>${esc(r.layerInfo.label)}:</b> ${esc(r.layerInfo.stack)}</span>`;
     $("#rArt").innerHTML = artHTML(r, true);
+    $("#rCredits").innerHTML = creditsHTML(r);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
     renderGlance(r);
     setDate($("#recipeDate"), r.modified || r.created);

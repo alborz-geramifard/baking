@@ -259,22 +259,19 @@ def from_dir(spec):
     return recipes
 
 
-KEPT_FIELDS = ("description", "layers")
+KEPT_FIELDS = ("description", "layers", "credits")  # written by hand in recipes.js, not in the notes
 
 
 def existing_extras(out):
-    """Hand-written fields already in recipes.js (card description, layer count), keyed by lower-cased title.
+    """Hand-written fields already in recipes.js (card description, layer count, source credits), keyed by
+    lower-cased title.
 
     Notes don't carry these, so re-importing keeps the ones written by hand."""
     try:
         text = out.read_text(encoding="utf-8")
         start, end = text.index("["), text.rindex("]") + 1
-        kept = {}
-        for r in json.loads(text[start:end]):
-            extra = {k: r[k] for k in KEPT_FIELDS if r.get(k)}
-            if extra:
-                kept[clean_title(str(r.get("title", ""))).lower()] = extra
-        return kept
+        return {clean_title(str(r.get("title", ""))).lower(): {k: r[k] for k in KEPT_FIELDS if r.get(k)}
+                for r in json.loads(text[start:end])}
     except (OSError, ValueError, TypeError, AttributeError):
         return {}
 
@@ -374,7 +371,9 @@ def write(recipes, out):
                    "// Add a \"description\" to any recipe for its card blurb (about the recipe, not its ingredients);\n"
                    "// Add \"layers\" ({min, max, stack}) for a layered cake's layer pill; it counts every layer once the\n"
                    "// sponge is sliced (2-3 slices give a range) plus fillings and toppings.\n"
-                   "// descriptions and layers are kept when the script is re-run.\n"
+                   "// Add \"credits\" to a recipe adapted from someone else's: a list of\n"
+                   "// {\"name\", \"url\", \"icon\", \"note\"} (icon = a file in images/sources/).\n"
+                   "// descriptions, layers and credits are kept when the script is re-run.\n"
                    "window.RECIPES = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
                    encoding="utf-8")
     print(f"Wrote {len(data)} recipes to {out}")
