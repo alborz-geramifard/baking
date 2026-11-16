@@ -1376,6 +1376,8 @@
     if (pendingHead && /:\s*\S/.test(pendingHead)) tips.push(esc(pendingHead));
     // stage letters: A, B, C… when the instructions have more than one part
     const multi = stages.length > 1;
+    // one stage that only inherited the last ingredient heading ("Wet") needs no name
+    if (!multi && stages[0] && ing.some((g) => g.name === stages[0].name)) stages[0].name = null;
     stages.forEach((s, i) => { s.letter = multi ? String.fromCharCode(65 + (i % 26)) : ""; });
     // an ingredient group that matches a stage's name gets the same letter
     const words = (s) => new Set(String(s || "").toLowerCase().split(/[^\p{L}]+/u).filter((w) => w.length > 2 && !/^(the|and|for|with|layer|part|cake)$/.test(w)));
