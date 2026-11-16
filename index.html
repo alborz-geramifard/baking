@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=Vazirmatn:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #fbf6ef;
@@ -411,6 +411,9 @@
   .share-link .btn.copied { border-color: #5f9a5a; color: #5f9a5a; }
   @media (max-width: 420px) { .share-grid { grid-template-columns: repeat(3, 1fr); } }
 
+  /* The Farsi half of a bilingual name, e.g. "Walnut Cookies (شیرینی گردویی)". */
+  .fa { font-family: "Vazirmatn", "Noto Naskh Arabic", "Geeza Pro", Tahoma, sans-serif; font-style: normal; font-weight: inherit; letter-spacing: 0; font-size: .92em; }
+  .fa-paren { white-space: nowrap; }
   footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 0 0 40px; font-family: var(--serif); font-style: italic; }
   footer .sign { display: block; font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-style: normal; font-weight: 700; font-size: 40px; line-height: 1; color: var(--accent); transform: rotate(-4deg); margin-bottom: 10px; }
   footer .sign::after { content: ""; display: block; width: 74px; height: 2px; margin: 4px auto 0; border-radius: 2px; background: var(--accent-2); opacity: .7; }
@@ -804,6 +807,12 @@
   // Titles are compared ignoring case, punctuation/dash style and extra spaces.
   const titleKey = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const HIDDEN = new Set(["Dessert Tricks", "Opera Cake - Louise Lindberg", "Australia Trip", "Less shakiness on videos (up down, left, right)"].map(titleKey));
+  // Persian bakes get a plain English name with the Farsi name after it in parentheses.
+  // Keyed by the note's title (same matching as above), so the names survive re-importing from Notes.
+  const NAMES = new Map([
+    ["Walnut Persian Cookie", { en: "Walnut Cookies", fa: "شیرینی گردویی" }],
+    ["Shirini Nargili Irani (Persian Coconut Cookies)", { en: "Coconut Cookies", fa: "شیرینی نارگیلی" }],
+  ].map(([t, v]) => [titleKey(t), v]));
   const RECIPES = (window.RECIPES || [])
     .filter((r) => !HIDDEN.has(titleKey(r.title)))
     .map((r, i) => ({ ...r, id: r.id || "recipe-" + i }));
@@ -861,17 +870,27 @@
     }
     return { name: name || String(t || ""), sizes };
   }
+  /* Cakes whose title gives no pan size are 8-inch: that's the pan these recipes are made in.
+     Bundt, square and mold cakes are left alone, since their notes call for a different pan. */
+  const PAN_SIZE = /inch|cm|×/i;
+  const DEFAULT_SIZE = "8-inch";
+  const assumesDefaultSize = (title, sizes) =>
+    /\bcake\b|cheesecake/i.test(title) && !/bundt|square|mold|mould|entreme/i.test(title) && !sizes.some((s) => PAN_SIZE.test(s));
 
   RECIPES.forEach((r) => {
     r.body = r.body || "";
     Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
+    r.sizeAssumed = assumesDefaultSize(r.title, r.sizes);
+    if (r.sizeAssumed) r.sizes.unshift(DEFAULT_SIZE);
+    const alias = NAMES.get(titleKey(r.title));
+    if (alias) { r.name = alias.en; r.fa = alias.fa; }
     r.isHTML = looksLikeHTML(r.body);
     r.text = r.isHTML ? plainText(r.body) : r.body;
     // Card blurb: the recipe's own description of the cake. Recipes without one get a short line
     // about the cake rather than the first lines of the note (which are usually the ingredient list).
     r.description = String(r.description || "").trim();
     r.teaser = r.description || `A homemade ${r.name.toLowerCase()}, baked from scratch and written down just the way I make it.`;
-    r.search = (r.title + " " + r.description + " " + r.text).toLowerCase();
+    r.search = (r.title + " " + r.name + " " + (r.fa || "") + " " + r.description + " " + r.text).toLowerCase();
     // The cake's own photo: the importer's "image" field, else the first picture in the note.
     const src = r.image || (r.isHTML && (r.body.match(/<img\b[^>]*?\ssrc\s*=\s*["']([^"']+)["']/i) || [])[1]);
     r.photo = src && safeImg(src) ? src : "";
@@ -894,6 +913,10 @@
     const inner = `${creditIcon(c, "credit-ico")}<span><b>${esc(c.name)}</b>${c.note ? `<small data-url="${esc(c.url)}">${esc(c.note)}</small>` : ""}</span>`;
     return `<li>${c.url ? `<a class="credit" href="${esc(c.url)}" target="_blank" rel="noopener">${inner}${GO_ICO}</a>` : `<div class="credit">${inner}</div>`}</li>`;
   }).join("")}</ul>` : "";
+
+  /* The recipe's name as HTML: English, then the Farsi name (if any) in parentheses in a Farsi font. */
+  const nameHTML = (r) => esc(r.name) + (r.fa ? ` <span class="fa-paren">(<bdi class="fa" lang="fa" dir="rtl">${esc(r.fa)}</bdi>)</span>` : "");
+  const nameText = (r) => r.name + (r.fa ? ` (${r.fa})` : "");
 
   /* The cake art: the recipe's photo when it has one, else the drawn cake (also used if the photo fails to load). */
   function artHTML(r, eager) {
@@ -1174,7 +1197,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${esc(r.name)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
+      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3>${dateTopHTML(r)}<small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
       i++;
     };
     show();
@@ -1191,7 +1214,7 @@
       <a class="card tilt" href="${href(r)}">
         <div class="art" data-id="${esc(r.id)}">${artHTML(r)}</div>
         <div class="card-body">
-          <h3>${esc(r.name)}</h3>
+          <h3>${nameHTML(r)}</h3>
           ${dateTopHTML(r)}
           <p>${esc(r.teaser)}</p>
           ${creditLineHTML(r)}
@@ -1405,7 +1428,7 @@
   };
   // Pills under a cake's name: its size (from the title) and when it was first written down.
   // Cards use a short month + year; the recipe page shows the full date.
-  const sizePills = (r) => r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+  const sizePills = (r) => r.sizes.map((s, i) => `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch pan"' : ""}>${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   function datePill(r, full) {
     const d = toDate(r.created);
     if (!r.created || isNaN(d)) return "";
@@ -2098,7 +2121,7 @@
     fxSteps = collectSteps();
     if (!fxSteps.length) return;
     fxIdx = fxSteps[0].cb.checked ? nextOpen(0) : 0;
-    $("#fxTitle").textContent = $("#rTitle").textContent;
+    $("#fxTitle").innerHTML = $("#rTitle").innerHTML;
     renderFocus();
     focusDialog.showModal();
     $("#fxGo").focus();
@@ -2123,10 +2146,12 @@
 
   /* ---------- Recipe ---------- */
   function showRecipe(id) {
-    const r = RECIPES.find((x) => x.id === id);
+    // A renamed recipe lists its old ids in "aliases", so links shared before the rename still open it.
+    const r = RECIPES.find((x) => x.id === id) || RECIPES.find((x) => (x.aliases || []).includes(id));
     if (!r) { location.hash = ""; return; }
-    document.title = r.name + " · Bakery with Alborz";
-    $("#rTitle").textContent = r.name;
+    if (r.id !== id) history.replaceState(null, "", "#/recipe/" + encodeURIComponent(r.id));
+    document.title = nameText(r) + " · Bakery with Alborz";
+    $("#rTitle").innerHTML = nameHTML(r);
     $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
     $("#rArt").innerHTML = artHTML(r, true);
     $("#rCredits").innerHTML = creditsHTML(r);
