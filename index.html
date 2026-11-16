@@ -73,17 +73,16 @@
     color: var(--accent); font-weight: 600; margin: 0 0 14px;
   }
   .banner h1 {
-    font-family: var(--serif); font-weight: 400; font-size: clamp(44px, 7vw, 84px);
-    line-height: .98; letter-spacing: -.02em; margin: 0 0 28px;
+    font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 5.2vw, 64px);
+    line-height: 1.05; letter-spacing: -.02em; margin: 0 0 28px; white-space: nowrap; color: var(--ink);
     font-variation-settings: "opsz" 144;
   }
-  .banner h1 em { font-style: italic; color: var(--accent); }
   .stats { display: flex; gap: 28px; flex-wrap: wrap; }
   .stat b { display: block; font-family: var(--serif); font-size: 34px; font-weight: 500; line-height: 1; }
   .stat span { font-size: 13px; color: var(--ink-soft); letter-spacing: .04em; }
 
   /* ---------- Baker portrait ---------- */
-  .baker { display: flex; align-items: center; gap: 18px; margin: 0 0 26px; }
+  .baker { display: flex; align-items: center; gap: 18px; margin: 0 0 64px; } /* room for the portrait's pop-out ring above the title */
   .baker-frame {
     position: relative; flex: none; width: clamp(132px, 18vw, 184px); aspect-ratio: 1;
     border-radius: 50%; padding: 6px;
@@ -507,14 +506,7 @@
   /* confetti specks when a burst icon pops */
   .burst i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; }
   .banner-inner { z-index: 1; }
-  .banner h1 em {
-    background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 30%, var(--accent) 55%, #b23a5a 80%, var(--accent) 100%);
-    background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: shimmer 9s ease-in-out infinite; padding-right: .08em;
-  }
-  @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
   .banner h1 .ln { display: inline-block; animation: rise .9s var(--ease-out) both; }
-  .banner h1 .ln + br + .ln { animation-delay: .12s; }
   @keyframes rise { from { opacity: 0; transform: translateY(.35em); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
   .stat b { font-variant-numeric: proportional-nums; }
 
@@ -632,7 +624,7 @@
   ::view-transition-group(cake-art) { animation-duration: .55s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
 
   @media (prefers-reduced-motion: reduce) {
-    .aurora i, .floaters span, .floaters span > svg, .banner h1 em, .art svg .steam path { animation: none !important; }
+    .aurora i, .floaters span, .floaters span > svg, .art svg .steam path { animation: none !important; }
     .reveal { opacity: 1; translate: none; transition: none; }
     .seg, .tile, .banner h1 .ln, .recipe-hero h1 { animation: none; }
     .tilt { --rx: 0deg !important; --ry: 0deg !important; }
@@ -656,6 +648,7 @@
   @media print { .glance, .progress, .tip { display: none !important; } body::after { display: none; } }
   @media (max-width: 860px) {
     .banner-inner { grid-template-columns: 1fr; padding-top: 48px; }
+    .banner h1 { font-size: clamp(30px, 7.6vw, 60px); }
     .feature { max-width: 420px; }
     .recipe-hero { grid-template-columns: 1fr; }
     .recipe-hero .art { max-width: 260px; order: -1; }
@@ -697,17 +690,6 @@
     animation: chIn .95s var(--spring) both; animation-delay: calc(var(--k) * 42ms + 150ms);
   }
   @keyframes chIn { from { opacity: 0; transform: translateY(.6em) rotate(calc(var(--tw, 1) * 12deg)) scale(.6); } }
-  /* the shimmer gradient runs across the whole word, so every letter carries its own slice of it
-     (--w: the word's width, --o: where this letter starts). Padding keeps italic overhangs from being clipped. */
-  .banner h1 em.split { background: none; animation: none; padding-right: 0; }
-  .banner h1 em.split .ch {
-    padding: .16em .14em; margin: -.16em -.14em;
-    background: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 30%, var(--accent) 55%, #b23a5a 80%, var(--accent) 100%);
-    background-size: calc(var(--w, 300px) * 2.2) 100%; background-position: calc(var(--o, 0px) * -1) 50%;
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: chIn .95s var(--spring) both, chShimmer 9s ease-in-out infinite; animation-delay: calc(var(--k) * 42ms + 150ms), 0s;
-  }
-  @keyframes chShimmer { 0%, 100% { background-position: calc(var(--o, 0px) * -1) 50%; } 50% { background-position: calc(var(--o, 0px) * -1 - var(--w, 300px) * 1.2) 50%; } }
 
   /* --- portrait: the ring slowly turns, the photo springs in, the speech bubble pops out after it --- */
   @property --ring { syntax: "<angle>"; inherits: false; initial-value: 200deg; }
@@ -855,7 +837,7 @@
   @media (max-width: 560px) { .banner-inner { padding-top: 68px; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .banner h1 .ch, .banner h1 em.split .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
+    .banner h1 .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
     .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg, .recipe-hero .pill, .recipe-hero .layer-stack,
     .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after, .fx-done .big,
     footer .sign-avatar, .card:hover .pill svg { animation: none !important; }
@@ -892,7 +874,7 @@
           </div>
           <figcaption>Hi! Let's bake together!</figcaption>
         </figure>
-        <h1><span class="ln"><em>Baking</em></span><br><span class="ln">with Alborz</span></h1>
+        <h1><span class="ln">Baking with Alborz</span></h1>
         <div class="stats" id="stats"></div>
       </div>
       <a class="feature tilt" id="feature" href="#"></a>
@@ -2080,7 +2062,8 @@
       if (layer.querySelectorAll("span").length > 24) return; // a few overlapping bursts at most
       const F = frame.getBoundingClientRect(), B = $("#banner").getBoundingClientRect();
       const cx = F.left + F.width / 2, cy = F.top + F.height / 2, R = frame.offsetWidth / 2;
-      const lo = { x: Math.max(B.left, 0) + 12 - cx, y: B.top + 12 - cy }, hi = { x: Math.min(B.right, innerWidth) - 12 - cx, y: B.bottom - 12 - cy };
+      const title = $("#banner h1")?.getBoundingClientRect(), floor = title && title.top > F.bottom ? Math.min(B.bottom, title.top) : B.bottom; // never drop onto the title
+      const lo = { x: Math.max(B.left, 0) + 12 - cx, y: B.top + 12 - cy }, hi = { x: Math.min(B.right, innerWidth) - 12 - cx, y: floor - 22 - cy };
       const order = [...NAMES].sort(() => Math.random() - .5), turn = Math.random() * 360, ring = R + 62, size0 = 40;
       const room = (deg) => { // distance from the centre to the banner edge along this direction
         const c = Math.cos(deg * Math.PI / 180), sn = Math.sin(deg * Math.PI / 180), along = (v, l, h) => (v > 0 ? h / v : v < 0 ? l / v : Infinity);
@@ -2132,11 +2115,6 @@
       host.innerHTML = host.textContent.trim().split(/\s+/).map((w) =>
         `<span class="wd">${[...w].map((c) => `<span class="ch" style="--k:${k++};--tw:${k % 2 ? 1 : -1}">${esc(c)}</span>`).join("")}</span>`).join(" ");
     });
-    // the gradient word: tell each letter where it sits so the shimmer reads as one sweep across the word
-    const em = h1.querySelector("em.split");
-    const measure = () => { if (!em || !em.offsetWidth) return; em.style.setProperty("--w", `${em.offsetWidth}px`); em.querySelectorAll(".ch").forEach((c) => c.style.setProperty("--o", `${c.offsetLeft - em.offsetLeft}px`)); };
-    measure(); document.fonts?.ready.then(measure);
-    if ("ResizeObserver" in window) new ResizeObserver(measure).observe(h1);
     h1.addEventListener("pointerover", (e) => hop(e.target.closest(".ch")));
   }
   function hop(ch, delay = 0) {
