@@ -493,11 +493,6 @@
   .legend li { display: inline-flex; align-items: center; gap: 7px; }
   .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
   .legend em { font-style: normal; color: var(--ink-soft); }
-  .comp details { margin-top: 10px; font-size: 13px; color: var(--ink-soft); }
-  .comp summary { cursor: pointer; width: fit-content; }
-  .comp table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; color: var(--ink); }
-  .comp td, .comp th { padding: 4px 14px 4px 0; text-align: left; border-bottom: 1px solid var(--line); }
-  .comp td:not(:first-child), .comp th:not(:first-child) { text-align: right; }
   .tip {
     position: fixed; z-index: 60; pointer-events: none; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 1.35;
     padding: 7px 10px; border-radius: 10px; box-shadow: var(--shadow-lift); opacity: 0; transform: translate(-50%, calc(-100% - 10px)); transition: opacity .15s;
@@ -1167,9 +1162,7 @@
       html += `<div class="comp"><div class="comp-head"><h3>What goes in, by weight</h3><small>ml counted as g, eggs ≈ 50 g</small></div>
         <div class="bar" role="list" aria-label="Ingredients by weight">${parts.map((x, i) =>
           `<div class="seg" role="listitem" tabindex="0" style="--w:${x.g};--c:var(--${x.slot});--ci:var(--${x.slot}-ink);--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent">${x.g / a.total >= 0.07 ? pct(x.g) + "%" : ""}</div>`).join("")}</div>
-        <ul class="legend">${parts.map((x) => `<li><i style="--c:var(--${x.slot})"></i>${esc(cap(x.name))}${x.g / a.total < 0.07 ? ` <em>${pct(x.g)}%</em>` : ""}</li>`).join("")}</ul>
-        <details><summary>Show as table</summary><table><thead><tr><th>Ingredient</th><th>Weight</th><th>Share</th></tr></thead><tbody>${a.items.map((x) =>
-          `<tr><td>${esc(cap(x.name))}</td><td>${fmtG(x.g)}</td><td>${pct(x.g)}%</td></tr>`).join("")}</tbody></table></details></div>`;
+        <ul class="legend">${parts.map((x) => `<li><i style="--c:var(--${x.slot})"></i>${esc(cap(x.name))}${x.g / a.total < 0.07 ? ` <em>${pct(x.g)}%</em>` : ""}</li>`).join("")}</ul></div>`;
     }
     const g = $("#glance");
     g.innerHTML = html;
