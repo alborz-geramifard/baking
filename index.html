@@ -215,6 +215,10 @@
   .recipe-hero .pills { margin-top: 18px; }
   .recipe-hero .pill { font-size: 13.5px; padding: 6px 13px 6px 10px; }
   .recipe-hero .pill svg { width: 15px; height: 15px; }
+  .layer-stack { display: flex; gap: 8px; align-items: flex-start; max-width: 52ch; margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .layer-stack[hidden] { display: none; }
+  .layer-stack svg { width: 15px; height: 15px; flex: none; margin-top: 3px; color: var(--accent); }
+  .layer-stack b { font-weight: 600; }
   .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
 
   .recipe-card {
@@ -696,6 +700,7 @@
       <div>
         <h1 id="rTitle"></h1>
         <ul class="pills" id="rPills"></ul>
+        <p class="layer-stack" id="rLayers" hidden></p>
       </div>
       <div class="art" id="rArt"></div>
     </div>
@@ -835,6 +840,11 @@
   RECIPES.forEach((r) => {
     r.body = r.body || "";
     Object.assign(r, (({ name, sizes }) => ({ name, sizes }))(splitTitle(r.title)));
+    // Layer count worked out from the recipe itself ("layers" in recipes.js: a sponge sliced into 2–3 plus the
+    // mousse, cream, crunch and ganache between and on top). It replaces any count in the title, which goes stale.
+    const L = r.layers && +r.layers.min > 0 ? r.layers : null;
+    r.layerInfo = L ? { label: `${L.min}${+L.max > +L.min ? "–" + L.max : ""} layers`, stack: String(L.stack || "") } : null;
+    if (r.layerInfo) r.sizes = r.sizes.filter((x) => !/layer/i.test(x));
     r.isHTML = looksLikeHTML(r.body);
     r.text = r.isHTML ? plainText(r.body) : r.body;
     // Card blurb: the recipe's own description of the cake. Recipes without one get a short line
@@ -1353,7 +1363,8 @@
   };
   // Pills under a cake's name: its size (from the title) and when it was first written down.
   // Cards use a short month + year; the recipe page shows the full date.
-  const sizePills = (r) => r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
+  const sizePills = (r) => [...r.sizes.map((s) => `<li class="pill size">${/layer/i.test(s) ? PILL_ICO.layers : /^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`),
+    ...(r.layerInfo ? [`<li class="pill size layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`] : [])];
   function datePill(r, full) {
     const d = toDate(r.created);
     if (!r.created || isNaN(d)) return "";
@@ -1992,6 +2003,9 @@
     document.title = r.name + " · Bakery with Alborz";
     $("#rTitle").textContent = r.name;
     $("#rPills").outerHTML = pillsHTML(r, true).replace('<ul class="pills">', '<ul class="pills" id="rPills">') || '<ul class="pills" id="rPills"></ul>';
+    const ls = $("#rLayers");
+    ls.hidden = !(r.layerInfo && r.layerInfo.stack);
+    ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span><b>${esc(r.layerInfo.label)}:</b> ${esc(r.layerInfo.stack)}</span>`;
     $("#rArt").innerHTML = artHTML(r, true);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
     renderGlance(r);
