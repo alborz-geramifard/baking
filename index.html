@@ -589,18 +589,6 @@
   .time-parts li { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .time-parts li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
   .tile .time-parts b { display: inline; font-size: 12.5px; font-weight: 600; color: var(--ink); }
-  /* "How it adds up": the steps behind each part of the total */
-  .time-how { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); }
-  .time-how summary { cursor: pointer; width: fit-content; color: var(--accent); font-weight: 600; }
-  .time-how ul { list-style: none; margin: 6px 0 0; padding: 0; max-width: 360px; }
-  .time-how li { display: flex; justify-content: space-between; gap: 14px; padding: 2px 0 2px 14px; }
-  .time-how li.grp { margin-top: 5px; padding-left: 0; color: var(--ink); font-weight: 600; }
-  .time-how li.grp span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; background: var(--c, transparent); }
-  .time-how li.sum { border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); padding-top: 5px; }
-  .time-how li.sum span::before { display: none; }
-  .tile .time-how b { display: inline; font-size: 12.5px; font-weight: 600; color: inherit; white-space: nowrap; }
-  .tiles:has(.time-how[open]) .tile { align-items: flex-start; }
-  @media print { .time-how > summary { display: none; } }
   .tile .arc { transition: stroke-dashoffset 1.2s var(--ease-out); }
   .tile .needle { transition: transform 1.2s var(--ease-out); transform-origin: 26px 30px; }
 
@@ -1560,10 +1548,17 @@
      Only for the visual summary; the recipe itself is still shown exactly as written. */
   const ADJ = /^(?:good|whole|melted|browned|grated|toasted|hot|warm|cold|soft(?:ened)?|room|temp|chopped|sifted|fresh|unsalted|salted|plain|full[- ]fat|of)\s+/i;
   const TINTS = { white: 1, brown: 1, caster: 1, light: 1, dark: 1, golden: 1 };
-  // "45 min", "1 hr 40 min", "15 hr 13 min": written out to the minute, so the parts shown under a total add up to it
+  // Every time shown is rounded to the nearest 15 minutes (at least 15 min).
+  const q15 = (m) => Math.max(15, Math.round(m / 15) * 15);
+  // "45 min", "1 hr 15 min", "15 hr 30 min"
   function fmtDur(m) {
-    const r = Math.max(1, Math.round(m)), h = Math.floor(r / 60), mm = r % 60;
+    const r = q15(m), h = Math.floor(r / 60), mm = r % 60;
     return h ? (mm ? `${h} hr ${mm} min` : `${h} hr`) : `${mm} min`;
+  }
+  // a total in hours, to the quarter hour: "¾ hour", "1 hour", "2¼ hours", "13½ hours"
+  function fmtHrs(m, one = "hour", many = "hours") {
+    const r = q15(m), h = Math.floor(r / 60), f = ["", "¼", "½", "¾"][(r % 60) / 15];
+    return `${h || !f ? h : ""}${f} ${r <= 60 ? one : many}`;
   }
   function analyze(r) {
     if (r._a) return r._a;
@@ -1617,11 +1612,13 @@
     const listed = new Set(lines.list ? lines.map((l) => l.toLowerCase()) : []);
     const count = G.ingredients > 0 ? G.ingredients : listed.size || items.length;
     // hands-on work the recipe doesn't time (weighing, mixing, assembling): the checked estimate, otherwise
-    // 15 min plus a minute per ingredient, at most 1½ hours. The total is exactly the sum of the three parts.
+    // 15 min plus a minute per ingredient, at most 1½ hours. Each part is rounded to 15 minutes and the total is
+    // exactly the sum of the three rounded parts.
     if (time) {
-      time.hands = checked && G.hands > 0 ? Math.round(G.hands) : Math.min(90, Math.round((15 + count) / 5) * 5);
+      time.hands = checked && G.hands > 0 ? G.hands : Math.min(90, 15 + count);
+      for (const k of ["hands", "oven", "wait"]) time[k] = time[k] > 0 ? q15(time[k]) : 0;
       time.total = time.oven + time.wait + time.hands;
-      time.label = fmtDur(time.total);
+      time.label = fmtHrs(time.total);
     }
     return (r._a = { temp, time, items, total, count });
   }
@@ -1715,10 +1712,10 @@
     layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
     pieces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
   };
-  // Pills on a cake: only its total time (whole hours, as "1 Hr" / "13 Hrs"), layers, ingredient count and size, in that order.
+  // Pills on a cake: only its total time (in hours to the quarter hour, as "1 Hr" / "2¼ Hrs"), layers, ingredient count and size, in that order.
   // The oven temperature and the exact time stay in the "At a glance" panel on the recipe page.
   const isLayers = (s) => /layer/i.test(s);
-  const fmtHours = (m) => { const h = Math.max(1, Math.round(m / 60)); return `${h} ${h === 1 ? "Hr" : "Hrs"}`; };
+  const fmtHours = (m) => fmtHrs(m, "Hr", "Hrs");
   const layerPills = (r) => r.layerInfo
     ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
     : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
@@ -1727,7 +1724,7 @@
   function cakePills(r) {
     const a = analyze(r);
     return [
-      a.time ? `<li class="pill" title="About ${esc(a.time.label)} from start to serving">${ICO.time}${esc(fmtHours(a.time.total))}</li>` : "",
+      a.time ? `<li class="pill" title="${esc(a.time.label)} from start to serving">${ICO.time}${esc(fmtHours(a.time.total))}</li>` : "",
       ...layerPills(r),
       a.count ? `<li class="pill">${ICO.list}${a.count} ingredients</li>` : "",
       ...sizePills(r),
@@ -1760,17 +1757,10 @@
       }).join("");
       // the total sits beside the ring once; the ring and the legend under it show its parts
       const legend = [["hands", "--c3", "manual work"], ["oven", "--accent", "cooking"], ["wait", "--c2", "cooling & chilling"]].filter(([k]) => T[k] > 0)
-        .map(([k, c, name]) => `<li style="--c:var(${c})"><b>${k === "hands" ? "~" : ""}${esc(fmtDur(T[k]))}</b> ${name}</li>`).join("");
-      // where the cooking and waiting go, step by step (recipes with checked times): each group adds up to its part above
-      const rows = (k, c, name) => T.steps && T.steps[k].length ? `<li class="grp" style="--c:var(${c})"><span>${name}</span><b>${esc(fmtDur(T[k]))}</b></li>` +
-        T.steps[k].map(([what, m]) => `<li><span>${esc(what)}</span><b>${esc(fmtDur(m))}</b></li>`).join("") : "";
-      const steps = rows("oven", "--accent", "Cooking") + rows("wait", "--c2", "Cooling &amp; chilling");
-      const how = steps ? `<details class="time-how"><summary>How it adds up</summary><ul>
-        <li class="grp" style="--c:var(--c3)"><span>Manual work (estimate)</span><b>~${esc(fmtDur(T.hands))}</b></li>${steps}
-        <li class="grp sum"><span>Total</span><b>≈ ${esc(T.label)}</b></li></ul></details>` : "";
+        .map(([k, c, name]) => `<li style="--c:var(${c})"><b>${esc(fmtDur(T[k]))}</b> ${name}</li>`).join("");
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="20" fill="none" stroke-width="6"/>${arcs}
         <path d="M26 18v8l5 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/></svg></div>
-        <div><b>≈ ${esc(T.label)}</b><span>total to prepare</span><ul class="time-parts">${legend}</ul>${how}</div>`);
+        <div><b>${esc(T.label)}</b><span>total to prepare</span><ul class="time-parts">${legend}</ul></div>`);
     }
     if (a.count) {
       const dots = Array.from({ length: Math.min(a.count, 16) }, (_, k) => `<circle cx="${6 + (k % 4) * 13.3}" cy="${6 + Math.floor(k / 4) * 13.3}" r="4.2" fill="var(--${SLOTS[k % 6]})" opacity=".9"/>`).join("");
