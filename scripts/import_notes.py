@@ -259,7 +259,7 @@ def from_dir(spec):
     return recipes
 
 
-KEPT_FIELDS = ("description", "size", "layers", "credits", "glance", "instagram")  # written by hand in recipes.js, not in the notes
+KEPT_FIELDS = ("description", "size", "layers", "credits", "glance", "instagram", "leadPhoto")  # written by hand in recipes.js, not in the notes
 
 
 def existing_extras(out):
@@ -378,8 +378,9 @@ def write(recipes, out):
                    "// adds them up; without it, it estimates both from the note. Re-check it when the note changes.\n"
                    "// Add \"size\" (e.g. \"6×6 inch square\") for the size pill of a cake whose title doesn't give its pan size.\n"
                    "// Add \"instagram\" for photos from Instagram: a list of {\"url\" (the post), \"date\", \"photos\"} (photos =\n"
-                   "// files in images/instagram/). Its first photo becomes the recipe's photo, ahead of the note's own picture.\n"
-                   "// descriptions, sizes, layers, credits, glance and instagram are kept when the script is re-run.\n"
+                   "// files in images/instagram/). Its first photo becomes the recipe's photo, ahead of the note's own picture\n"
+                   "// (add \"leadPhoto\": \"note\" to keep the note's own picture in front).\n"
+                   "// descriptions, sizes, layers, credits, glance, instagram and leadPhoto are kept when the script is re-run.\n"
                    "window.RECIPES = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
                    encoding="utf-8")
     print(f"Wrote {len(data)} recipes to {out}")
