@@ -7,7 +7,8 @@
 // Add "glance" for a checked ingredient count and total time: {"ingredients": how many different
 // ingredients, "hands": minutes of manual work, "cook" and "wait": lists of [step, minutes]}. The page
 // adds them up; without it, it estimates both from the note. Re-check it when the note changes.
-// descriptions, layers, credits and glance are kept when the script is re-run.
+// Add "size" (e.g. "6×6 inch square") for the size pill of a cake whose title doesn't give its pan size.
+// descriptions, sizes, layers, credits and glance are kept when the script is re-run.
 window.RECIPES = [
   {
     "id": "banana-bread",
@@ -357,6 +358,7 @@ window.RECIPES = [
   {
     "id": "entreme-mold-cake",
     "title": "Entreme Mold Cake",
+    "size": "6×6 inch square",
     "description": "A showpiece entremet: coffee and orange mousses around a frozen center, set in a mold for clean, glossy sides.",
     "layers": {
       "min": 5,

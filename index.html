@@ -236,9 +236,6 @@
   .credit b { display: block; font-weight: 600; font-size: 15px; }
   .credit small { display: block; color: var(--ink-soft); font-size: 13px; line-height: 1.35; margin-top: 1px; }
   .credit .go { margin-left: auto; color: var(--ink-soft); flex: none; }
-  .credit-line { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); }
-  .credit-line img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; background: #fff; box-shadow: 0 0 0 1px var(--line); }
-  .credit-line img + img { margin-left: -12px; }
   @media print { .credits .go { display: none; } .credit small::after { content: " · " attr(data-url); } }
   .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
 
@@ -1101,7 +1098,8 @@
     return { name: name || String(t || ""), sizes };
   }
   /* Cakes whose title gives no pan size are 8-inch: that's the pan these recipes are made in.
-     Bundt, square and mold cakes are left alone, since their notes call for a different pan. */
+     Bundt, square and mold cakes are left alone, since their notes call for a different pan
+     (give those a "size" in recipes.js to show it). */
   const PAN_SIZE = /"|cm|×/i;
   const DEFAULT_SIZE = '8" round';
   const assumesDefaultSize = (title, sizes) =>
@@ -1115,6 +1113,8 @@
     const L = r.layers && +r.layers.min > 0 ? r.layers : null;
     r.layerInfo = L ? { label: `${L.min}${+L.max > +L.min ? "–" + L.max : ""} layers`, stack: String(L.stack || "") } : null;
     if (r.layerInfo) r.sizes = r.sizes.filter((x) => !/layer/i.test(x));
+    // A pan size written by hand in recipes.js ("size": "6×6 inch square"), for a cake whose title doesn't give one.
+    if (r.size && !r.sizes.some((s) => PAN_SIZE.test(s))) r.sizes.unshift(fmtSize(String(r.size)));
     r.sizeAssumed = assumesDefaultSize(r.title, r.sizes);
     if (r.sizeAssumed) r.sizes.unshift(DEFAULT_SIZE);
     const alias = NAMES.get(titleKey(r.title));
@@ -1137,12 +1137,10 @@
     r.search += r.credits.map((c) => " " + c.name.toLowerCase()).join("");
   });
 
-  /* Credits: a short "After Flour Bakery + Café" line on the card, and the full list on the recipe page. */
+  /* Credits: listed, with links, on the recipe page only. The cards in the grid don't mention them. */
   const creditIcon = (c, cls) => c.icon
     ? `<img class="${cls}" src="${esc(c.icon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
     : (cls === "credit-ico" ? `<span class="credit-ico none" aria-hidden="true">${esc(c.name[0])}</span>` : "");
-  const creditLineHTML = (r) => r.credits.length
-    ? `<span class="credit-line">${r.credits.map((c) => creditIcon(c, "")).join("")}<span>Adapted from ${esc(r.credits[0].name)}</span></span>` : "";
   const GO_ICO = '<svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>';
   const creditsHTML = (r) => r.credits.length ? `<h2>With credit to</h2><p class="credit-why">This is my own interpretation. The original recipe is theirs.</p><ul>${r.credits.map((c) => {
     const inner = `${creditIcon(c, "credit-ico")}<span><b>${esc(c.name)}</b>${c.note ? `<small data-url="${esc(c.url)}">${esc(c.note)}</small>` : ""}</span>`;
@@ -1455,7 +1453,6 @@
         <div class="card-body">
           <h3>${nameHTML(r)}</h3>
           <p>${esc(r.teaser)}</p>
-          ${creditLineHTML(r)}
           ${bottomPillsHTML(r)}
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1"><i class="sec-ic" aria-hidden="true">${iconSVG("whisk")}</i>No recipes match “${esc(q)}”.</div>`;
@@ -1664,10 +1661,10 @@
     layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
     pieces: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
   };
-  // Pills on a cake: only its total time (rounded to whole hours), layers, ingredient count and size, in that order.
+  // Pills on a cake: only its total time (whole hours, as "1 Hr" / "13 Hrs"), layers, ingredient count and size, in that order.
   // The oven temperature and the exact time stay in the "At a glance" panel on the recipe page.
   const isLayers = (s) => /layer/i.test(s);
-  const fmtHours = (m) => { const h = Math.round(m / 60); return h < 1 ? "< 1 hr" : `≈ ${h} hr`; };
+  const fmtHours = (m) => { const h = Math.max(1, Math.round(m / 60)); return `${h} ${h === 1 ? "Hr" : "Hrs"}`; };
   const layerPills = (r) => r.layerInfo
     ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
     : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
@@ -1676,7 +1673,7 @@
   function cakePills(r) {
     const a = analyze(r);
     return [
-      a.time ? `<li class="pill" title="About ${esc(a.time.label)} from start to serving">${ICO.time}${esc(fmtHours(a.time.total))} total</li>` : "",
+      a.time ? `<li class="pill" title="About ${esc(a.time.label)} from start to serving">${ICO.time}${esc(fmtHours(a.time.total))}</li>` : "",
       ...layerPills(r),
       a.count ? `<li class="pill">${ICO.list}${a.count} ingredients</li>` : "",
       ...sizePills(r),
