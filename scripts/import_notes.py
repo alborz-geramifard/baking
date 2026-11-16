@@ -19,16 +19,39 @@ Each note's text is kept exactly as written (formatting, line breaks, lists),
 so the page shows the instructions the same way they appear in Notes.
 """
 import argparse
+import base64
 import html
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
+from urllib.parse import unquote
 from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = ROOT / "recipes.js"
+# Notes kept in the recipe folder that shouldn't be published (non-recipes and removed recipes);
+# always skipped. Whole title, ignoring case, punctuation/dash style and extra spaces.
+DEFAULT_EXCLUDE = [
+    "Dessert Tricks", "Opera Cake - Louise Lindberg",
+    # Not recipes: personal notes that live in the same Notes folder.
+    "Australia Trip", "Less shakiness on videos (up down, left, right)",
+]
+
+
+def title_key(title):
+    return " ".join(re.sub(r"[\W_]+", " ", title.lower()).split())
+
+
+def is_recipe(title):
+    if title_key(title) in {title_key(t) for t in DEFAULT_EXCLUDE}:
+        print(f"Skipped (excluded): {title.strip()}")
+        return False
+    return True
 
 JXA_LIST = r"""
 function run() {
@@ -121,7 +144,8 @@ def from_notes(spec):
         where = f'"{folder}" in account "{account}"' if account else f'"{folder}"'
         sys.exit(f"No notes found in a folder named {where}. Folders available:\n" + osascript(JXA_LIST))
     return [{"title": n["title"].strip(), "body": drop_title_line(n["body"], n["title"]),
-             "created": n["created"][:10], "modified": n["modified"][:10]} for n in raw]
+             "created": n["created"][:10], "modified": n["modified"][:10]}
+            for n in raw if is_recipe(n["title"])]
 
 
 ICLOUD_DRIVE = Path("~/Library/Mobile Documents/com~apple~CloudDocs").expanduser()
@@ -171,8 +195,10 @@ def from_dir(spec):
                 while lines and not lines[0].strip():
                     lines = lines[1:]
             body = "\n".join(lines).rstrip()  # plain text: shown with its line breaks untouched
+        if not is_recipe(title):
+            continue
         st = f.stat()
-        recipes.append({"title": title, "body": body,
+        recipes.append({"title": title, "body": body, "base": f.parent,
                         "created": date.fromtimestamp(getattr(st, "st_birthtime", st.st_mtime)).isoformat(),
                         "modified": date.fromtimestamp(st.st_mtime).isoformat()})
     if not recipes:
@@ -193,6 +219,73 @@ def existing_descriptions(out):
         return {}
 
 
+IMG_RE = re.compile(r"""(<img\b[^>]*?\ssrc\s*=\s*)(["'])(.*?)\2""", re.I | re.S)
+DATA_RE = re.compile(r"data:image/([\w.+-]+);base64,(.*)", re.I | re.S)
+PHOTO_MAX = 1200  # longest side, in pixels, of the photos saved for the page
+
+
+def save_photo(raw, ext, dest_stem):
+    """Write one picture next to the page, as a web-sized JPEG when macOS `sips` is available.
+
+    Notes keeps photos as multi-megabyte PNG/HEIC; browsers can't show HEIC and the page
+    would be slow with the originals. Without sips the original bytes are kept as they are.
+    Returns the file written.
+    """
+    ext = {"jpeg": "jpg", "svg+xml": "svg"}.get(ext.lower(), ext.lower())
+    if shutil.which("sips") and ext not in {"gif", "svg"}:
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / f"in.{ext}"
+            src.write_bytes(raw)
+            dest = dest_stem.with_suffix(".jpg")
+            res = subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "82",
+                                  "-Z", str(PHOTO_MAX), str(src), "--out", str(dest)],
+                                 capture_output=True, text=True)
+            if res.returncode == 0 and dest.exists():
+                return dest
+    dest = dest_stem.with_suffix("." + ext)
+    dest.write_bytes(raw)
+    return dest
+
+
+def extract_photos(r, slug, img_dir, page_dir):
+    """Move the note's pictures out of the HTML into image files and point the note at them.
+
+    Embedded pictures (data: URIs from Apple Notes) and pictures next to an exported note
+    are saved as images/recipes/<slug>.jpg, <slug>-2.jpg, ...; web links are left as they are.
+    The first picture becomes the recipe's "image", shown on its card and at the top of its page.
+    """
+    found, saved = [], [0]
+
+    def swap(m):
+        src = html.unescape(m.group(3)).strip()
+        raw = ext = None
+        d = DATA_RE.match(src)
+        if d:
+            try:
+                raw, ext = base64.b64decode(re.sub(r"\s+", "", d.group(2))), d.group(1)
+            except ValueError:
+                return m.group(0)
+        elif re.match(r"https?:", src, re.I):
+            found.append(src)
+            return m.group(0)
+        elif r.get("base") and not re.match(r"[a-z][\w+.-]*:", src, re.I):
+            f = (Path(r["base"]) / unquote(src.split("?")[0])).resolve()
+            if f.is_file():
+                raw, ext = f.read_bytes(), f.suffix.lstrip(".") or "jpg"
+        if raw is None:
+            return m.group(0)
+        saved[0] += 1
+        n = saved[0]
+        dest = save_photo(raw, ext, img_dir / (slug if n == 1 else f"{slug}-{n}"))
+        rel = os.path.relpath(dest, page_dir).replace(os.sep, "/")
+        found.append(rel)
+        return f"{m.group(1)}{m.group(2)}{html.escape(rel)}{m.group(2)}"
+
+    r["body"] = IMG_RE.sub(swap, r["body"])
+    if found:
+        r["image"] = found[0]
+
+
 def write(recipes, out):
     taken = set()
     recipes.sort(key=lambda r: r["title"].lower())
@@ -205,6 +298,14 @@ def write(recipes, out):
             item["description"] = desc
         item.update(r)
         data.append(item)
+    page_dir = out.resolve().parent
+    img_dir = page_dir / "images" / "recipes"
+    if img_dir.is_dir():  # this folder belongs to the importer: start fresh so removed notes leave no photos behind
+        shutil.rmtree(img_dir)
+    img_dir.mkdir(parents=True, exist_ok=True)
+    for r in data:
+        extract_photos(r, r["id"], img_dir, page_dir)
+        r.pop("base", None)
     out.write_text("// Generated by scripts/import_notes.py. Re-run the script to refresh.\n"
                    "// Add a \"description\" to any recipe for its card blurb (about the cake, not its ingredients);\n"
                    "// descriptions are kept when the script is re-run.\n"
@@ -212,7 +313,7 @@ def write(recipes, out):
                    encoding="utf-8")
     print(f"Wrote {len(data)} recipes to {out}")
     for r in data:
-        print("  •", r["title"])
+        print("  •", r["title"], "" if r.get("image") else "(no photo: a drawn cake is shown instead)")
 
 
 def main():
