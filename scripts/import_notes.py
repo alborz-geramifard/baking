@@ -259,11 +259,11 @@ def from_dir(spec):
     return recipes
 
 
-KEPT_FIELDS = ("description", "size", "layers", "credits", "glance")  # written by hand in recipes.js, not in the notes
+KEPT_FIELDS = ("description", "size", "layers", "credits", "glance", "instagram")  # written by hand in recipes.js, not in the notes
 
 
 def existing_extras(out):
-    """Hand-written fields already in recipes.js (card description, pan size, layer count, source credits, checked ingredient count and times), keyed by
+    """Hand-written fields already in recipes.js (card description, pan size, layer count, source credits, checked ingredient count and times, Instagram photos), keyed by
     lower-cased title.
 
     Notes don't carry these, so re-importing keeps the ones written by hand."""
@@ -377,7 +377,9 @@ def write(recipes, out):
                    "// ingredients, \"hands\": minutes of manual work, \"cook\" and \"wait\": lists of [step, minutes]}. The page\n"
                    "// adds them up; without it, it estimates both from the note. Re-check it when the note changes.\n"
                    "// Add \"size\" (e.g. \"6×6 inch square\") for the size pill of a cake whose title doesn't give its pan size.\n"
-                   "// descriptions, sizes, layers, credits and glance are kept when the script is re-run.\n"
+                   "// Add \"instagram\" for photos from Instagram: a list of {\"url\" (the post), \"date\", \"photos\"} (photos =\n"
+                   "// files in images/instagram/). Its first photo becomes the recipe's photo, ahead of the note's own picture.\n"
+                   "// descriptions, sizes, layers, credits, glance and instagram are kept when the script is re-run.\n"
                    "window.RECIPES = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
                    encoding="utf-8")
     print(f"Wrote {len(data)} recipes to {out}")
