@@ -398,7 +398,7 @@
   .ck-focus:hover { color: #fff; filter: brightness(1.06); }
   .focus-dialog { border: 0; padding: 0; margin: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; background: var(--bg); color: var(--ink); }
   .focus-dialog::backdrop { background: var(--bg); }
-  .focus-dialog[open] { display: flex; animation: fade .25s ease; }
+  .focus-dialog[open] { display: flex; }
   .fx { display: flex; flex-direction: column; width: 100%; max-width: 760px; margin: 0 auto; padding: 18px 22px max(22px, env(safe-area-inset-bottom)); gap: 18px; }
   .fx-head { display: flex; align-items: center; gap: 14px; }
   .fx-title { flex: 1; min-width: 0; font-family: var(--serif); font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -407,9 +407,8 @@
   .fx-stage { flex: 1; display: grid; align-content: center; min-height: 0; overflow: hidden; padding: 6px 4px 30px; margin: 0 -4px; }
   .fx-card { position: relative; display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
     background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: clamp(22px, 5vw, 40px); max-height: 100%; overflow: auto; transition: border-color .2s, transform .15s; }
+    padding: clamp(22px, 5vw, 40px); max-height: 100%; overflow: auto; transition: border-color .2s; }
   .fx-card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
-  .fx-card:active { transform: scale(.99); }
   .fx-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
   .fx-where { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); }
   .fx-txt { font-family: var(--serif); font-size: clamp(22px, 3.6vw, 32px); line-height: 1.4; overflow-wrap: anywhere; }
@@ -427,15 +426,10 @@
   .fx-go { flex: 1; background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   .fx-go:hover { color: #fff; filter: brightness(1.06); }
   .btn:disabled { opacity: .45; cursor: default; pointer-events: none; }
-  .fx-in-next { animation: fxInNext .38s var(--ease-out) both; }
-  .fx-in-prev { animation: fxInPrev .38s var(--ease-out) both; }
-  @keyframes fxInNext { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
-  @keyframes fxInPrev { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
   .fx-done { text-align: center; cursor: default; }
   .fx-done .big { font-size: 64px; line-height: 1; margin-bottom: 12px; }
   .fx-done h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 5vw, 40px); margin: 0 0 8px; }
   .fx-done p { margin: 0; color: var(--ink-soft); }
-  @media (prefers-reduced-motion: reduce) { .fx-in-next, .fx-in-prev { animation: none; } }
   @media print { .ck-focus { display: none !important; } }
 
   .recipe-view > footer { padding-top: 24px; }
@@ -2545,20 +2539,19 @@
     for (let k = 1; k <= fxSteps.length; k++) { const j = (from + k) % fxSteps.length; if (!fxSteps[j].cb.checked) return j; }
     return fxSteps.length;
   }
-  function renderFocus(dir) {
+  function renderFocus() {
     const n = fxSteps.length, done = fxSteps.filter((s) => s.cb.checked).length, stage = $("#fxStage");
     $("#fxCount").textContent = `${done} of ${n} done`;
     $("#fxBar").style.width = `${n ? (done / n) * 100 : 0}%`;
-    const anim = dir ? ` fx-in-${dir}` : "";
     if (fxIdx >= n) {
-      stage.innerHTML = `<div class="fx-card fx-done${anim}"><div class="big" aria-hidden="true">🎉</div><h2>All steps done!</h2><p>Enjoy your bake. Your ticks are saved on the recipe page.</p></div>`;
+      stage.innerHTML = `<div class="fx-card fx-done"><div class="big" aria-hidden="true">🎉</div><h2>All steps done!</h2><p>Enjoy your bake. Your ticks are saved on the recipe page.</p></div>`;
       $("#fxNext").textContent = "";
       $("#fxGo").textContent = "Back to the recipe";
       $("#fxBack").disabled = n === 0;
       return;
     }
     const s = fxSteps[fxIdx], last = nextOpen(fxIdx) === n;
-    stage.innerHTML = `<button type="button" class="fx-card${s.cb.checked ? " done" : ""}${anim}" id="fxCard">
+    stage.innerHTML = `<button type="button" class="fx-card${s.cb.checked ? " done" : ""}" id="fxCard">
       <p class="fx-where">${s.where}${s.num ? `<span>${s.where ? "· " : ""}Step ${s.num}${s.of > 1 ? ` of ${s.of}` : ""}</span>` : ""}<span class="fx-badge">✓ done</span></p>
       <div class="fx-txt">${s.html}</div>
       <p class="fx-tap">${s.cb.checked ? "Already ticked. Tap to move on." : "Tap here when this step is done."}</p></button>`;
@@ -2573,9 +2566,9 @@
     const s = fxSteps[fxIdx];
     if (!s.cb.checked) { s.cb.checked = true; s.cb.dispatchEvent(new Event("change", { bubbles: true })); }
     fxIdx = nextOpen(fxIdx);
-    renderFocus("next");
+    renderFocus();
   }
-  function fxBack() { if (fxIdx > 0) { fxIdx = Math.min(fxIdx, fxSteps.length) - 1; renderFocus("prev"); } }
+  function fxBack() { if (fxIdx > 0) { fxIdx = Math.min(fxIdx, fxSteps.length) - 1; renderFocus(); } }
   async function openFocus() {
     fxSteps = collectSteps();
     if (!fxSteps.length) return;
