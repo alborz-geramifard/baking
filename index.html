@@ -226,9 +226,11 @@
   .layer-stack .layer-list { display: block; }
   .layer-stack .layer-list[hidden] { display: none; }
   /* An illustrated slice of the cake with the numbered layers, shown instead of the list; click for full size. */
-  .layer-stack .layer-art { display: block; width: min(100%, 380px); margin-top: 12px; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 22px rgba(60, 30, 10, .16); transition: transform .25s var(--ease-out), box-shadow .25s; }
-  .layer-stack .layer-art:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(60, 30, 10, .22); }
-  .layer-stack .layer-art img { display: block; width: 100%; height: auto; }
+  .layer-stack .layer-art { display: block; width: min(100%, 360px); margin-top: 22px; padding: 10px 10px 44px; transform: rotate(1.2deg); transition: transform .3s var(--ease-out); text-decoration: none; }
+  .layer-stack .layer-art:hover, .layer-stack .layer-art:focus-visible { transform: rotate(0deg) translateY(-3px); }
+  .layer-stack .layer-art .polaroid-cap { left: 10px; right: 10px; height: 44px; font-size: 22px; }
+  .layer-stack .layer-art::before { width: 74px; height: 20px; top: -9px; rotate: -4deg; }
+  .layer-stack .layer-art + .more, .layer-stack .layer-art + .lnote { margin-top: 16px; }
   /* Credits: recipes I adapted from someone else's, with the source's own icon */
   .credits { margin-top: 22px; }
   .credits:empty { display: none; }
@@ -264,7 +266,39 @@
   .insta-links a:hover { text-decoration: underline; }
   .insta-links .go { width: 14px; height: 14px; }
   @media print { .insta-shots, .insta-links .go { display: none; } }
-  .recipe-hero .art { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lift); aspect-ratio: 1; transform: rotate(-1.5deg); }
+  /* Polaroid: the recipe's photo (and the layer diagram) sit on an instant-photo print: an off-white card with a
+     deep bottom strip carrying a handwritten caption, a strip of tape and a soft drop shadow. The card stays
+     cream in dark mode too, like a real print would. */
+  .recipe-hero .art, .layer-stack .layer-art {
+    --polaroid: #fdfaf3; --polaroid-ink: #3a2a20;
+    position: relative; background: var(--polaroid); border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(60,35,20,.12), 0 3px 8px rgba(60,35,20,.12), 0 18px 44px rgba(60,35,20,.20);
+  }
+  @media (prefers-color-scheme: dark) {
+    .recipe-hero .art, .layer-stack .layer-art { --polaroid: #f3ecdf; box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 18px 48px rgba(0,0,0,.55); }
+  }
+  .recipe-hero .art { padding: 14px 14px 64px; transform: rotate(-1.5deg); }
+  .recipe-hero .art > .photo, .recipe-hero .art > svg, .layer-stack .layer-art img {
+    display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 2px; object-fit: cover;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); outline: 1px solid rgba(60,35,20,.08); outline-offset: -1px;
+  }
+  .polaroid-cap {
+    position: absolute; left: 14px; right: 14px; bottom: 0; height: 64px; display: grid; place-items: center;
+    font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-weight: 700;
+    font-size: 27px; line-height: .92; color: var(--polaroid-ink); text-align: center; text-wrap: balance;
+    padding: 0 6px; transform: rotate(-1deg); pointer-events: none;
+  }
+  /* a long name wraps onto a second line in a slightly smaller hand, still inside the bottom strip */
+  .recipe-hero .art .polaroid-cap.long { font-size: 23px; }
+  .polaroid-cap:empty { display: none; }
+  /* a strip of washi tape holding the print up */
+  .recipe-hero .art::before, .layer-stack .layer-art::before {
+    content: ""; position: absolute; z-index: 1; top: -11px; left: 50%; width: 92px; height: 24px;
+    translate: -50% 0; rotate: 3deg; pointer-events: none;
+    background: repeating-linear-gradient(-45deg, rgba(255,255,255,.18) 0 6px, transparent 6px 12px),
+                color-mix(in srgb, var(--accent-2) 55%, rgba(255,250,240,.55));
+    box-shadow: 0 1px 2px rgba(60,35,20,.15); opacity: .85;
+  }
 
   .recipe-card {
     background: var(--paper); border-radius: var(--radius); box-shadow: var(--shadow);
@@ -659,7 +693,9 @@
     .banner h1 { font-size: clamp(30px, 7.6vw, 60px); }
     .feature { max-width: 420px; }
     .recipe-hero { grid-template-columns: 1fr; }
-    .recipe-hero .art { max-width: 260px; order: -1; }
+    .recipe-hero .art { max-width: 280px; order: -1; padding: 11px 11px 52px; }
+    .recipe-hero .art .polaroid-cap { left: 11px; right: 11px; height: 52px; font-size: 23px; }
+    .recipe-hero .art .polaroid-cap.long { font-size: 19px; }
   }
   @media (max-width: 560px) {
     .wrap { padding: 0 16px; }
@@ -1738,7 +1774,7 @@
     const note = li.note ? `<span class="lnote">${esc(li.note)}</span>` : "";
     if (!li.image) return `<b>${esc(li.label)}</b>, bottom to top:${base}${extra}${note}`;
     return `<b>${esc(li.label)}</b>, numbered bottom to top:<span class="layer-list" hidden>${base}</span>`
-      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"></a>`
+      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"><span class="polaroid-cap" aria-hidden="true">${esc(String(n))} layers, bottom to top</span></a>`
       + extra + note;
   };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
@@ -2614,7 +2650,10 @@
   $("#rInsta").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-shot]"); if (!b) return;
     const art = $("#rArt"); let img = art.querySelector("img.photo");
-    if (!img) { art.innerHTML = '<img class="photo" alt="" decoding="async">'; img = art.querySelector("img.photo"); }
+    if (!img) { // the drawn cake gives way to the photo; the caption under it stays
+      img = Object.assign(document.createElement("img"), { className: "photo", alt: "", decoding: "async" });
+      const svg = art.querySelector(":scope > svg"); svg ? svg.replaceWith(img) : art.prepend(img);
+    }
     delete img.dataset.fallback;
     img.src = b.dataset.shot;
     $("#rInsta").querySelectorAll("button[data-shot]").forEach((x) => x.toggleAttribute("aria-pressed", x === b));
@@ -2631,7 +2670,7 @@
     const ls = $("#rLayers");
     ls.hidden = !r.layerInfo;
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span>${layerStackHTML(r.layerInfo)}</span>`;
-    $("#rArt").innerHTML = artHTML(r, true);
+    $("#rArt").innerHTML = artHTML(r, true) + `<span class="polaroid-cap${r.name.length > 20 ? " long" : ""}" aria-hidden="true">${esc(r.name)}</span>`;
     $("#rCredits").innerHTML = creditsHTML(r);
     $("#rInsta").innerHTML = instaHTML(r);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
