@@ -860,8 +860,8 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); animation: glint 3.2s ease-in-out infinite;
   }
   @keyframes glint { 0%, 55% { translate: -80px 0; } 100% { translate: 760px 0; } }
-  .fx-done .big { display: inline-block; animation: party 1.1s var(--spring) .15s both; }
-  @keyframes party { from { opacity: 0; scale: .2; rotate: -40deg; } }
+  .fx-done .big { display: inline-block; }
+  .fx .ck-bar i::after { animation: none; display: none; } /* Focus mode stays still: no shimmer on its progress bar */
   /* sprinkles (ticks and the all-done shower): tiny pills thrown by the script, never in the way of a click */
   .sprinkles { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
   .sprinkles i { position: absolute; left: 0; top: 0; width: 5px; height: 13px; border-radius: 3px; will-change: transform, opacity; }
@@ -877,7 +877,7 @@
   @media (prefers-reduced-motion: reduce) {
     .banner h1 .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
     .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg, .recipe-hero .pill, .recipe-hero .layer-stack,
-    .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after, .fx-done .big,
+    .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after,
     footer .sign-avatar, .card:hover .pill svg { animation: none !important; }
     .feature.rot .feature-fade::after { display: none; }
     .btn, .btn svg, .search svg { transition: border-color .2s, color .2s; }
@@ -2265,7 +2265,7 @@
       sprinkleBurst(b.left + b.width / 2, b.top + b.height / 2, 9, .8);
       if (stage && stage.classList.contains("all-done")) { const g = (stage.querySelector(":scope > .ck-group") || stage).getBoundingClientRect(); setTimeout(() => sprinkleBurst(g.right - 30, g.top + g.height / 2, 18, 1.2), 180); }
     }
-    if (boxes.length && done === boxes.length) setTimeout(sprinkleShower, focusDialog.open ? 350 : 250);
+    if (boxes.length && done === boxes.length && !focusDialog.open) setTimeout(sprinkleShower, 250); // Focus mode stays still
   }
   // searching and sorting: cards glide to their new places (view transitions), instead of the grid blinking
   let gridMoves = 0;
