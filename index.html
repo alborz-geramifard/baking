@@ -1726,19 +1726,20 @@
   const layerPills = (r) => r.layerInfo
     ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
     : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
-  // The recipe page's layer line. A cake with an illustrated slice shows just the count and the picture (its
-  // numbered labels are the list); the numbered list stays hidden and only comes back if the picture fails to load.
+  // The recipe page's layer line. A cake with an illustrated slice shows the count and the picture (its numbered
+  // labels are the base list, which stays hidden and only comes back if the picture fails to load). The layers a
+  // third sponge slice adds aren't in the pictures, so they stay listed under it, numbered on from the base.
   // A cake without a picture shows each layer numbered, bottom to top, so the count can be checked at a glance.
   const layerStackHTML = (li) => {
     const item = (x, i) => `<li><span class="n">${i}</span>${esc(x)}</li>`;
     const n = li.base.length;
-    const list = `<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`
-      + (li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "");
+    const base = `<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`;
+    const extra = li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "";
     const note = li.note ? `<span class="lnote">${esc(li.note)}</span>` : "";
-    if (!li.image) return `<b>${esc(li.label)}</b>, bottom to top:${list}${note}`;
-    return `<b>${esc(li.label)}</b>, numbered bottom to top:<span class="layer-list" hidden>${list}</span>`
-      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(li.label)}, numbered bottom to top: ${esc(li.base.concat(li.extra).map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"></a>`
-      + note;
+    if (!li.image) return `<b>${esc(li.label)}</b>, bottom to top:${base}${extra}${note}`;
+    return `<b>${esc(li.label)}</b>, numbered bottom to top:<span class="layer-list" hidden>${base}</span>`
+      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"></a>`
+      + extra + note;
   };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };
