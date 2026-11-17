@@ -155,6 +155,25 @@ def standardize_units(body):
     return "".join(part if part.startswith("<") else fix(part) for part in re.split(r"(<[^>]*>)", body))
 
 
+# A note may give the recipe in English, then a line of "=====", then the same recipe in Farsi.
+# The site shows recipes in English only, so the divider and everything after it is dropped.
+DIVIDER_RE = re.compile(r"<(div|p|h[1-6])\b[^>]*>(?:\s*<[^>]+>)*\s*={3,}\s*(?:<[^>]+>\s*)*</\1>", re.I)
+BLANK_TAIL_RE = re.compile(r"(?:\s*<div>(?:\s*<[^>]+>)*\s*<br\s*/?>\s*(?:</[^>]+>\s*)*</div>)+\s*$", re.I)
+PERSIAN_RE = re.compile("[\u0600-\u06FF]")
+
+
+def drop_farsi_translation(body):
+    """Keep only the English recipe when a "=====" line splits it from a Farsi copy."""
+    m = DIVIDER_RE.search(body)
+    if not m:
+        return body
+    rest = strip_tags(body[m.end():])
+    letters = [c for c in rest if c.isalpha()]
+    if not letters or sum(bool(PERSIAN_RE.match(c)) for c in letters) < len(letters) / 2:
+        return body  # not a Farsi translation: leave the note alone
+    return BLANK_TAIL_RE.sub("", body[:m.start()]) + "\n"
+
+
 EMOJI_RE = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")
 
 
@@ -350,7 +369,7 @@ def write(recipes, out):
         if renamed(r["title"]) != r["title"]:
             r["aliases"] = [slugify(r["title"], set())]
             r["title"] = renamed(r["title"])
-        r["body"] = standardize_units(r["body"])
+        r["body"] = standardize_units(drop_farsi_translation(r["body"]))
     recipes.sort(key=lambda r: r["title"].lower())
     kept = existing_extras(out)
     data = []
