@@ -282,9 +282,11 @@
   .polaroid-cap {
     position: absolute; left: 14px; right: 14px; bottom: 0; height: 64px; display: grid; place-items: center;
     font-family: "Caveat", "Snell Roundhand", "Segoe Script", "Brush Script MT", cursive; font-weight: 700;
-    font-size: 27px; line-height: 1; color: var(--polaroid-ink); text-align: center; transform: rotate(-1deg);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+    font-size: 27px; line-height: .92; color: var(--polaroid-ink); text-align: center; text-wrap: balance;
+    padding: 0 6px; transform: rotate(-1deg); pointer-events: none;
   }
+  /* a long name wraps onto a second line in a slightly smaller hand, still inside the bottom strip */
+  .recipe-hero .art .polaroid-cap.long { font-size: 23px; }
   .polaroid-cap:empty { display: none; }
   /* a strip of washi tape holding the print up */
   .recipe-hero .art::before, .layer-stack .layer-art::before {
@@ -690,6 +692,7 @@
     .recipe-hero { grid-template-columns: 1fr; }
     .recipe-hero .art { max-width: 280px; order: -1; padding: 11px 11px 52px; }
     .recipe-hero .art .polaroid-cap { left: 11px; right: 11px; height: 52px; font-size: 23px; }
+    .recipe-hero .art .polaroid-cap.long { font-size: 19px; }
   }
   @media (max-width: 560px) {
     .wrap { padding: 0 16px; }
@@ -2658,7 +2661,7 @@
     const ls = $("#rLayers");
     ls.hidden = !r.layerInfo;
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span>${layerStackHTML(r.layerInfo)}</span>`;
-    $("#rArt").innerHTML = artHTML(r, true) + `<span class="polaroid-cap" aria-hidden="true">${esc(r.name)}</span>`;
+    $("#rArt").innerHTML = artHTML(r, true) + `<span class="polaroid-cap${r.name.length > 20 ? " long" : ""}" aria-hidden="true">${esc(r.name)}</span>`;
     $("#rCredits").innerHTML = creditsHTML(r);
     $("#rInsta").innerHTML = instaHTML(r);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
