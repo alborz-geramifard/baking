@@ -371,7 +371,7 @@ def write(recipes, out):
                    "// Add a \"description\" to any recipe for its card blurb (about the recipe, not its ingredients);\n"
                    "// Add \"layers\" for a layered cake's layer pill: {\"stack\": every layer bottom to top once the sponge is\n"
                    "// sliced, fillings and toppings included; \"extra\": layers a third sponge slice adds (gives a range);\n"
-                   "// \"note\": what isn't counted, e.g. a glaze}. The page counts the list, so the number always matches.\n"
+                   "// \"note\": what isn't counted, e.g. a glaze; \"image\": an illustrated slice in images/layers/}. The page counts the list.\n"
                    "// Add \"credits\" to a recipe adapted from someone else's: a list of\n"
                    "// {\"name\", \"url\", \"icon\", \"note\"} (icon = a file in images/sources/).\n"
                    "// Add \"glance\" for a checked ingredient count and total time: {\"ingredients\": how many different\n"
