@@ -223,11 +223,14 @@
   .layer-stack ol .n { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; color: #fff; background: var(--accent); }
   .layer-stack .more, .layer-stack .lnote { display: block; margin-top: 6px; }
   .layer-stack .lnote { font-size: 13px; opacity: .8; }
-  /* An illustrated slice of the cake with the same numbered layers, under the list; click for full size. */
+  .layer-stack .layer-list { display: block; }
+  .layer-stack .layer-list[hidden] { display: none; }
+  /* An illustrated slice of the cake with the numbered layers, shown instead of the list; click for full size. */
   .layer-stack .layer-art { display: block; width: min(100%, 360px); margin-top: 22px; padding: 10px 10px 44px; transform: rotate(1.2deg); transition: transform .3s var(--ease-out); text-decoration: none; }
   .layer-stack .layer-art:hover, .layer-stack .layer-art:focus-visible { transform: rotate(0deg) translateY(-3px); }
   .layer-stack .layer-art .polaroid-cap { left: 10px; right: 10px; height: 44px; font-size: 22px; }
   .layer-stack .layer-art::before { width: 74px; height: 20px; top: -9px; rotate: -4deg; }
+  .layer-stack .layer-art + .more, .layer-stack .layer-art + .lnote { margin-top: 16px; }
   /* Credits: recipes I adapted from someone else's, with the source's own icon */
   .credits { margin-top: 22px; }
   .credits:empty { display: none; }
@@ -1759,14 +1762,20 @@
   const layerPills = (r) => r.layerInfo
     ? [`<li class="pill layers"${r.layerInfo.stack ? ` title="${esc(r.layerInfo.stack)}"` : ""}>${PILL_ICO.layers}${esc(r.layerInfo.label)}</li>`]
     : r.sizes.filter(isLayers).map((s) => `<li class="pill layers">${PILL_ICO.layers}${esc(s)}</li>`);
-  // The recipe page's layer line: each layer numbered, bottom to top, so the count can be checked at a glance.
+  // The recipe page's layer line. A cake with an illustrated slice shows the count and the picture (its numbered
+  // labels are the base list, which stays hidden and only comes back if the picture fails to load). The layers a
+  // third sponge slice adds aren't in the pictures, so they stay listed under it, numbered on from the base.
+  // A cake without a picture shows each layer numbered, bottom to top, so the count can be checked at a glance.
   const layerStackHTML = (li) => {
     const item = (x, i) => `<li><span class="n">${i}</span>${esc(x)}</li>`;
     const n = li.base.length;
-    return `<b>${esc(li.label)}</b>, bottom to top:<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`
-      + (li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "")
-      + (li.note ? `<span class="lnote">${esc(li.note)}</span>` : "")
-      + (li.image ? `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(li.label)}, numbered bottom to top" width="1024" height="1024" loading="lazy" onerror="this.parentNode.remove()"><span class="polaroid-cap" aria-hidden="true">${esc(li.label)}, bottom to top</span></a>` : "");
+    const base = `<ol>${li.base.map((x, i) => item(x, i + 1)).join("")}</ol>`;
+    const extra = li.extra.length ? `<span class="more">With the sponge sliced into 3, add on top:</span><ol>${li.extra.map((x, i) => item(x, n + i + 1)).join("")}</ol>` : "";
+    const note = li.note ? `<span class="lnote">${esc(li.note)}</span>` : "";
+    if (!li.image) return `<b>${esc(li.label)}</b>, bottom to top:${base}${extra}${note}`;
+    return `<b>${esc(li.label)}</b>, numbered bottom to top:<span class="layer-list" hidden>${base}</span>`
+      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"><span class="polaroid-cap" aria-hidden="true">${esc(String(n))} layers, bottom to top</span></a>`
+      + extra + note;
   };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
   const pillList = (items, cls = "") => { const out = items.filter(Boolean); return out.length ? `<ul class="pills${cls}">${out.join("")}</ul>` : ""; };
