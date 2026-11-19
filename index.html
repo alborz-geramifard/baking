@@ -170,7 +170,7 @@
   .card {
     background: var(--paper); border-radius: var(--radius); overflow: hidden; text-decoration: none;
     box-shadow: var(--shadow); transition: transform .25s ease, box-shadow .25s ease;
-    display: flex; flex-direction: column; animation: fade .5s ease both;
+    display: flex; flex-direction: column;
   }
   .card:hover, .card:focus-visible { transform: translateY(-5px); box-shadow: var(--shadow-lift); outline: none; }
   .card .art { aspect-ratio: 5/4; }
@@ -530,7 +530,6 @@
     transform: translate(calc(var(--px) * var(--d) * 1px), calc(var(--py) * var(--d) * 1px)) rotate(var(--r, 0deg));
     translate: var(--shx, 0px) var(--shy, 0px); /* shy scoot away from the cursor */
     transition: transform 2.4s cubic-bezier(.22, .61, .36, 1), translate .9s cubic-bezier(.34, 1.5, .5, 1);
-    animation: settle 1.6s var(--ease-out) both; animation-delay: var(--in, 0s);
   }
   .floaters svg.ic { filter: url(#floater-shade); } /* no badge, no drop shadow — just a soft inner shade */
   .floaters span > svg {
@@ -541,11 +540,10 @@
   @keyframes fx { from { --fx: -5px; } to { --fx: 5px; } }
   @keyframes fy { from { --fy: 3px; } to { --fy: -8px; } }
   @keyframes fr { from { --fr: -3deg; } to { --fr: 3deg; } }
-  @keyframes settle { from { opacity: 0; scale: .6; } }
   /* confetti specks when a burst icon pops */
   .burst i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; }
   .banner-inner { z-index: 1; }
-  .banner h1 .ln { display: inline-block; animation: rise .9s var(--ease-out) both; }
+  .banner h1 .ln { display: inline-block; }
   @keyframes rise { from { opacity: 0; transform: translateY(.35em); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
   .stat b { font-variant-numeric: proportional-nums; }
 
@@ -583,10 +581,6 @@
   .card .pills.bottom { margin-top: auto; padding-top: 8px; }
   .feature .pills.bottom { margin: 12px 4px 0; }
 
-  /* scroll reveal */
-  .reveal { opacity: 0; translate: 0 26px; transition: opacity .8s var(--ease-out), translate .8s var(--ease-out); transition-delay: var(--rd, 0ms); }
-  .reveal.in { opacity: 1; translate: 0 0; }
-  .grid .card { animation: none; }
 
   /* --- recipe view --- */
   .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 50; pointer-events: none; transform-origin: 0 50%; transform: scaleX(var(--p, 0));
@@ -594,7 +588,6 @@
   body.viewing .progress { display: block; }
   .recipe-top { position: relative; overflow: hidden; isolation: isolate;
     background: radial-gradient(900px 420px at 80% 10%, color-mix(in srgb, var(--tint, var(--accent-2)) 55%, transparent), transparent 65%), var(--bg-2); }
-  .recipe-hero h1 { animation: rise .7s var(--ease-out) both; }
   .recipe-hero .art { transition: transform .5s var(--ease-out); }
   .recipe-hero .art:hover { transform: rotate(0deg) scale(1.02); }
 
@@ -608,20 +601,19 @@
   .glance + .recipe-card { margin-top: 0; }
   .glance h2 { font-family: var(--sans); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 14px; }
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .tile { display: flex; align-items: center; gap: 12px; min-width: 0; animation: rise .6s var(--ease-out) both; animation-delay: calc(var(--i) * 80ms + 150ms); }
+  .tile { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .tile .viz { flex: none; width: 52px; height: 52px; }
   .tile .viz svg { width: 100%; height: 100%; display: block; overflow: visible; }
   .tile b { display: block; font-family: var(--sans); font-weight: 600; font-size: 21px; line-height: 1.1; color: var(--ink); white-space: nowrap; }
   .tile span { font-size: 12.5px; color: var(--ink-soft); }
   .tile .track { stroke: color-mix(in srgb, var(--accent) 16%, transparent); }
-  .tile .fill { stroke: var(--accent); transition: stroke-dashoffset 1.2s var(--ease-out); }
+  .tile .fill { stroke: var(--accent); }
   .tile.time { grid-column: span 2; }
   .time-parts { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12.5px; color: var(--ink-soft); }
   .time-parts li { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .time-parts li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
   .tile .time-parts b { display: inline; font-size: 12.5px; font-weight: 600; color: var(--ink); }
-  .tile .arc { transition: stroke-dashoffset 1.2s var(--ease-out); }
-  .tile .needle { transition: transform 1.2s var(--ease-out); transform-origin: 26px 30px; }
+  .tile .needle { transform-origin: 26px 30px; }
 
   .comp { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
   .comp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -637,20 +629,17 @@
   .brow .bico {
     width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; justify-self: center; cursor: default;
     background: #fbf4e6; box-shadow: inset 0 0 0 1px color-mix(in srgb, #3b2a20 14%, transparent), 0 1px 2px rgb(0 0 0 / .08);
-    animation: pop .5s var(--ease-out) both; animation-delay: calc(var(--i) * 70ms + 200ms);
   }
   .brow .bico svg { width: 38px; height: 38px; display: block; transition: transform .25s var(--ease-out); }
   .brow:hover .bico svg, .brow:has(.seg:focus-visible) .bico svg { transform: scale(1.12) rotate(-4deg); }
-  @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
   .btrack { height: 16px; display: flex; align-items: center; }
   .seg {
     display: block; height: 100%; width: calc(var(--w) * 100%); min-width: 3px; border-radius: 0 4px 4px 0; background: var(--c);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent); /* keeps pale bars (flour, sugar, cream) visible on the paper */
-    cursor: default; outline: none; transform-origin: 0 50%; animation: grow .9s var(--ease-out) both; animation-delay: calc(var(--i) * 70ms + 250ms);
+    cursor: default; outline: none; transform-origin: 0 50%;
     transition: filter .2s;
   }
   .seg:focus-visible { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
-  @keyframes grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
   .comp[data-hot] .brow:not([data-hot]) > * { opacity: .45; }
   .comp[data-hot] .brow:not([data-hot]) .seg { filter: saturate(.4); }
   .comp:has(.seg:focus-visible) .brow:not(:has(.seg:focus-visible)) > * { opacity: .45; }
@@ -670,8 +659,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .aurora i, .floaters span, .floaters span > svg, .art svg .steam path { animation: none !important; }
-    .reveal { opacity: 1; translate: none; transition: none; }
-    .seg, .bico, .tile, .banner h1 .ln, .recipe-hero h1 { animation: none; }
     .brow .bico svg { transition: none; }
     .tilt { --rx: 0deg !important; --ry: 0deg !important; }
   }
@@ -730,39 +717,29 @@
     :root { --spring: linear(0, .183, .528, .85, 1.061, 1.151, 1.15, 1.104, 1.048, 1.005, .981, .975, .979, .988, .996, 1.001, 1.004, 1); }
   }
 
-  /* --- title: each letter springs up on its own; hover a letter and it hops --- */
-  .banner h1 .ln.split { animation: none; }
+  /* --- title: the letters are already in place on first show; hover a letter and it hops --- */
   .banner h1 .wd { display: inline-block; white-space: nowrap; }
   .banner h1 .ch {
     display: inline-block; transform-origin: 50% 85%; will-change: transform;
-    animation: chIn .95s var(--spring) both; animation-delay: calc(var(--k) * 42ms + 150ms);
   }
-  @keyframes chIn { from { opacity: 0; transform: translateY(.6em) rotate(calc(var(--tw, 1) * 12deg)) scale(.6); } }
 
-  /* --- portrait: the ring slowly turns, the photo springs in, the speech bubble pops out after it --- */
+  /* --- portrait: the ring slowly turns (the photo and speech bubble are simply there on first show) --- */
   @property --ring { syntax: "<angle>"; inherits: false; initial-value: 200deg; }
   .baker-frame {
     background: conic-gradient(from var(--ring), var(--accent), var(--accent-2), var(--accent));
-    animation: frameIn .9s var(--spring) both, ring 16s linear infinite;
+    animation: ring 16s linear infinite;
   }
   .baker-frame.pop { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1), ring 16s linear infinite; }
   @keyframes ring { to { --ring: 560deg; } }
-  @keyframes frameIn { from { opacity: 0; scale: .5; rotate: -18deg; } }
-  .baker figcaption { transform-origin: 0 50%; animation: bubble .7s var(--spring) .75s both; }
-  @keyframes bubble { from { opacity: 0; transform: scale(.4) rotate(-8deg); } }
-  .stat { animation: rise .8s var(--ease-out) .5s both; }
-  .stat + .stat { animation-delay: .62s; }
 
-  /* --- featured cake: slides in, each new cake wipes in, and a thin timer shows when the next one is due --- */
-  .feature { animation: featIn 1s var(--spring) .3s both; }
-  @keyframes featIn { from { opacity: 0; translate: 0 44px; rotate: 5deg; } }
+  /* --- featured cake: the first one is simply there; each later cake wipes in, and a thin timer shows when the next one is due --- */
   .feature-fade { animation: none; }
-  .feature-fade > * { animation: rise .7s var(--ease-out) both; }
-  .feature-fade > :nth-child(2) { animation-delay: .1s; } .feature-fade > :nth-child(3) { animation-delay: .16s; }
-  .feature-fade > :nth-child(4) { animation-delay: .22s; } .feature-fade > :nth-child(n+5) { animation-delay: .28s; }
-  .feature-fade > .art { animation: artWipe .9s var(--ease-out) both; }
+  .feature-fade.swap > * { animation: rise .7s var(--ease-out) both; }
+  .feature-fade.swap > :nth-child(2) { animation-delay: .1s; } .feature-fade.swap > :nth-child(3) { animation-delay: .16s; }
+  .feature-fade.swap > :nth-child(4) { animation-delay: .22s; } .feature-fade.swap > :nth-child(n+5) { animation-delay: .28s; }
+  .feature-fade.swap > .art { animation: artWipe .9s var(--ease-out) both; }
   @keyframes artWipe { from { clip-path: inset(0 100% 0 0 round 16px); } to { clip-path: inset(0 0 0 0 round 16px); } }
-  .feature-fade > .art .photo, .feature-fade > .art svg { animation: develop 1.6s var(--ease-out) both; }
+  .feature-fade.swap > .art .photo, .feature-fade.swap > .art svg { animation: develop 1.6s var(--ease-out) both; }
   @keyframes develop { from { scale: 1.2; } }
   .feature.rot .feature-fade::after {
     content: ""; position: absolute; left: 22px; right: 22px; bottom: 9px; height: 3px; border-radius: 3px;
@@ -800,21 +777,7 @@
     @keyframes parGingham { to { background-position: 0 90px, 0 90px; } }
   }
 
-  /* --- cards are served: they rise with a little turn and settle on a spring, the photo eases back, pills pop --- */
-  .reveal { scale: .94; rotate: var(--rr, 0deg); }
-  .reveal.in { scale: 1; rotate: 0deg; }
-  .reveal, .card.tilt.reveal {
-    transition: opacity .6s var(--ease-out), translate .95s var(--spring), scale .95s var(--spring), rotate .95s var(--spring),
-      transform .5s var(--ease-out), box-shadow .3s ease;
-    transition-delay: var(--rd, 0ms), var(--rd, 0ms), var(--rd, 0ms), var(--rd, 0ms), 0s, 0s;
-  }
-  .card.tilt.reveal:hover, .card.tilt.reveal:focus-visible {
-    transition: opacity .6s var(--ease-out), translate .95s var(--spring), scale .95s var(--spring), rotate .95s var(--spring), transform .12s linear, box-shadow .3s ease;
-  }
-  .card.reveal .art .photo, .card.reveal .art svg { scale: 1.18; transition: transform .6s var(--ease-out), scale 1.5s var(--ease-out) var(--rd, 0ms); }
-  .card.reveal.in .art .photo, .card.reveal.in .art svg { scale: 1; }
-  .card.reveal .pill { opacity: 0; scale: .5; transition: opacity .35s ease, scale .6s var(--spring); }
-  .card.reveal.in .pill { opacity: 1; scale: 1; transition-delay: calc(var(--rd, 0ms) + 380ms + var(--pi, 0) * 55ms); }
+  /* --- cards: already in place when they come into view (no rise, turn or pill pop); the pill icons wiggle on hover --- */
   .pill:nth-child(2) { --pi: 1; } .pill:nth-child(3) { --pi: 2; } .pill:nth-child(4) { --pi: 3; } .pill:nth-child(5) { --pi: 4; } .pill:nth-child(n+6) { --pi: 5; }
   .card h3 { transition: color .25s ease; }
   .card:hover h3, .card:focus-visible h3 { color: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
@@ -848,20 +811,16 @@
   .share-opt .ico { transition: transform .45s var(--spring); }
   .share-opt:hover .ico, .share-opt:focus-visible .ico { transform: translateY(-3px) rotate(-8deg) scale(1.08); }
 
-  /* --- recipe page: pills pop in, the photo floats, sections rise as you reach them --- */
-  .recipe-hero .pill { animation: pillPop .6s var(--spring) both; animation-delay: calc(var(--pi, 0) * 70ms + 250ms); }
-  @keyframes pillPop { from { opacity: 0; scale: .5; } }
-  .recipe-hero .layer-stack, .recipe-hero .credits, .recipe-hero .insta { animation: rise .7s var(--ease-out) .45s both; }
+  /* --- recipe page: everything is in place on first show; only the photo gently floats --- */
   .recipe-hero .art { animation: bob 7s ease-in-out infinite; }
   @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
-  .glance { animation: rise .8s var(--ease-out) .1s both; }
 
   /* --- ticking steps off: the box pops, sprinkles fly, a finished stage gets its badge, the bar glints --- */
   .ck-item.just .ck-box { animation: tickPop .55s var(--spring); }
   .ck-item.just { animation: tickNudge .45s var(--ease-out); }
   @keyframes tickPop { from { scale: .5; } }
   @keyframes tickNudge { 35% { scale: .985; } }
-  .ck-stage.all-done > .ck-group::after { animation: badge .7s var(--spring) both; }
+  .ck-stage.all-done.fresh > .ck-group::after { animation: badge .7s var(--spring) both; }
   @keyframes badge { from { opacity: 0; scale: .3; rotate: -12deg; } }
   .ck-stage.all-done { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
   .ck-bar i { position: relative; overflow: hidden; }
@@ -885,18 +844,17 @@
   @media (max-width: 560px) { .banner-inner { padding-top: 68px; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .banner h1 .ch, .baker-frame, .baker figcaption, .stat, .feature, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
-    .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg, .recipe-hero .pill, .recipe-hero .layer-stack,
-    .recipe-hero .credits, .recipe-hero .insta, .recipe-hero .art, .glance, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after,
+    .baker-frame, .feature-fade > *, .feature-fade > .art .photo, .feature-fade > .art svg,
+    .banner .aurora, .banner::before, .empty .sec-ic, .toolbar h2 .sec-ic svg, .recipe-card .label .sec-ic svg,
+    .recipe-hero .art, .ck-item.just, .ck-item.just .ck-box, .ck-stage.all-done > .ck-group::after, .ck-bar i::after,
     footer .sign-avatar, .card:hover .pill svg { animation: none !important; }
     .feature.rot .feature-fade::after { display: none; }
     .btn, .btn svg, .search svg { transition: border-color .2s, color .2s; }
     .btn:hover, .btn:active, .btn:hover svg, .share-opt:hover .ico { transform: none !important; }
   }
   @media print {
-    .reveal { opacity: 1 !important; translate: none !important; scale: none !important; rotate: none !important; }
     .sprinkles, .drip { display: none !important; }
-    .glance, .recipe-hero .art, .recipe-hero .pill, .recipe-hero .layer-stack, .recipe-hero .credits, .recipe-hero .insta { animation: none !important; }
+    .recipe-hero .art { animation: none !important; }
   }
 </style>
 </head>
@@ -1509,18 +1467,17 @@
     const n = RECIPES.length;
     const newest = [...RECIPES].sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))[0];
     $("#stats").innerHTML =
-      `<div class="stat"><b data-count>${n}</b><span>bake${n === 1 ? "" : "s"}</span></div>` +
+      `<div class="stat"><b>${n}</b><span>bake${n === 1 ? "" : "s"}</span></div>` +
       (newest && newest.modified ? `<div class="stat"><b>${esc(fmtDate(newest.modified).split(",")[0])}</b><span>last updated</span></div>` : "");
 
-    document.querySelectorAll("[data-count]").forEach(countUp);
     // Featured recipe — rotates every few seconds through the collection
     if (!n) { $("#feature").style.display = "none"; return; }
-    let i = Math.floor(Math.random() * n);
+    let i = Math.floor(Math.random() * n), first = true;
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3><small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
-      i++;
+      f.innerHTML = `<div class="feature-fade${first ? "" : " swap"}"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3><small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
+      i++; first = false;
     };
     show();
     if (n > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -1545,7 +1502,6 @@
           ${bottomPillsHTML(r)}
         </div>
       </a>`).join("") : `<div class="empty" style="grid-column:1/-1"><i class="sec-ic" aria-hidden="true">${iconSVG("whisk")}</i>No recipes match “${esc(q)}”.</div>`;
-    if (!moving) reveal([...$("#grid").querySelectorAll(".card")]); // while cards are gliding to new places they are already in view
   }
 
   /* ---------- Bold the amounts to be mixed ----------
@@ -1987,8 +1943,8 @@
     if (a.temp) {
       const f = Math.max(0, Math.min(1, (a.temp.c - 140) / 100)), L = Math.PI * 20;
       tiles.push(`<div class="viz"><svg viewBox="0 0 52 40" aria-hidden="true"><path class="track" d="M6 30a20 20 0 0 1 40 0" fill="none" stroke-width="6" stroke-linecap="round"/>
-        <path class="fill" d="M6 30a20 20 0 0 1 40 0" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L}" data-to="${L * (1 - f)}"/>
-        <g class="needle" style="transform:rotate(-90deg)" data-rot="${-90 + 180 * f}"><path d="M26 30V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="26" cy="30" r="3.2" fill="currentColor"/></svg></div>
+        <path class="fill" d="M6 30a20 20 0 0 1 40 0" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - f)}"/>
+        <g class="needle" style="transform:rotate(${-90 + 180 * f}deg)"><path d="M26 30V14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></g><circle cx="26" cy="30" r="3.2" fill="currentColor"/></svg></div>
         <div><b>${esc(a.temp.label)}</b><span>oven</span></div>`);
     }
     // total time: a ring split into hands-on work, oven and waiting (cooling, chilling, freezing, resting)
@@ -1997,7 +1953,7 @@
       let at = 0;
       const arcs = [["hands", "--c3"], ["oven", "--accent"], ["wait", "--c2"]].filter(([k]) => T[k] > 0).map(([k, c]) => {
         const len = C * T[k] / T.total, rot = -90 + 360 * at / C; at += len;
-        return `<circle cx="26" cy="26" r="20" fill="none" stroke-width="6" style="stroke:var(${c})" transform="rotate(${rot} 26 26)" stroke-dasharray="${len} ${C}" stroke-dashoffset="${len}" data-to="0" class="arc"/>`;
+        return `<circle cx="26" cy="26" r="20" fill="none" stroke-width="6" style="stroke:var(${c})" transform="rotate(${rot} 26 26)" stroke-dasharray="${len} ${C}" class="arc"/>`;
       }).join("");
       // the total sits beside the ring once; the ring and the legend under it show its parts
       const legend = [["hands", "--c3", "manual work"], ["oven", "--accent", "cooking"], ["wait", "--c2", "cooling & chilling"]].filter(([k]) => T[k] > 0)
@@ -2038,12 +1994,7 @@
           `<li class="brow" data-k="${i}">${((ico) => ico ? `<span class="bico" aria-hidden="true" style="--i:${i}">${ico}</span>` : `<span class="bname">${esc(cap(x.name))}</span>`)(ingredientIcon(x.other ? "other (" : x.name))}<span class="btrack"><span class="seg" tabindex="0" style="--w:${(x.g / max).toFixed(4)};--c:${x.other ? "var(--c-other)" : ingredientColour(x.name)};--i:${i}" data-tip="<b>${esc(cap(x.name))}</b><br>${fmtG(x.g)} · ${pct(x.g)}%" aria-label="${esc(x.name)}: ${fmtG(x.g)}, ${pct(x.g)} percent"></span></span><span class="bval"><b>${fmtG(x.g)}</b><em>${pct(x.g)}%</em></span></li>`).join("")}</ul></div>`;
     }
     const g = $("#glance");
-    g.innerHTML = html;
-    // animate dials once painted
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      g.querySelectorAll("[data-to]").forEach((el) => el.style.strokeDashoffset = el.dataset.to);
-      g.querySelectorAll("[data-rot]").forEach((el) => el.style.transform = `rotate(${el.dataset.rot}deg)`);
-    }));
+    g.innerHTML = html; // the dials are drawn at their final values: nothing sweeps or grows on first show
   }
 
   // hovering a row lights it up and dims the rest
@@ -2085,11 +2036,6 @@
       el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg");
     });
   }
-  // fade cards up as they scroll into view
-  const revealer = "IntersectionObserver" in window && !calm
-    ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); revealer.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" })
-    : null;
-  function reveal(els) { els.forEach((el, k) => { if (!revealer) return; el.classList.add("reveal"); el.style.setProperty("--rd", `${(k % 4) * 70}ms`); if (el.classList.contains("card")) el.style.setProperty("--rr", `${k % 2 ? 2.5 : -2.5}deg`); revealer.observe(el); }); }
 
   // banner: floating ingredients that drift with the pointer
   function renderFloaters() {
@@ -2098,7 +2044,7 @@
     // The % spots are for the stacked (phone/tablet) layout; placeFloaters() re-anchors them on desktop.
     const F = [["wheat", 70, 17, 42, 4, 8, 23], ["sparkle", 86, 30, 34, 3, 0, 19], ["cake", 66, 41, 54, 7, -4, 29], ["whisk", 80, 50, 46, 6, 10, 26]];
     $("#floaters").innerHTML = F.map(([n, x, y, s, d, r, t], k) =>
-      `<span data-n="${n}" style="--x:${x}%;--y:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--in:${.5 + k * .35}s;--dx:${(t / 2.3).toFixed(1)}s;--dy:${(t / 3.1).toFixed(1)}s;--dr:${(t / 1.7).toFixed(1)}s;--delay:${-k * 5.3}s">${iconSVG(n, "", true)}</span>`).join("") +
+      `<span data-n="${n}" style="--x:${x}%;--y:${y}%;--s:${s}px;--d:${d};--r:${r}deg;--dx:${(t / 2.3).toFixed(1)}s;--dy:${(t / 3.1).toFixed(1)}s;--dr:${(t / 1.7).toFixed(1)}s;--delay:${-k * 5.3}s">${iconSVG(n, "", true)}</span>`).join("") +
       // soft inner shading (darker toward the lower-right edges) instead of a cast drop shadow
       `<svg width="0" height="0" style="position:absolute"><filter id="floater-shade" x="-10%" y="-10%" width="120%" height="120%">` +
       `<feGaussianBlur in="SourceAlpha" stdDeviation="1.4"/><feOffset dx="-1.6" dy="-2"/>` +
@@ -2294,15 +2240,8 @@
       el.addEventListener("focusin", on); el.addEventListener("focusout", off);
     });
   }
-  // count stat numbers up from zero
-  function countUp(el) {
-    const to = +el.textContent; if (calm || !(to > 1)) return;
-    const t0 = performance.now(), dur = 900;
-    const step = (t) => { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
-    el.textContent = "0"; requestAnimationFrame(step);
-  }
   /* ---------- Motion layer 2 ---------- */
-  // Title: split into letters so each can spring in (CSS) and hop when hovered. Screen readers get the plain title.
+  // Title: split into letters so each can hop when hovered. Screen readers get the plain title.
   function letterTitle() {
     const h1 = document.querySelector(".banner h1"); if (calm || !h1) return;
     const lines = [...h1.querySelectorAll(".ln")];
@@ -2324,8 +2263,8 @@
   const titleWave = () => document.querySelectorAll(".banner h1 .ch").forEach((c, k) => hop(c, 200 + k * 45));
 
   // Chocolate drip along the banner's bottom edge: a band of melted chocolate that runs down onto the page in
-  // teardrop drips (thin neck, heavy rounded bead, a glossy streak on each). The drips ooze out one after
-  // another on load, then keep dripping while the banner is on screen. Chocolate is thick, so nothing here bounces or
+  // teardrop drips (thin neck, heavy rounded bead, a glossy streak on each). The drips are already in place
+  // on first show (nothing runs out on load), then keep dripping while the banner is on screen. Chocolate is thick, so nothing here bounces or
   // pulses: each drip, on its own slow clock, creeps longer as its bead gathers weight and its neck thins, a droplet
   // lets go of the tip, falls a little way and fades out, and the drip eases back (no spring) before creeping again.
   // Between droplets a drip hangs perfectly still.
@@ -2355,13 +2294,12 @@
       drops = [...dropG.children];
       draw(performance.now());
     };
-    const ooze = (k) => { k = Math.max(0, Math.min(1, k)); return 1 - Math.pow(1 - k, 3); }; // runs out and settles, never overshoots
     const f = (n) => n.toFixed(2); // fine steps: at this pace a tenth of a pixel would show as a shimmer
     function draw(now) {
       const t = now - t0;
       let d = `M0,${Y}`, hi = "", dots = "", px = 0;
       drips.forEach((p, i) => {
-        const g = calm ? 1 : ooze((t - 350 - i * 70) / 2600);
+        const g = 1; // the drips are already hanging on first show; they don't run out from the edge
         // the drip cycle: ext is the extra length, swell fattens the bead (and thins the neck) while the droplet gathers
         let ext = 0, swell = 0, drop = null;
         const cyc = t - 3600 - i * 70 - p.off * 1000;
@@ -2459,7 +2397,7 @@
       item.classList.remove("just"); void item.offsetWidth; item.classList.add("just");
       const b = item.querySelector(".ck-box").getBoundingClientRect();
       sprinkleBurst(b.left + b.width / 2, b.top + b.height / 2, 9, .8);
-      if (stage && stage.classList.contains("all-done")) { const g = (stage.querySelector(":scope > .ck-group") || stage).getBoundingClientRect(); setTimeout(() => sprinkleBurst(g.right - 30, g.top + g.height / 2, 18, 1.2), 180); }
+      if (stage && stage.classList.contains("all-done")) { stage.classList.add("fresh"); const g = (stage.querySelector(":scope > .ck-group") || stage).getBoundingClientRect(); setTimeout(() => sprinkleBurst(g.right - 30, g.top + g.height / 2, 18, 1.2), 180); }
     }
     if (boxes.length && done === boxes.length && !focusDialog.open) setTimeout(sprinkleShower, 250); // Focus mode stays still
   }
@@ -2876,7 +2814,6 @@
     if (r.isHTML) { src.innerHTML = sanitize(r.body); if (r.notePhoto) [...src.querySelectorAll("img")].filter((im) => im.getAttribute("src") === r.notePhoto).forEach((im) => im.remove()); }
     else src.innerHTML = r.body.split("\n").map((l) => `<div>${esc(l)}</div>`).join("");
     renderChecklist(r, src);
-    reveal([...$("#rChecklist").querySelectorAll(".ck-sec > *")]); // sections rise in as you reach them
     boldQuantities(body);
     loadComments(r);
     document.body.classList.add("viewing");
