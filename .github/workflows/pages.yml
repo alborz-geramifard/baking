@@ -20,7 +20,7 @@ env:
   # While "true", the site is closed: only closed.html is published (as the
   # home page and as the 404 page, so old recipe links land on it too) and
   # the page asks search engines not to index it. Set to "false" to reopen.
-  SITE_PRIVATE: "true"
+  SITE_PRIVATE: "false"
 
 jobs:
   deploy:

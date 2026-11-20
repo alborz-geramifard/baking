@@ -26,7 +26,7 @@ Use the **Share** button (top right of the book, or next to **Print** on a recip
 
 ## Putting it online (GitHub Pages)
 
-**The site is closed for now** while issues are fixed: `SITE_PRIVATE: "true"` in `.github/workflows/pages.yml` makes every deploy publish only `closed.html`, a "back soon" page that asks search engines not to index it. Recipes, images and comments are not published while it is on. To preview the real site meanwhile, open `index.html` locally. To reopen, set it to `"false"` and push to `main`. (GitHub Pages can't be password-protected on a personal plan, so closing it is the way to keep it private. The repo itself stays public, since comments run on its Discussions.)
+**Closing the site.** The site is open. To close it again (for example while issues are fixed), set `SITE_PRIVATE: "true"` in `.github/workflows/pages.yml` and push to `main`: every deploy then publishes only `closed.html`, a "back soon" page that asks search engines not to index it, and recipes, images and comments are not published. Set it back to `"false"` to reopen. (GitHub Pages can't be password-protected on a personal plan, so closing it is the way to keep it private. The repo itself stays public, since comments run on its Discussions.)
 
 The site's address is **https://alborz-geramifard.com/baking/** (repo: github.com/alborz-geramifard/baking). It is published by the workflow in `.github/workflows/pages.yml`, which runs on every push to `main`.
 
