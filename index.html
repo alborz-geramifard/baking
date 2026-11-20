@@ -904,7 +904,7 @@
     </div>
     <section class="grid" id="grid" aria-live="polite"></section>
   </main>
-  <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" loading="lazy" onerror="this.replaceWith(this.alt)"></span>Baked with love <span class="slice" aria-hidden="true"></span> · <time id="indexDate"></time></footer>
+  <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" onerror="this.replaceWith(this.alt)"></span>Baked with love <span class="slice" aria-hidden="true"></span> · <time id="indexDate"></time></footer>
 </div>
 
 <!-- ============ RECIPE ============ -->
@@ -964,7 +964,7 @@
     <p class="comments-sub">Baked this? Tell me how it went, or ask a question. Sign in with GitHub to post.</p>
     <div class="giscus" id="giscus"></div>
   </section>
-  <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" loading="lazy" onerror="this.replaceWith(this.alt)"></span>Baked with love <span class="slice" aria-hidden="true"></span> · <time id="recipeDate"></time></footer>
+  <footer><span class="sign"><img class="sign-avatar" src="images/baker-portrait.webp" alt="Alborz" width="72" height="72" onerror="this.replaceWith(this.alt)"></span>Baked with love <span class="slice" aria-hidden="true"></span> · <time id="recipeDate"></time></footer>
 </article>
 
 <!-- ============ SHARE DIALOG ============ -->
@@ -1161,7 +1161,7 @@
 
   /* Credits: listed, with links, on the recipe page only. The cards in the grid don't mention them. */
   const creditIcon = (c, cls) => c.icon
-    ? `<img class="${cls}" src="${esc(c.icon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`
+    ? `<img class="${cls}" src="${esc(c.icon)}" alt="" onerror="this.style.visibility='hidden'">`
     : (cls === "credit-ico" ? `<span class="credit-ico none" aria-hidden="true">${esc(c.name[0])}</span>` : "");
   const GO_ICO = '<svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>';
   const creditsHTML = (r) => r.credits.length ? `<h2>With credit to</h2><p class="credit-why">This is my own interpretation. The original recipe is theirs.</p><ul>${r.credits.map((c) => {
@@ -1177,7 +1177,7 @@
     if (r.photo && !shots.includes(r.photo)) shots.unshift(r.photo); // the note's photo leads: keep it in the strip to come back to
     const posts = r.insta.filter((p) => p.url);
     return `<h2>${IG_ICO}From my Instagram</h2><ul class="insta-shots">${shots.map((src, i) =>
-      `<li><button type="button" data-shot="${esc(src)}" aria-label="Show photo ${i + 1} of ${shots.length}"${src === r.photo ? ' aria-pressed="true"' : ""}><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></button></li>`).join("")}</ul>`
+      `<li><button type="button" data-shot="${esc(src)}" aria-label="Show photo ${i + 1} of ${shots.length}"${src === r.photo ? ' aria-pressed="true"' : ""}><img src="${esc(src)}" alt="" decoding="async"></button></li>`).join("")}</ul>`
       + (posts.length ? `<p class="insta-links">${posts.map((p, i) => `<a href="${esc(p.url)}" target="_blank" rel="noopener">${posts.length > 1 ? `See post ${i + 1} on Instagram` : "See the post on Instagram"}${GO_ICO}</a>`).join("")}</p>` : "");
   };
 
@@ -1185,10 +1185,12 @@
   const nameHTML = (r) => esc(r.name) + (r.fa ? ` <span class="fa-paren">(<bdi class="fa" lang="fa" dir="rtl">${esc(r.fa)}</bdi>)</span>` : "");
   const nameText = (r) => r.name + (r.fa ? ` (${r.fa})` : "");
 
-  /* The cake art: the recipe's photo when it has one, else the drawn cake (also used if the photo fails to load). */
-  function artHTML(r, eager) {
+  /* The cake art: the recipe's photo when it has one, else the drawn cake (also used if the photo fails to load).
+     Never lazy-loaded: online, a lazy photo only starts downloading as it scrolls into view and then pops in.
+     Fetched up front, every photo is already there when you reach it, as when the page is opened from disk. */
+  function artHTML(r) {
     const back = r.notePhoto && r.notePhoto !== r.photo ? ` data-fallback="${esc(r.notePhoto)}"` : "";
-    return r.photo ? `<img class="photo" src="${esc(r.photo)}" alt="${esc(r.title)}" data-title="${esc(r.title)}"${back} decoding="async"${eager ? "" : ' loading="lazy"'}>` : cakeSVG(r.title);
+    return r.photo ? `<img class="photo" src="${esc(r.photo)}" alt="${esc(r.title)}" data-title="${esc(r.title)}"${back} decoding="async">` : cakeSVG(r.title);
   }
   document.addEventListener("error", (e) => {
     const img = e.target;
@@ -1476,7 +1478,7 @@
     const show = () => {
       const r = RECIPES[i % n], f = $("#feature");
       f.href = href(r);
-      f.innerHTML = `<div class="feature-fade${first ? "" : " swap"}"><div class="art" data-id="${esc(r.id)}">${artHTML(r, true)}</div><h3>${nameHTML(r)}</h3><small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
+      f.innerHTML = `<div class="feature-fade${first ? "" : " swap"}"><div class="art" data-id="${esc(r.id)}">${artHTML(r)}</div><h3>${nameHTML(r)}</h3><small>${esc(firstSentence(r.teaser))}</small>${bottomPillsHTML(r, false)}</div>`;
       i++; first = false;
     };
     show();
@@ -1495,7 +1497,7 @@
     $("#count").textContent = q ? `${list.length} of ${RECIPES.length}` : `${RECIPES.length}`;
     $("#grid").innerHTML = list.length ? list.map((r, k) => `
       <a class="card tilt" href="${href(r)}" data-i="${RECIPES.indexOf(r)}">
-        <div class="art" data-id="${esc(r.id)}">${moving ? artHTML(r, true).replace('decoding="async"', 'decoding="sync"') : artHTML(r)}</div>
+        <div class="art" data-id="${esc(r.id)}">${moving ? artHTML(r).replace('decoding="async"', 'decoding="sync"') : artHTML(r)}</div>
         <div class="card-body">
           <h3>${nameHTML(r)}</h3>
           <p>${esc(r.teaser)}</p>
@@ -1743,7 +1745,7 @@
     const note = li.note ? `<span class="lnote">${esc(li.note)}</span>` : "";
     if (!li.image) return `<b>${esc(li.label)}</b>, bottom to top:${base}${extra}${note}`;
     return `<b>${esc(li.label)}</b>, numbered bottom to top:<span class="layer-list" hidden>${base}</span>`
-      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" loading="lazy" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"><span class="polaroid-cap" aria-hidden="true">${esc(String(n))} layers, bottom to top</span></a>`
+      + `<a class="layer-art" href="${esc(li.image)}" target="_blank" rel="noopener" title="Open the full-size diagram"><img src="${esc(li.image)}" alt="Illustrated slice showing the ${esc(String(n))} layers, numbered bottom to top: ${esc(li.base.map((x, i) => `${i + 1}. ${x}`).join(", "))}" width="1024" height="1024" onerror="const a = this.parentNode, l = a.parentNode.querySelector('.layer-list'); if (l) l.hidden = false; a.remove()"><span class="polaroid-cap" aria-hidden="true">${esc(String(n))} layers, bottom to top</span></a>`
       + extra + note;
   };
   const sizePills = (r) => r.sizes.map((s, i) => isLayers(s) ? "" : `<li class="pill size"${r.sizeAssumed && i === 0 ? ' title="Not in the title: these cakes are made in an 8-inch round pan"' : ""}>${/^makes/i.test(s) ? PILL_ICO.pieces : PILL_ICO.size}${esc(s)}</li>`);
@@ -2797,7 +2799,7 @@
     const ls = $("#rLayers");
     ls.hidden = !r.layerInfo;
     ls.innerHTML = ls.hidden ? "" : `${PILL_ICO.layers}<span>${layerStackHTML(r.layerInfo)}</span>`;
-    $("#rArt").innerHTML = artHTML(r, true) + `<span class="polaroid-cap${r.name.length > 20 ? " long" : ""}" aria-hidden="true">${esc(r.name)}</span>`;
+    $("#rArt").innerHTML = artHTML(r) + `<span class="polaroid-cap${r.name.length > 20 ? " long" : ""}" aria-hidden="true">${esc(r.name)}</span>`;
     $("#rCredits").innerHTML = creditsHTML(r);
     $("#rInsta").innerHTML = instaHTML(r);
     $(".recipe-top").style.setProperty("--tint", PALETTES[(FLAVOURS.find(([re]) => re.test(r.title)) || [, hash(r.title) % PALETTES.length])[1]].bg2);
